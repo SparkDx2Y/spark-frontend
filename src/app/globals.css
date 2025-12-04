@@ -4,6 +4,18 @@
   --background: #ffffff;
   --foreground: #171717;
 }
+
+
+
+@theme {
+  --color-primary: #ff4b7d;
+  --color-dark-card: #1E1F23;
+  --color-dark-input: #2A2B2F;
+}
+
+body {
+  @apply bg-white dark:bg-black text-black dark:text-white;
+}
 /* 
 @theme inline {
   --color-background: var(--background);
