@@ -20,7 +20,6 @@ Designed for smooth interactions and a polished user experience, Spark provides 
   <img src="https://img.shields.io/badge/Framework-Next.js_16-black?style=flat-square" />
   <img src="https://img.shields.io/badge/React-19-blue?style=flat-square" />
   <img src="https://img.shields.io/badge/TailwindCSS-4-38BDF8?style=flat-square" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" />
   <img src="https://img.shields.io/badge/Status-Active-success?style=flat-square" />
 </p>
 
