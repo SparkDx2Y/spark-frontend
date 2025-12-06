@@ -1,11 +1,12 @@
 import Navbar from "@/components/common/Navbar"
 import BackgroundImage from "@/components/common/BackgroundImage"
 import Footer from "@/components/common/Footer"
+import "./landing.css"
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
 
-    return (
-        <div className="text-white relative min-h-screen bg-black">
+  return (
+    <div className="text-white relative min-h-screen bg-black">
       {/* Background */}
       <BackgroundImage />
 
@@ -20,5 +21,5 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       {/* FOOTER */}
       <Footer />
     </div>
-    )
+  )
 }
