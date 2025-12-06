@@ -13,9 +13,38 @@
   --color-dark-input: #2A2B2F;
 }
 
+* {
+  scroll-behavior: smooth;
+}
+
 body {
   @apply bg-white dark:bg-black text-black dark:text-white;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #ff4b7d, #a855f7);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #ff6b9d, #c084fc);
+}
+
+/* Selection */
+::selection {
+  background-color: #ff4b7d;
+  color: white;
+}
+
 /* 
 @theme inline {
   --color-background: var(--background);
