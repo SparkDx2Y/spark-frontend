@@ -1,4 +1,3 @@
-// src/app/(public)/(auth)/login/page.tsx
 import AuthHero from "@/components/auth/AuthHero";
 import AuthFormWrapper from "@/components/auth/AuthFormWrapper";
 import LoginForm from "@/components/auth/LoginForm";
