@@ -4,7 +4,7 @@ import "./globals.css";
 
 
 export const metadata: Metadata = {
-  title: 'Spark',
+  title: 'Spark Dating',
   description: 'Find your spark!',
 }
 
