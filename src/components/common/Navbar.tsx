@@ -12,7 +12,7 @@ const Navbar = () => {
           <Link href="/" className="shrink-0 flex items-center group">
             <div className="relative transition-transform duration-300 group-hover:scale-105">
               <Image
-                src="/spark-logo.png"
+                src="/SparkLogo.png"
                 alt="Spark Logo"
                 width={140}
                 height={140}
