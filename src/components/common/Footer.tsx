@@ -5,7 +5,7 @@ export default function Footer() {
     return (
         <footer className="relative bg-black border-t border-white/10 mt-20">
             
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+            <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent"></div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
                 {/* Main Footer Grid */}
