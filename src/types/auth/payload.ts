@@ -6,7 +6,6 @@ export interface SignupPayload {
 }
 
 export interface VerifyOtpPayload {
-  userId: string;
   otp: string;
 }
 
