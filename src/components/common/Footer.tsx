@@ -92,7 +92,7 @@ export default function Footer() {
                     <div>
                         <Link href="/" className="inline-block mb-3">
                             <Image
-                                src="/spark-logo.png"
+                                src="/SparkLogo.png"
                                 alt="Spark Logo"
                                 width={120}
                                 height={120}
