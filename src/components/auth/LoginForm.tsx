@@ -1,11 +1,37 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
+import { loginSchema, LoginSchemaType } from "@/validations/auth/login.schema";
+import { handleFormError } from "@/utils/handleFormError";
+import { login } from "@/services/authService";
 
 export default function LoginForm() {
+  const router = useRouter()
+
+  const {register, handleSubmit, setError, formState: { errors, isSubmitting} } = useForm<LoginSchemaType>({
+    resolver: zodResolver(loginSchema)
+  })
+
+  const onSubmit = async (data: LoginSchemaType) => {
+    try {
+      await login(data)
+      router.push('/user/home')
+    } catch (error: unknown) {
+      handleFormError(error, setError, {
+        email:"email",
+        password:"password"
+      })
+    }
+  }
+
   return (
     <div className="space-y-6">
 
@@ -34,11 +60,15 @@ export default function LoginForm() {
         <div className="h-px bg-white/10 flex-1" />
       </div>
 
-      
-      <form className="space-y-4">
-        <Input label="Email Address" type="email" />
+      { errors.root?.message && (
+        <p className='text-red-500 text-sm text-center'>{errors.root.message}</p>
+      )}
 
-        <Input label="Password" type="password" />
+      
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+        <Input label="Email Address" type="email"  {...register("email")} error={errors.email?.message}/>
+
+        <Input label="Password" type="password" {...register("password")} error={errors.password?.message}/>
 
         <div className="text-right">
           <Link href="/forgot-password" className="text-primary text-sm">
@@ -46,12 +76,12 @@ export default function LoginForm() {
           </Link>
         </div>
 
-        <Button>Log In</Button>
+        <Button type='submit' disabled={isSubmitting}>{ isSubmitting ? "Signing In" : "Log In" }</Button>
       </form>
 
       
       <p className="text-center text-gray-400 text-sm">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/signup" className="text-primary">
           Create Account
         </Link>
