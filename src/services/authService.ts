@@ -1,7 +1,7 @@
 import { api } from "@/lib/axios";
 
 import { AUTH_ENDPOINTS } from "@/constants/api";
-import { LoginPayload, ResendOtpPayload, SignupPayload, VerifyOtpPayload } from "@/types/auth/payload";
+import { LoginPayload, SignupPayload, VerifyOtpPayload } from "@/types/auth/payload";
 import { LoginResponse, ResendOtpResponse, SignupResponse, VerifyOtpResponse } from "@/types/auth/response";
 
 
@@ -31,8 +31,8 @@ export const verifyOtp = async (data: VerifyOtpPayload): Promise<VerifyOtpRespon
 // RESEND OTP
 // -----------------------------
 
-export const resendOtp = async (data: ResendOtpPayload): Promise<ResendOtpResponse> => {
-  const response = await api.post<ResendOtpResponse>(AUTH_ENDPOINTS.RESEND_OTP, data);
+export const resendOtp = async (): Promise<ResendOtpResponse> => {
+  const response = await api.post<ResendOtpResponse>(AUTH_ENDPOINTS.RESEND_OTP);
   return response.data;
 };
 
