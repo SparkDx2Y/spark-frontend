@@ -6,33 +6,47 @@ import Input from "../ui/Input";
 import Button from "../ui/Button";
 
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { otpSchema, OtpSchemaType } from "@/validations/auth/otp.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { handleFormError } from "@/utils/handleFormError";
-import { resendOtp, verifyOtp } from "@/services/authService";
+import { resendOtp, verifyForgotPasswordOtp, verifyOtp } from "@/services/authService";
 
 
 
 export default function OtpForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const flow = searchParams.get("flow");
+  
+    const isValidFlow =
+      flow === "signup" || flow === "forgot-password";
 
     const { register, handleSubmit, setError, formState: { errors, isSubmitting }} = useForm<OtpSchemaType>({
         resolver: zodResolver(otpSchema)
     })
 
-    const onSubmit = async (data: OtpSchemaType) => {
-        try {
-            await verifyOtp(data);
 
-            router.push("/login")
-        } catch (error: unknown) {
-            handleFormError(error, setError, {
-                otp: "otp"
-            });
+    if (!isValidFlow) {
+        router.replace("/login");
+        return null;
+      }
+
+      
+      const onSubmit = async (data: OtpSchemaType) => {
+        try {
+          if (flow === "forgot-password") {
+            await verifyForgotPasswordOtp(data);
+            router.push("/reset-password");
+          } else {
+            await verifyOtp(data);
+            router.push("/login");
+          }
+        } catch (error) {
+          handleFormError(error, setError, { otp: "otp" });
         }
-    }
+      };
 
     const handleResendOtp = async () => {
         try {
