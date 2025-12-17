@@ -21,3 +21,17 @@ export interface LoginResponse {
     role: 'user' | 'admin';
   };
 }
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface ForgotPasswordVerifyOtpResponse {
+  message: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
+
+
