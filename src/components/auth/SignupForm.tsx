@@ -28,7 +28,7 @@ export default function SignupForm() {
         try {
 
             await signup(data)
-            router.push('/verify-otp')
+            router.push('/verify-otp?flow=signup')
 
         } catch(error: unknown) {
 
