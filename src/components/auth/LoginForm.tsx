@@ -12,6 +12,7 @@ import { FcGoogle } from "react-icons/fc";
 import { loginSchema, LoginSchemaType } from "@/validations/auth/login.schema";
 import { handleFormError } from "@/utils/handleFormError";
 import { login } from "@/services/authService";
+import { showSuccess } from "@/utils/toast";
 
 export default function LoginForm() {
   const router = useRouter()
@@ -22,14 +23,18 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginSchemaType) => {
     try {
-      await login(data)
+
+     const response = await login(data)
+     showSuccess(response.message)
       router.push('/user/home')
+
     } catch (error: unknown) {
       handleFormError(error, setError, {
         email:"email",
         password:"password"
       })
     }
+    
   }
 
   return (

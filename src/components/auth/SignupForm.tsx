@@ -13,6 +13,7 @@ import Button from "../ui/Button";
 import { signupSchema, SignupSchemaType } from "@/validations/auth/signup.schema";
 import { signup } from "@/services/authService";
 import { handleFormError } from "@/utils/handleFormError";
+import { showSuccess } from "@/utils/toast";
 
 export default function SignupForm() {
 
@@ -27,7 +28,10 @@ export default function SignupForm() {
     const onSubmit = async (data: SignupSchemaType ) => {
         try {
 
-            await signup(data)
+           const response =  await signup(data)
+
+            showSuccess(response.message)
+
             router.push('/verify-otp?flow=signup')
 
         } catch(error: unknown) {

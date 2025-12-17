@@ -9,6 +9,7 @@ import { resetPasswordSchema, ResetPasswordSchemaType } from "@/validations/auth
 import { zodResolver } from "@hookform/resolvers/zod";
 import { handleFormError } from "@/utils/handleFormError";
 import { resetPassword } from "@/services/authService";
+import { showSuccess } from "@/utils/toast";
 
 
 
@@ -23,7 +24,8 @@ export default function ResetPasswordForm() {
 
     const onSubmit = async (data: ResetPasswordSchemaType ) => {
         try {
-            await resetPassword(data)
+          const response = await resetPassword(data)
+          showSuccess(response.message)
             router.push('/login')
         } catch (error: unknown) {
             handleFormError(error, setError)

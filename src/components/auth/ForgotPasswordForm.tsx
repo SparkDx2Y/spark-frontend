@@ -9,6 +9,7 @@ import { forgotPasswordSchema, ForgotPasswordSchemaType } from "@/validations/au
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forgotPassword } from "@/services/authService";
 import { handleFormError } from "@/utils/handleFormError";
+import { showSuccess } from "@/utils/toast";
 
 
 
@@ -23,8 +24,11 @@ export default function ForgotPasswordForm() {
 
     const onSubmit = async (data: ForgotPasswordSchemaType) => {
         try {
-            await forgotPassword(data)
+            
+            const response = await forgotPassword(data)
+            showSuccess(response.message)
             router.push('/verify-otp?flow=forgot-password')
+
         } catch (error: unknown) {
             handleFormError(error, setError, {
                 email: 'email'

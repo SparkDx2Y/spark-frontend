@@ -12,6 +12,7 @@ import { otpSchema, OtpSchemaType } from "@/validations/auth/otp.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { handleFormError } from "@/utils/handleFormError";
 import { resendOtp, verifyForgotPasswordOtp, verifyOtp } from "@/services/authService";
+import { showSuccess } from "@/utils/toast";
 
 
 
@@ -37,20 +38,29 @@ export default function OtpForm() {
       const onSubmit = async (data: OtpSchemaType) => {
         try {
           if (flow === "forgot-password") {
-            await verifyForgotPasswordOtp(data);
+
+           const response =  await verifyForgotPasswordOtp(data);
+            showSuccess(response.message)
             router.push("/reset-password");
+
           } else {
-            await verifyOtp(data);
+
+          const response = await verifyOtp(data);
+          showSuccess(response.message)
             router.push("/login");
+
           }
+
         } catch (error) {
           handleFormError(error, setError, { otp: "otp" });
         }
+
       };
 
     const handleResendOtp = async () => {
         try {
-            await resendOtp();
+           const response = await resendOtp();
+           showSuccess(response.message)
         } catch (error: unknown) {
             handleFormError(error, setError)
         }
