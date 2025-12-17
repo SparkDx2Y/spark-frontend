@@ -12,7 +12,7 @@ export function handleFormError<T extends FieldValues>( error: unknown, setError
       // Map backend messages to fields
   if (fieldMap) {
     for (const key in fieldMap) {
-      if (message.toLowerCase().includes(key)) {
+      if (message.includes(key)) {
         setError(fieldMap[key], {
           type: "server",
           message,
