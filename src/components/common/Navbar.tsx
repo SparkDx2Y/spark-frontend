@@ -12,7 +12,7 @@ const Navbar = () => {
           <Link href="/" className="shrink-0 flex items-center group">
             <div className="relative transition-transform duration-300 group-hover:scale-105">
               <Image
-                src="/spark-logo.png"
+                src="/SparkLogo.png"
                 alt="Spark Logo"
                 width={140}
                 height={140}
@@ -28,21 +28,21 @@ const Navbar = () => {
               className="text-gray-300 hover:text-white font-medium transition-colors duration-200 relative group"
             >
               Features
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-pink-500 group-hover:w-full transition-all duration-300"></span>
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-primary to-pink-500 group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
               href="#how-it-works"
               className="text-gray-300 hover:text-white font-medium transition-colors duration-200 relative group"
             >
               How It Works
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-pink-500 group-hover:w-full transition-all duration-300"></span>
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-primary to-pink-500 group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link
               href="#about"
               className="text-gray-300 hover:text-white font-medium transition-colors duration-200 relative group"
             >
               About
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-pink-500 group-hover:w-full transition-all duration-300"></span>
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-primary to-pink-500 group-hover:w-full transition-all duration-300"></span>
             </Link>
           </div>
 

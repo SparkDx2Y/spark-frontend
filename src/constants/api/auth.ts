@@ -5,5 +5,8 @@ export const AUTH_ENDPOINTS = {
     RESEND_OTP: "/auth/resend-otp",
     LOGIN: "/auth/login",
     LOGOUT: "/auth/logout",
+    FORGOT_PASSWORD:"/auth/forgot-password",
+    FORGOT_PASSWORD_VERIFY_OTP: "/auth/forgot-password/verify-otp",
+    RESET_PASSWORD: "/auth/reset-password",
     
 } as const;
