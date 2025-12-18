@@ -4,6 +4,13 @@ const Hero = () => {
 
 
       <div className="max-w-4xl mx-auto text-center relative z-10 animate-fade-in-up">
+
+          {/* floating decorative circle */}
+
+          <div className="absolute top-20 right-20 w-32 h-32  bg-purple-500  rounded-4xl blur-3xl opacity-35 animate-float-delayed" />
+        <div className="absolute top-20 right-20 w-32 h-32  bg-purple-500  rounded-4xl blur-3xl opacity-35 animate-float-delayed" />
+
+
         {/* Badge */}
         <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-6 py-2 mb-8 hover:bg-white/10 transition-all duration-300 cursor-pointer group">
           <span className="relative flex h-2 w-2">
@@ -17,7 +24,7 @@ const Hero = () => {
 
         {/* Main Heading with Gradient */}
         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-          <span className="bg-linear-to-r from-white via-gray-100 to-white bg-clip-text text-transparent animate-gradient">
+          <span className="bg-linear-to-r from-white via-gray-300 to-white bg-clip-text text-transparent animate-gradient">
             Your one in a million
           </span>
           <br />

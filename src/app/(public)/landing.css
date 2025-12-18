@@ -1,3 +1,4 @@
+/* Fade in up animation for the main heading of hero  */
 @keyframes fade-in-up {
   from {
     opacity: 0;
@@ -10,18 +11,8 @@
   }
 }
 
-@keyframes float {
 
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-
-  50% {
-    transform: translateY(-20px) rotate(3deg);
-  }
-}
-
+/* Float animation for decorative circles */
 @keyframes float-delayed {
 
   0%,
@@ -34,6 +25,7 @@
   }
 }
 
+/* Gradient animation for background / text */
 @keyframes gradient {
 
   0%,
@@ -48,6 +40,7 @@
   }
 }
 
+/* Gradient shift animation for background / text */
 @keyframes gradient-shift {
 
   0%,
@@ -62,6 +55,7 @@
   }
 }
 
+/* Pulse animation for decorative circles / text  */
 @keyframes pulse-slow {
 
   0%,
@@ -78,9 +72,6 @@
   animation: fade-in-up 1s ease-out forwards;
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
 
 .animate-float-delayed {
   animation: float-delayed 8s ease-in-out infinite;
