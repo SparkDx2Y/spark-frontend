@@ -2,10 +2,10 @@
 
 
 
-import Input from "../ui/Input";
+import OtpInput from "../ui/OtpInput";
 import Button from "../ui/Button";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { otpSchema, OtpSchemaType } from "@/validations/auth/otp.schema";
@@ -24,8 +24,9 @@ export default function OtpForm() {
     const isValidFlow =
       flow === "signup" || flow === "forgot-password";
 
-    const { register, handleSubmit, setError, formState: { errors, isSubmitting }} = useForm<OtpSchemaType>({
-        resolver: zodResolver(otpSchema)
+    const { control, handleSubmit, setError, formState: { errors, isSubmitting }} = useForm<OtpSchemaType>({
+        resolver: zodResolver(otpSchema),
+        defaultValues: { otp: '' }
     })
 
 
@@ -79,7 +80,11 @@ export default function OtpForm() {
             )}
 
             <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-                <Input label="Verification Code" type="text" {...register("otp")} error={errors.otp?.message}/>
+               
+                <Controller name='otp' control={control} render={({field}) =>(
+                  <OtpInput length={6} value={field.value} onChange={field.onChange} error={errors.otp?.message}/>
+                  )}
+                />
 
                 <Button type='submit' disabled={isSubmitting}>{isSubmitting ? "Verifying..." : "Verify" }</Button>
             </form>
