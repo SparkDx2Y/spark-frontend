@@ -1,6 +1,8 @@
+
 "use client";
 
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,13 +10,22 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 
-export default function Input({ label, error, className, ...props }: InputProps) {
+export default function Input({ label, error, className, type, ...props }: InputProps) {
+  const [showPassword, setShowPassword] = useState(false)
+
+  //^ Check if the input is a password
+  const isPassword = type === 'password';
+
+  //^ Handle the input type by checking if the input is a password and if the password is visible
+  const inputType = isPassword && showPassword ? 'text' : type;
+  
   return (
     <div className="relative w-full group">
       <input
         {...props}
+        type={inputType}
         placeholder=" " 
-        className={`peer w-full px-4 pt-6 pb-2 bg-white/5 border border-white/10 rounded-xl text-gray-100 placeholder-transparent outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all duration-200 ${className}`}
+        className={`peer w-full px-4 pt-6 pb-2 pr-12 bg-white/5 border border-white/10 rounded-xl text-gray-100 placeholder-transparent outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all duration-200 ${className}`}
       />
       
       {label && (
@@ -31,6 +42,16 @@ export default function Input({ label, error, className, ...props }: InputProps)
         >
           {label}
         </label>
+      )}
+
+      { isPassword && (
+        <button type='button' onClick={() => setShowPassword(prev => !prev)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-all duration-200 focus:outline-none">
+          <span className={`block transition-all duration-300 ${showPassword ? "opacity-100 rotate-0 scale-100" : "opacity-80 rotate-[-20deg] scale-95"}`}>
+            { showPassword ? (
+              <EyeOff size={20} />
+            ) : ( <Eye size={20} /> )}
+          </span>
+        </button>
       )}
 
       {error && <p className="text-sm text-red-500 mt-1 ml-1">{error}</p>}
