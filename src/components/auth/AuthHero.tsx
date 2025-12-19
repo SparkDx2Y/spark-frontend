@@ -2,9 +2,13 @@ const AuthHero = () => {
   return (
     <div className="hidden lg:block space-y-6 relative z-10">
 
+        {/* floating decorative circle */}
+
+        <div className="absolute top-3 right-25 w-32 h-32  bg-purple-500  rounded-4xl blur-3xl opacity-35 animate-float-delayed" />
+        <div className="absolute top-3 right-25 w-32 h-32  bg-purple-500  rounded-4xl blur-3xl opacity-35 animate-float-delayed" />
       
       <h1 className="text-5xl font-bold leading-tight">
-        <span className="bg-linear-to-r from-white via-gray-200 to-white bg-clip-text text-transparent animate-gradient">
+        <span className="bg-linear-to-r from-white via-gray-300 to-white bg-clip-text text-transparent animate-gradient">
           Your one in a million
         </span>
         <br />
