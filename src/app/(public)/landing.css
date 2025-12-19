@@ -88,3 +88,50 @@
 .animate-pulse-slow {
   animation: pulse-slow 2s ease-in-out infinite;
 }
+
+/* Footer animate  */
+
+@keyframes smokeDrift {
+  0% {
+    transform: translateX(-10%) translateY(0) scale(1);
+  }
+  50% {
+    transform: translateX(10%) translateY(-6%) scale(1.08);
+  }
+  100% {
+    transform: translateX(-10%) translateY(0) scale(1);
+  }
+}
+
+.smoke {
+  position: absolute;
+  inset: -40%;
+  filter: blur(16px);
+  animation: smokeDrift 20s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+
+.smoke-dark-1 {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(108, 3, 61, 0.85),
+    rgba(0, 0, 0, 0.6),
+    transparent 70%
+  );
+  animation-duration: 55s;
+  opacity: 0.6;
+}
+
+
+/* Secondary soft depth */
+.smoke-dark-2 {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(30, 30, 30, 0.6),
+    rgba(0, 0, 0, 0.5),
+    transparent 75%
+  );
+  animation-duration: 55s;
+  opacity: 0.6;
+}
