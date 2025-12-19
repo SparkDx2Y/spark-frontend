@@ -49,17 +49,17 @@ export default function Footer() {
                             <h3 className="text-white font-semibold text-sm">Company</h3>
                             <ul className="space-y-3">
                                 <li>
-                                    <Link href='/about' className='text-grey-400 hover:text-primary transition-colors'>
+                                    <Link href='/about' className='text-gray-400 hover:text-primary transition-colors'>
                                         About Us
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href='/carreers' className='text-grey-400 hover:text-primary transition-colors'>
+                                    <Link href='/carreers' className='text-gray-400 hover:text-primary transition-colors'>
                                         Careers
                                     </Link>
                                 </li>
                                 <li>
-                                    <Link href='/contact' className='text-grey-400 hover:text-primary transition-colors'>
+                                    <Link href='/contact' className='text-gray-400 hover:text-primary transition-colors'>
                                         Contact
                                     </Link>
                                 </li>
