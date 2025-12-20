@@ -49,11 +49,17 @@ const Navbar = () => {
           {/* CTA Buttons */}
           <div className="flex items-center gap-3 sm:gap-4">
             {/* Log In Button */}
-            <Link
-              href="/login"
-              className="text-gray-300 hover:text-white font-medium px-4 sm:px-6 py-2 sm:py-2.5 rounded-full hover:bg-white/5 transition-all duration-200"
+            <Link 
+              href="/login" 
+              className="relative p-[1.5px] inline-flex items-center justify-center overflow-hidden rounded-full group transition-transform hover:scale-105"
             >
-              Log In
+              {/* The Spinning Beam - Colors updated to Pink/Purple/Magenta */}
+              <span className="absolute inset-[-1000%] animate-spin-slow bg-[conic-gradient(from_90deg_at_50%_50%,transparent_0%,transparent_40%,#ff2daa_50%,transparent_60%,transparent_100%)]" />
+
+              {/* Button Surface */}
+              <span className="inline-flex h-full w-full cursor-pointer items-center bg-black justify-center rounded-full px-6 py-2 text-sm font-medium text-gray-300 backdrop-blur-3xl transition-all  group-hover:text-white">
+                Log In
+              </span>
             </Link>
           </div>
         </div>
