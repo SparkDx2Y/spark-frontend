@@ -25,7 +25,7 @@ export default function Input({ label, error, className, type, ...props }: Input
         {...props}
         type={inputType}
         placeholder=" " 
-        className={`peer w-full px-4 pt-6 pb-2 pr-12 bg-white/5 border border-white/10 rounded-xl text-gray-100 placeholder-transparent outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all duration-200 ${className}`}
+        className={`peer w-full px-4 pt-6 pb-2 pr-12 border border-white/10 rounded-xl text-gray-100 placeholder-transparent outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all duration-200 ${className}`}
       />
       
       {label && (
