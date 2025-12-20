@@ -3,7 +3,7 @@ const Hero = () => {
     <main className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 overflow-hidden">
 
 
-      <div className="max-w-4xl mx-auto text-center relative z-10 animate-fade-in-up">
+      <div className="max-w-4xl mx-auto text-center relative z-10">
 
           {/* floating decorative circle */}
 
