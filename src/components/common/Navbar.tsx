@@ -14,8 +14,9 @@ const Navbar = () => {
               <Image
                 src="/SparkLogo.png"
                 alt="Spark Logo"
-                width={140}
-                height={140}
+                width={600}
+                height={200}
+                priority
                 className="w-32 sm:w-36 h-auto"
               />
             </div>
