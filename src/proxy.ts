@@ -57,7 +57,7 @@ export default async function middleware(request: NextRequest) {
             return NextResponse.next();
         }
         // If they try to go anywhere else (like /user or dashboard), force them to their current onboarding step
-        if (isUserRoute || isAdminRoute || isAuthRoute) {
+        if (isUserRoute || isAdminRoute) {
             return NextResponse.redirect(new URL('/complete-profile', request.url));
         }
         return NextResponse.next();
@@ -77,25 +77,33 @@ export default async function middleware(request: NextRequest) {
         const role = payload.role as string;
         const isProfileCompleted = payload.isProfileCompleted as boolean;
 
-        // A. If already logged in, don't allow access to Landing Page or Auth Pages
+        //  If already logged in, don't allow access to Landing Page or Auth Pages
         if (isLandingPage || isAuthRoute) {
+
+            // If profile is incomplete, redirect to complete profile
+            if (!isProfileCompleted) {
+                return NextResponse.redirect(new URL('/complete-profile', request.url));
+            }
+
+            // If profile is complete, redirect based on role
             if (role === 'admin') {
                 return NextResponse.redirect(new URL('/admin', request.url));
             }
+
             return NextResponse.redirect(new URL('/user/home', request.url));
         }
 
-        // B. Protect Admin Routes
+        //  Protect Admin Routes
         if (isAdminRoute && role !== 'admin') {
             return NextResponse.redirect(new URL('/user/home', request.url));
         }
 
-        // C. Protect User Routes based on Profile Completion
+        //  Protect User Routes based on Profile Completion
         if (isUserRoute && !isProfileCompleted) {
             return NextResponse.redirect(new URL('/complete-profile', request.url));
         }
 
-        // D. Prevent going back to Complete Profile if already done
+        // Prevent going back to Complete Profile if already done
         if (isProfileCompleteRoute && isProfileCompleted) {
             return NextResponse.redirect(new URL('/user/home', request.url));
         }
