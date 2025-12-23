@@ -12,7 +12,7 @@ import { completeProfile } from "@/services/profileService";
 import { handleFormError } from "@/utils/handleFormError";
 import { showSuccess, showError } from "@/utils/toast";
 import { useRef, useState } from "react";
-import { uploadFile } from "@/services/fileService";
+import { uploadFile, uploadMultipleFiles } from "@/services/fileService";
 
 export default function CompleteProfileForm() {
     const router = useRouter();
@@ -48,16 +48,25 @@ export default function CompleteProfileForm() {
     };
 
     const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const fileArray = Array.from(files);
+
+        const remainingSlots = 6 - photos.length;
+        if(fileArray.length > remainingSlots) {
+            showError("You can only upload up to 6 photos");
+            e.target.value = '';
+            return;
+        }
 
         // Reset the input so the same file can be selected again
         e.target.value = '';
 
         try {
             setIsUploading(true);
-            const url = await uploadFile(file);
-            setValue("photos", [...photos, url], { shouldValidate: true });
+            const url = await uploadMultipleFiles(fileArray);
+            setValue("photos", [...photos, ...url], { shouldValidate: true });
         } catch (error: any) {
             showError(error.response?.data?.message || "Failed to upload photo");
         } finally {
@@ -158,6 +167,7 @@ export default function CompleteProfileForm() {
                             onChange={onFileChange}
                             className="hidden"
                             accept="image/*"
+                            multiple
                         />
                     </div>
                     {errors.photos?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.photos.message}</p>}
