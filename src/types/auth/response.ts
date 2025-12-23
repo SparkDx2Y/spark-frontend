@@ -1,6 +1,5 @@
 
 export interface SignupResponse {
-  userId: string;
   message: string;
 }
 
@@ -20,6 +19,7 @@ export interface LoginResponse {
     email: string;
     role: 'user' | 'admin';
   };
+  isProfileCompleted: boolean;
 }
 
 export interface ForgotPasswordResponse {

@@ -11,8 +11,8 @@ import { ForgotPasswordResponse, ForgotPasswordVerifyOtpResponse, LoginResponse,
 
 
 export const signup = async (data: SignupPayload): Promise<SignupResponse> => {
-    const response = await api.post<SignupResponse>(AUTH_ENDPOINTS.SIGNUP, data)
-    return response.data
+  const response = await api.post<SignupResponse>(AUTH_ENDPOINTS.SIGNUP, data)
+  return response.data
 }
 
 
@@ -22,8 +22,8 @@ export const signup = async (data: SignupPayload): Promise<SignupResponse> => {
 
 
 export const verifyOtp = async (data: VerifyOtpPayload): Promise<VerifyOtpResponse> => {
-    const response = await api.post<VerifyOtpResponse>(AUTH_ENDPOINTS.VERIFY_OTP, data)
-    return response.data
+  const response = await api.post<VerifyOtpResponse>(AUTH_ENDPOINTS.VERIFY_OTP, data)
+  return response.data
 }
 
 
@@ -52,7 +52,7 @@ export const login = async (data: LoginPayload): Promise<LoginResponse> => {
 // FORGOT PASSWORD
 // -----------------------------
 
-export const forgotPassword = async (data: ForgotPasswordPayload) : Promise<ForgotPasswordResponse> => {
+export const forgotPassword = async (data: ForgotPasswordPayload): Promise<ForgotPasswordResponse> => {
   const response = await api.post(AUTH_ENDPOINTS.FORGOT_PASSWORD, data);
   return response.data
 }
@@ -61,7 +61,7 @@ export const forgotPassword = async (data: ForgotPasswordPayload) : Promise<Forg
 // Verify FORGOT PASSWORD
 // -----------------------------
 
-export const verifyForgotPasswordOtp = async(data: ForgotPasswordVerifyOtpPayload) : Promise<ForgotPasswordVerifyOtpResponse> => {
+export const verifyForgotPasswordOtp = async (data: ForgotPasswordVerifyOtpPayload): Promise<ForgotPasswordVerifyOtpResponse> => {
   const response = await api.post(AUTH_ENDPOINTS.FORGOT_PASSWORD_VERIFY_OTP, data)
   return response.data
 }
@@ -70,7 +70,16 @@ export const verifyForgotPasswordOtp = async(data: ForgotPasswordVerifyOtpPayloa
 // Reset Password
 // -----------------------------
 
-export const resetPassword = async(data: ResetPasswordPayload): Promise<ResetPasswordResponse> => {
+export const resetPassword = async (data: ResetPasswordPayload): Promise<ResetPasswordResponse> => {
   const response = await api.post(AUTH_ENDPOINTS.RESET_PASSWORD, data)
+  return response.data
+}
+
+// -----------------------------
+// Logout
+// -----------------------------
+
+export const logout = async (): Promise<{ message: string }> => {
+  const response = await api.post(AUTH_ENDPOINTS.LOGOUT)
   return response.data
 }
