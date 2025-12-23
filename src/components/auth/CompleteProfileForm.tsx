@@ -128,7 +128,7 @@ export default function CompleteProfileForm() {
                     <div className="grid grid-cols-3 gap-2">
                         {photos.map((url: string, index: number) => (
                             <div key={index} className="relative aspect-square rounded-xl overflow-hidden group">
-                                <Image src={url} alt={`Photo ${index + 1}`} fill className="object-cover" />
+                                <Image src={url} alt={`Photo ${index + 1}`} fill className="object-cover" unoptimized/>
                                 <button
                                     type="button"
                                     onClick={() => removePhoto(index)}
