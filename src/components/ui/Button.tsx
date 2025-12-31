@@ -32,7 +32,7 @@ export default function Button({
         {/* Reflection Highlight */}
         <span
           aria-hidden="true"
-          className="transition-all duration-300 group-hover:opacity-80 opacity-20 w-[70%] h-[1px] rounded-full absolute bottom-0 left-1/2 -translate-x-1/2 z-10"
+          className="transition-all duration-300 group-hover:opacity-80 opacity-20 w-[70%] h-px rounded-full absolute bottom-0 left-1/2 -translate-x-1/2 z-10"
           style={{
             background: 'linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,1) 50%,rgba(255,255,255,0) 100%)'
           }}
