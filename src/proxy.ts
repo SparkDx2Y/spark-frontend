@@ -31,15 +31,19 @@ export default async function middleware(request: NextRequest) {
         pathname.startsWith('/signup') ||
         pathname.startsWith('/forgot-password') ||
         pathname.startsWith('/verify-otp') ||
-        pathname.startsWith('/reset-password');
+        pathname.startsWith('/reset-password') ||
+        pathname === '/admin/login'; // Added admin login
 
     const isUserRoute = pathname.startsWith('/user');
-    const isAdminRoute = pathname.startsWith('/admin');
+    const isAdminRoute = pathname.startsWith('/admin') && pathname !== '/admin/login'; // Exclude login from admin protection
     const isProfileCompleteRoute = pathname.startsWith('/complete-profile');
 
-    // 3.  Guest Users (No Tokens at all) - it means if user is not logged in then redirect to login page - block access to protected routes
+    // 3.  Guest Users (No Tokens at all)
     if (!token && !tempToken) {
-        if (isUserRoute || isAdminRoute || isProfileCompleteRoute) {
+        if (isAdminRoute) {
+            return NextResponse.redirect(new URL('/admin/login', request.url));
+        }
+        if (isUserRoute || isProfileCompleteRoute) {
             return NextResponse.redirect(new URL('/login', request.url));
         }
         return NextResponse.next();
@@ -67,7 +71,8 @@ export default async function middleware(request: NextRequest) {
        LOGGED IN USERS (Verify accessToken)
     ===================================================== */
     if (!token) {
-        return NextResponse.redirect(new URL('/login', request.url));
+        const redirectUrl = isAdminRoute ? '/admin/login' : '/login';
+        return NextResponse.redirect(new URL(redirectUrl, request.url));
     }
 
     try {
@@ -114,7 +119,8 @@ export default async function middleware(request: NextRequest) {
         console.error('Middleware JWT Error:', error);
 
         // Clear cookies and redirect to login if token is corrupt
-        const response = NextResponse.redirect(new URL('/login', request.url));
+        const redirectUrl = isAdminRoute ? '/admin/login' : '/login';
+        const response = NextResponse.redirect(new URL(redirectUrl, request.url));
         response.cookies.delete('accessToken');
         response.cookies.delete('refreshToken');
         return response;
