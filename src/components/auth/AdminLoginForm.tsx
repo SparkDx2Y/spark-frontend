@@ -16,13 +16,16 @@ export default function AdminLoginForm() {
     const router = useRouter()
 
     const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<LoginSchemaType>({
-        resolver: zodResolver(loginSchema)
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            role: 'admin'
+        }
     })
 
     const onSubmit = async (data: LoginSchemaType) => {
         try {
 
-            const response = await login(data)
+            const response = await login({...data, role: 'admin'})
 
             // Allow access for admin only
             if (response.user.role === 'admin') {

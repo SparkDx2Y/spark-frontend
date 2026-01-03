@@ -18,13 +18,16 @@ export default function LoginForm() {
   const router = useRouter()
 
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<LoginSchemaType>({
-    resolver: zodResolver(loginSchema)
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      role: 'user'
+    }
   })
 
   const onSubmit = async (data: LoginSchemaType) => {
     try {
 
-      const response = await login(data)
+      const response = await login({...data, role: 'user'})
       
       if (response.isProfileCompleted) {
         showSuccess(response.message)

@@ -12,6 +12,7 @@ export interface VerifyOtpPayload {
 export interface LoginPayload {
   email: string;
   password: string;
+  role: string;
 }
 
 export interface ForgotPasswordPayload {
