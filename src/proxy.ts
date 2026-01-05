@@ -23,23 +23,22 @@ export default async function middleware(request: NextRequest) {
 
     // 1. Get the tokens from cookies
     const token = request.cookies.get('accessToken')?.value;
-    const tempToken = request.cookies.get('temp_token')?.value;
 
-    // 2.  Route Categories - it helps to identify the type of route 
+    // 2.  Route Categories 
     const isLandingPage = pathname === '/';
     const isAuthRoute = pathname.startsWith('/login') ||
         pathname.startsWith('/signup') ||
         pathname.startsWith('/forgot-password') ||
         pathname.startsWith('/verify-otp') ||
         pathname.startsWith('/reset-password') ||
-        pathname === '/admin/login'; // Added admin login
+        pathname === '/admin/login';
 
     const isUserRoute = pathname.startsWith('/user');
-    const isAdminRoute = pathname.startsWith('/admin') && pathname !== '/admin/login'; // Exclude login from admin protection
+    const isAdminRoute = pathname.startsWith('/admin') && pathname !== '/admin/login';
     const isProfileCompleteRoute = pathname.startsWith('/complete-profile');
 
-    // 3.  Guest Users (No Tokens at all)
-    if (!token && !tempToken) {
+    // 3.  Guest Users (No Token)
+    if (!token) {
         if (isAdminRoute) {
             return NextResponse.redirect(new URL('/admin/login', request.url));
         }
@@ -49,73 +48,46 @@ export default async function middleware(request: NextRequest) {
         return NextResponse.next();
     }
 
-    /* =====================================================
-       TEMPORARY USER (ONBOARDING STATE)
-     - User verified OTP but profile not completed
-     - Allow only onboarding-related routes
-    ===================================================== */
-    if (!token && tempToken) {
-
-        // Allow access to OTP verification and Complete Profile
-        if (pathname.startsWith('/verify-otp') || isProfileCompleteRoute) {
-            return NextResponse.next();
-        }
-        // If they try to go anywhere else (like /user or dashboard), force them to their current onboarding step
-        if (isUserRoute || isAdminRoute) {
-            return NextResponse.redirect(new URL('/complete-profile', request.url));
-        }
-        return NextResponse.next();
-    }
-
-    /* =====================================================
-       LOGGED IN USERS (Verify accessToken)
-    ===================================================== */
-    if (!token) {
-        const redirectUrl = isAdminRoute ? '/admin/login' : '/login';
-        return NextResponse.redirect(new URL(redirectUrl, request.url));
-    }
-
     try {
 
-        // token verification && extract payload && extracts role & profile completion status
+        // token verification && extract payload
         const { payload } = await jwtVerify(token, JWT_SECRET);
         const role = payload.role as string;
         const isProfileCompleted = payload.isProfileCompleted as boolean;
 
-        //  If already logged in, don't allow access to Landing Page or Auth Pages
-        if (isLandingPage || isAuthRoute) {
-
-            // If profile is incomplete, redirect to complete profile
-            if (!isProfileCompleted) {
-                return NextResponse.redirect(new URL('/complete-profile', request.url));
+        // 4. Incomplete Profile Handler (The Jail)
+        if (!isProfileCompleted) {
+            // Allow access to /complete-profile, Landing Page, and ALL Auth Pages (Login/Signup/etc)
+            if (isProfileCompleteRoute || isLandingPage || isAuthRoute) {
+                return NextResponse.next();
             }
-
-            // If profile is complete, redirect based on role
-            if (role === 'admin') {
-                return NextResponse.redirect(new URL('/admin', request.url));
-            }
-
-            return NextResponse.redirect(new URL('/user/home', request.url));
-        }
-
-        //  Protect Admin Routes
-        if (isAdminRoute && role !== 'admin') {
-            return NextResponse.redirect(new URL('/user/home', request.url));
-        }
-
-        //  Protect User Routes based on Profile Completion
-        if (isUserRoute && !isProfileCompleted) {
+            // Redirect ALL other authenticated pages (home, dashboard, admin, etc.) to complete-profile
             return NextResponse.redirect(new URL('/complete-profile', request.url));
         }
 
-        // Prevent going back to Complete Profile if already done
+        // 5. Complete Profile Handler
+        // If they try to go to Complete Profile but are already done -> Send Home
         if (isProfileCompleteRoute && isProfileCompleted) {
             return NextResponse.redirect(new URL('/user/home', request.url));
         }
 
+        // 6. Logged In User Routing (Landing/Auth Pages)
+        // Strictly redirect logged-in users to dashboard
+        if (isLandingPage || isAuthRoute) {
+            if (role === 'admin') {
+                return NextResponse.redirect(new URL('/admin', request.url));
+            }
+            return NextResponse.redirect(new URL('/user/home', request.url));
+        }
+
+        // 7. Role Protection
+        if (isAdminRoute && role !== 'admin') {
+            return NextResponse.redirect(new URL('/user/home', request.url));
+        }
+
         return NextResponse.next();
+
     } catch (error) {
-        // If token is invalid or expired
         console.error('Middleware JWT Error:', error);
 
         // Clear cookies and redirect to login if token is corrupt
