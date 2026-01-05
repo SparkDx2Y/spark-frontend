@@ -57,22 +57,19 @@ export default async function middleware(request: NextRequest) {
 
         // 4. Incomplete Profile Handler (The Jail)
         if (!isProfileCompleted) {
-            // Allow access to /complete-profile, Landing Page, and ALL Auth Pages (Login/Signup/etc)
+
             if (isProfileCompleteRoute || isLandingPage || isAuthRoute) {
                 return NextResponse.next();
             }
-            // Redirect ALL other authenticated pages (home, dashboard, admin, etc.) to complete-profile
+
             return NextResponse.redirect(new URL('/complete-profile', request.url));
         }
 
-        // 5. Complete Profile Handler
-        // If they try to go to Complete Profile but are already done -> Send Home
         if (isProfileCompleteRoute && isProfileCompleted) {
             return NextResponse.redirect(new URL('/user/home', request.url));
         }
 
-        // 6. Logged In User Routing (Landing/Auth Pages)
-        // Strictly redirect logged-in users to dashboard
+
         if (isLandingPage || isAuthRoute) {
             if (role === 'admin') {
                 return NextResponse.redirect(new URL('/admin', request.url));
@@ -80,7 +77,6 @@ export default async function middleware(request: NextRequest) {
             return NextResponse.redirect(new URL('/user/home', request.url));
         }
 
-        // 7. Role Protection
         if (isAdminRoute && role !== 'admin') {
             return NextResponse.redirect(new URL('/user/home', request.url));
         }
