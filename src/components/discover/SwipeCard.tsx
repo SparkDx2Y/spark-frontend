@@ -19,8 +19,10 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
     const likeOpacity = useTransform(x, [50, 150], [0, 1]);
     const passOpacity = useTransform(x, [-50, -150], [0, 1]);
 
+    //? state for current photo index for photo navigation
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
+    //? handle drag end for swipe actions 
     const handleDragEnd = (_: any, info: PanInfo) => {
         if (info.offset.x > 100) {
             onSwipe("right");
@@ -98,7 +100,7 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
 
                 <motion.div
                     style={{ opacity: passOpacity }}
-                    className="absolute top-12 right-8 border-4 border-red-500 rounded-xl px-4 py-2 rotate-[15deg] z-20 pointer-events-none"
+                    className="absolute top-12 right-8 border-4 border-red-500 rounded-xl px-4 py-2 rotate-15 z-20 pointer-events-none"
                 >
                     <span className="text-red-500 text-4xl font-black uppercase tracking-widest">PASS</span>
                 </motion.div>
@@ -111,7 +113,7 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
                                 {profile.name}, <span className="font-medium opacity-90">{profile.age}</span>
                             </h2>
                             <p className="text-gray-200 text-lg flex items-center gap-2 font-medium drop-shadow-md capitalize">
-                                <Info size={18} className="text-primary" />
+                                
                                 {profile.gender}
                             </p>
                         </div>

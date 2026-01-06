@@ -34,7 +34,7 @@ export default function UserHomePage() {
         const activeProfile = profiles[profiles.length - 1];
         if (!activeProfile) return;
 
-        // Optimistic UI Update: Remove the card immediately
+        //  UI Update: Remove the card immediately once swipe is triggered
         setProfiles(prev => {
             const newProfiles = [...prev];
             newProfiles.pop();
@@ -44,15 +44,14 @@ export default function UserHomePage() {
         const action = direction === 'right' ? 'like' : 'pass';
 
         try {
-            const response = await swipeAction(activeProfile.userId, action);
+            const response = await swipeAction({targetId: activeProfile.userId, action});
 
             if (response.isMatch) {
-                showSuccess("It's a Match! 🎉");
+                showSuccess("It's a Match!");
                 // TODO: Show Match Modal
             }
         } catch (error) {
             console.error("Swipe action failed", error);
-            // Ideally we might want to revert the UI state here if it fails critically
             showError("Something went wrong");
         }
     };
