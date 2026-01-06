@@ -15,7 +15,9 @@ import {
     LogOut
 } from "lucide-react";
 import { logout } from "@/services/authService";
+import { logout as logoutAction } from "@/store/features/auth/authSlice";
 import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/store/hooks";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { showSuccess, showError } from "@/utils/toast";
 
@@ -29,7 +31,8 @@ const AdminSidebar = () => {
 
     const pathname = usePathname();
     const router = useRouter();
-    
+    const dispatch = useAppDispatch();
+
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -59,11 +62,12 @@ const AdminSidebar = () => {
    * If successful, shows a success message and redirects to the login page.
    * If there is an error, shows an error message and resets the logging out state.
    */
-  
+
     const handleLogoutConfirm = async () => {
         setIsLoggingOut(true);
         try {
             await logout();
+            dispatch(logoutAction());
             showSuccess("Logged out successfully");
             router.push('/admin/login');
         } catch (error) {
