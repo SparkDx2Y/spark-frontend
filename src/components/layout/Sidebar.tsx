@@ -37,6 +37,8 @@ const Sidebar = () => {
         { icon: Settings, label: "Settings", href: "/user/settings" },
     ];
 
+
+
     const handleLogoutClick = (e: React.MouseEvent) => {
         e.preventDefault();
         setShowLogoutModal(true);
@@ -140,14 +142,20 @@ const Sidebar = () => {
 
                         {/* Profile Link */}
                         <Link href="/user/profile" className="relative group">
-                            <div className="w-10 h-10 rounded-2xl overflow-hidden ring-1 ring-white/20 group-hover:ring-primary group-hover:rounded-xl transition-all duration-500 shadow-lg">
-                                <Image
-                                    src="https://images.pexels.com/photos/1680172/pexels-photo-1680172.jpeg"
-                                    alt="Your Profile"
-                                    width={40}
-                                    height={40}
-                                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100"
-                                />
+                            <div className="w-10 h-10 rounded-2xl overflow-hidden ring-1 ring-white/20 group-hover:ring-primary group-hover:rounded-xl transition-all duration-500 shadow-lg bg-zinc-900 flex items-center justify-center">
+                                {user?.profilePhoto ? (
+                                    <Image
+                                        src={user.profilePhoto}
+                                        alt="Your Profile"
+                                        width={40}
+                                        height={40}
+                                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/20 to-primary/5 text-primary font-bold text-lg">
+                                        {user?.name?.[0]?.toUpperCase() || 'U'}
+                                    </div>
+                                )}
                                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full ring-2 ring-black"></div>
                             </div>
 

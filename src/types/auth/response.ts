@@ -10,6 +10,7 @@ export interface VerifyOtpResponse {
     name: string;
     email: string;
     role: 'user' | 'admin';
+    profilePhoto?: string | null;
   };
   isProfileCompleted: boolean;
 }
@@ -25,6 +26,7 @@ export interface LoginResponse {
     name: string;
     email: string;
     role: 'user' | 'admin';
+    profilePhoto?: string | null;
   };
   isProfileCompleted: boolean;
 }
