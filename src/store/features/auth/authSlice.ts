@@ -6,7 +6,7 @@ interface User {
     email: string;
     role: string;
     isProfileCompleted: boolean;
-    profilePhoto: string | null;
+    profilePhoto?: string | null;
 }
 
 interface AuthState {
