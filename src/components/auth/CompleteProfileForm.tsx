@@ -14,8 +14,13 @@ import { showSuccess, showError } from "@/utils/toast";
 import { useRef, useState } from "react";
 import { uploadFile, uploadMultipleFiles } from "@/services/fileService";
 
+import { useDispatch } from "react-redux";
+import { setCredentials } from "@/store/features/auth/authSlice";
+import { getCurrentUser } from "@/services/authService";
+
 export default function CompleteProfileForm() {
     const router = useRouter();
+    const dispatch = useDispatch();
 
     const { register, handleSubmit, setValue, watch, setError, formState: { errors, isSubmitting } } = useForm({
         resolver: zodResolver(completeProfileSchema),
@@ -33,7 +38,19 @@ export default function CompleteProfileForm() {
         try {
             const response = await completeProfile(data);
             showSuccess(response.message);
+
             if (response.isCompleted) {
+                // Fetch updated user data
+                const userResponse = await getCurrentUser();
+
+                
+                dispatch(setCredentials({
+                    user: {
+                        ...userResponse.user,
+                        isProfileCompleted: userResponse.isProfileCompleted
+                    }
+                }));
+
                 router.push('/user/home');
             }
         } catch (error: any) {
@@ -54,7 +71,7 @@ export default function CompleteProfileForm() {
         const fileArray = Array.from(files);
 
         const remainingSlots = 6 - photos.length;
-        if(fileArray.length > remainingSlots) {
+        if (fileArray.length > remainingSlots) {
             showError("You can only upload up to 6 photos");
             e.target.value = '';
             return;
@@ -137,7 +154,7 @@ export default function CompleteProfileForm() {
                     <div className="grid grid-cols-3 gap-2">
                         {photos.map((url: string, index: number) => (
                             <div key={index} className="relative aspect-square rounded-xl overflow-hidden group">
-                                <Image src={url} alt={`Photo ${index + 1}`} fill className="object-cover" unoptimized/>
+                                <Image src={url} alt={`Photo ${index + 1}`} fill className="object-cover" unoptimized />
                                 <button
                                     type="button"
                                     onClick={() => removePhoto(index)}
