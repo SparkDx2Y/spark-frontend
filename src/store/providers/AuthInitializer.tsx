@@ -4,12 +4,18 @@ import { useEffect, useState } from 'react';
 import { useAppDispatch } from '@/store/hooks';
 import { getCurrentUser } from '@/services/authService';
 import { setCredentials, setLoading } from '@/store/features/auth/authSlice';
+import { useAppSelector } from '@/store/hooks';
 
 export default function AuthInitializer({ children }: { children: React.ReactNode }) {
     const dispatch = useAppDispatch();
+    const { user } = useAppSelector((state) => state.auth);
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
+        if (user) {
+            setIsInitialized(true);
+            return;
+        }
         const initAuth = async () => {
             try {
                 dispatch(setLoading(true));
