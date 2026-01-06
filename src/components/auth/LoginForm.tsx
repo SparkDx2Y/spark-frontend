@@ -13,9 +13,12 @@ import { loginSchema, LoginSchemaType } from "@/validations/auth/login.schema";
 import { handleFormError } from "@/utils/handleFormError";
 import { login } from "@/services/authService";
 import { showSuccess } from "@/utils/toast";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "@/store/features/auth/authSlice";
 
 export default function LoginForm() {
   const router = useRouter()
+  const dispatch = useAppDispatch()
 
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
@@ -27,8 +30,15 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginSchemaType) => {
     try {
 
-      const response = await login({...data, role: 'user'})
-      
+      const response = await login({ ...data, role: 'user' })
+
+      dispatch(setCredentials({
+        user: {
+          ...response.user,
+          isProfileCompleted: response.isProfileCompleted
+        }
+      }))
+
       if (response.isProfileCompleted) {
         showSuccess(response.message)
         router.push('/user/home')

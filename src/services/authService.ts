@@ -83,3 +83,12 @@ export const logout = async (): Promise<{ message: string }> => {
   const response = await api.post(AUTH_ENDPOINTS.LOGOUT)
   return response.data
 }
+
+// -----------------------------
+// Get Current User
+// -----------------------------
+
+export const getCurrentUser = async (): Promise<Omit<LoginResponse, 'message'>> => {
+  const response = await api.get(AUTH_ENDPOINTS.ME);
+  return response.data;
+};

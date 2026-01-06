@@ -11,9 +11,12 @@ import { loginSchema, LoginSchemaType } from "@/validations/auth/login.schema";
 import { handleFormError } from "@/utils/handleFormError";
 import { login } from "@/services/authService";
 import { showSuccess } from "@/utils/toast";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "@/store/features/auth/authSlice";
 
 export default function AdminLoginForm() {
     const router = useRouter()
+    const dispatch = useDispatch()
 
     const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<LoginSchemaType>({
         resolver: zodResolver(loginSchema),
@@ -25,10 +28,16 @@ export default function AdminLoginForm() {
     const onSubmit = async (data: LoginSchemaType) => {
         try {
 
-            const response = await login({...data, role: 'admin'})
+            const response = await login({ ...data, role: 'admin' })
 
             // Allow access for admin only
             if (response.user.role === 'admin') {
+                dispatch(setCredentials({
+                    user: {
+                        ...response.user,
+                        isProfileCompleted: response.isProfileCompleted
+                    }
+                }))
                 showSuccess("Admin Login successfully")
                 router.push('/admin/dashboard')
             } else {

@@ -12,11 +12,14 @@ import { otpSchema, OtpSchemaType } from "@/validations/auth/otp.schema";
 import { handleFormError } from "@/utils/handleFormError";
 import { resendOtp, verifyForgotPasswordOtp, verifyOtp } from "@/services/authService";
 import { showSuccess } from "@/utils/toast";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "@/store/features/auth/authSlice";
 
 const RESENDTIME_DELAY = 30
 
 export default function OtpForm() {
   const router = useRouter();
+  const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const flow = searchParams.get("flow");
 
@@ -60,6 +63,14 @@ export default function OtpForm() {
       } else {
 
         const response = await verifyOtp(data);
+
+        dispatch(setCredentials({
+          user: {
+            ...response.user,
+            isProfileCompleted: response.isProfileCompleted
+          }
+        }))
+
         showSuccess(response.message)
         router.push("/complete-profile");
 
