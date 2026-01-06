@@ -11,9 +11,11 @@ import {
     Sparkles,
     Settings
 } from "lucide-react";
+import { useAppSelector } from "@/store/hooks";
 
 const Sidebar = () => {
     const pathname = usePathname();
+    const { user } = useAppSelector((state) => state.auth);
 
     const navItems = [
         { icon: Home, label: "Discover", href: "/user/home" },
@@ -100,7 +102,7 @@ const Sidebar = () => {
                         <div className="absolute -inset-1 bg-primary/0 group-hover:bg-primary/10 blur-md rounded-full transition-all duration-500"></div>
 
                         <span className="absolute left-[85%] ml-4 bg-zinc-900 border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 whitespace-nowrap pointer-events-none z-50 shadow-xl">
-                            Profile & Settings
+                            {user?.name || "Profile"} & Settings
                             <div className="absolute top-1/2 -left-1 -translate-y-1/2 w-2 h-2 bg-zinc-900 border-l border-b border-white/10 rotate-45"></div>
                         </span>
                     </Link>
