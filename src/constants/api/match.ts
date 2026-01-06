@@ -1,4 +1,4 @@
 export const MATCH_ENDPOINTS = {
-    GET_FEED: "/match/feed",
-    ACTION: "/match/action",
+    FEED: "/match/feed",
+    SWIPE: "/match/swipe",
 } as const;
