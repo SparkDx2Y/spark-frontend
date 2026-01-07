@@ -12,7 +12,7 @@ import { completeProfile } from "@/services/profileService";
 import { handleFormError } from "@/utils/handleFormError";
 import { showSuccess, showError } from "@/utils/toast";
 import { useRef, useState } from "react";
-import { uploadFile } from "@/services/fileService";
+import { uploadMultipleFiles } from "@/services/fileService";
 
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/store/features/auth/authSlice";
