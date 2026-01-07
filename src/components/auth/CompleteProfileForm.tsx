@@ -53,7 +53,7 @@ export default function CompleteProfileForm() {
 
                 router.push('/user/home');
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             handleFormError(error, setError);
         }
     };
@@ -82,7 +82,7 @@ export default function CompleteProfileForm() {
 
         try {
             setIsUploading(true);
-            const url = await uploadMultipleFiles(fileArray);
+            const url: string[] = await uploadMultipleFiles(fileArray);
             setValue("photos", [...photos, ...url], { shouldValidate: true });
         } catch (error: any) {
             showError(error.response?.data?.message || "Failed to upload photo");
