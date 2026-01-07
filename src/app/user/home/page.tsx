@@ -8,10 +8,12 @@ import { getMatchFeed, swipeAction } from '@/services/matchService';
 import { ProfileResponse } from '@/types/profile/response';
 import Button from '@/components/ui/Button';
 import { showError, showSuccess } from '@/utils/toast';
+import { useAppSelector } from '@/store/hooks';
 
 export default function UserHomePage() {
     const [profiles, setProfiles] = useState<ProfileResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const  isAuthenticated  = useAppSelector((state) => state.auth.isAuthenticated);
 
     const fetchProfiles = async () => {
         try {
@@ -26,15 +28,19 @@ export default function UserHomePage() {
     };
 
     useEffect(() => {
+        if(!isAuthenticated) return;
         fetchProfiles();
-    }, []);
+    }, [isAuthenticated]);
+
 
     const handleSwipe = async (direction: 'left' | 'right') => {
-        // Assume the ACTIVE card is the last one in the list
+        if (!isAuthenticated) return; 
+        
+        // ACTIVE card is the last one in the list
         const activeProfile = profiles[profiles.length - 1];
         if (!activeProfile) return;
 
-        //  UI Update: Remove the card immediately once swipe is triggered
+        //  remove the card immediately once swipe is triggered
         setProfiles(prev => {
             const newProfiles = [...prev];
             newProfiles.pop();

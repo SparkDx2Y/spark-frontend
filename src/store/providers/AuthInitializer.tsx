@@ -8,14 +8,15 @@ import { useAppSelector } from '@/store/hooks';
 
 export default function AuthInitializer({ children }: { children: React.ReactNode }) {
     const dispatch = useAppDispatch();
-    const { user } = useAppSelector((state) => state.auth);
+    const { user, isAuthenticated } = useAppSelector((state) => state.auth);
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
-        if (user) {
+        if (!isAuthenticated || user) {
             setIsInitialized(true);
             return;
         }
+        
         const initAuth = async () => {
             try {
                 dispatch(setLoading(true));
@@ -38,7 +39,7 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
         };
 
         initAuth();
-    }, [dispatch]);
+    }, [isAuthenticated, dispatch, user]);
 
     //  show a global loader while loading
     if (!isInitialized) {
