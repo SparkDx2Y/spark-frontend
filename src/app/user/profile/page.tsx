@@ -64,14 +64,11 @@ export default function UserProfilePage() {
             setSaving((prev) => ({ ...prev, avatar: true }));
             const url = await uploadFile(file);
 
-            // Add new photo to the front of gallery and set as profile photo
-            const updatedPhotos = [url, ...(profile.photos || [])].slice(0, 6); // Keep max 6 photos
-
+            // JUST update profilePhoto
             const response = await updateProfile({
-                profilePhoto: url,
-                photos: updatedPhotos,
-                coverPhoto: profile.coverPhoto // Preserve cover photo
+                profilePhoto: url
             });
+
             setProfile({ ...response.profile, photos: response.profile.photos || [] });
             updateAuthPhoto(url);
             showSuccess("Profile photo updated");
@@ -117,14 +114,13 @@ export default function UserProfilePage() {
             setSaving((prev) => ({ ...prev, gallery: true }));
             const urls = await uploadMultipleFiles(selectedFiles);
             const updatedPhotos = [...(profile.photos || []), ...urls];
-            // Preserve existing coverPhoto to prevent backend from auto-overwriting it
+
+            // JUST update photos array
             const response = await updateProfile({
-                photos: updatedPhotos,
-                coverPhoto: profile.coverPhoto // ✅ Explicitly preserve cover photo
+                photos: updatedPhotos
             });
+
             setProfile({ ...response.profile, photos: response.profile.photos || [] });
-            // keep auth avatar in sync with first photo
-            updateAuthPhoto(response.profile.profilePhoto || response.profile.photos?.[0] || null);
             showSuccess("Gallery updated");
         } catch (error: unknown) {
             console.error("Failed to update gallery", error);
@@ -136,22 +132,18 @@ export default function UserProfilePage() {
 
     const handleRemovePhoto = async (index: number) => {
         if (!profile) return;
-        if (!profile.photos || profile.photos.length <= 1) {
-            showError("At least one photo is required");
-            return;
-        }
 
-        const updatedPhotos = profile.photos.filter((_, i) => i !== index);
+        const updatedPhotos = profile.photos?.filter((_, i) => i !== index) || [];
 
         try {
             setSaving((prev) => ({ ...prev, gallery: true }));
+
+            // JUST update photos array
             const response = await updateProfile({
-                photos: updatedPhotos,
-                profilePhoto: updatedPhotos[0],
-                coverPhoto: profile.coverPhoto // ✅ Explicitly preserve cover photo
+                photos: updatedPhotos
             });
+
             setProfile({ ...response.profile, photos: response.profile.photos || [] });
-            updateAuthPhoto(response.profile.profilePhoto || response.profile.photos?.[0] || null);
             showSuccess("Photo removed");
         } catch (error: unknown) {
             console.error("Failed to remove photo", error);
