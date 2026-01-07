@@ -109,7 +109,11 @@ export default function UserProfilePage() {
             setSaving((prev) => ({ ...prev, gallery: true }));
             const urls = await uploadMultipleFiles(selectedFiles);
             const updatedPhotos = [...(profile.photos || []), ...urls];
-            const response = await updateProfile({ photos: updatedPhotos });
+            // Preserve existing coverPhoto to prevent backend from auto-overwriting it
+            const response = await updateProfile({
+                photos: updatedPhotos,
+                coverPhoto: profile.coverPhoto // ✅ Explicitly preserve cover photo
+            });
             setProfile({ ...response.profile, photos: response.profile.photos || [] });
             // keep auth avatar in sync with first photo
             updateAuthPhoto(response.profile.profilePhoto || response.profile.photos?.[0] || null);
@@ -136,6 +140,7 @@ export default function UserProfilePage() {
             const response = await updateProfile({
                 photos: updatedPhotos,
                 profilePhoto: updatedPhotos[0],
+                coverPhoto: profile.coverPhoto // ✅ Explicitly preserve cover photo
             });
             setProfile({ ...response.profile, photos: response.profile.photos || [] });
             updateAuthPhoto(response.profile.profilePhoto || response.profile.photos?.[0] || null);
