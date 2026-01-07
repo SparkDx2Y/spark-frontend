@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, X, Loader2 } from "lucide-react";
+import { Camera, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
@@ -12,7 +12,7 @@ import { completeProfile } from "@/services/profileService";
 import { handleFormError } from "@/utils/handleFormError";
 import { showSuccess, showError } from "@/utils/toast";
 import { useRef, useState } from "react";
-import { uploadMultipleFiles } from "@/services/fileService";
+import { uploadFile } from "@/services/fileService";
 
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/store/features/auth/authSlice";
@@ -25,14 +25,14 @@ export default function CompleteProfileForm() {
     const { register, handleSubmit, setValue, watch, setError, formState: { errors, isSubmitting } } = useForm({
         resolver: zodResolver(completeProfileSchema),
         defaultValues: {
-            photos: []
+            profilePhoto: ""
         }
     });
 
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const photos = watch("photos") || [];
+    const profilePhoto = watch("profilePhoto") || "";
 
     const onSubmit: SubmitHandler<CompleteProfileSchemaType> = async (data) => {
         try {
@@ -43,7 +43,6 @@ export default function CompleteProfileForm() {
                 // Fetch updated user data
                 const userResponse = await getCurrentUser();
 
-                
                 dispatch(setCredentials({
                     user: {
                         ...userResponse.user,
@@ -59,31 +58,20 @@ export default function CompleteProfileForm() {
     };
 
     const handlePhotoUpload = () => {
-        if (photos.length < 6) {
-            fileInputRef.current?.click();
-        }
+        fileInputRef.current?.click();
     };
 
     const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-        const fileArray = Array.from(files);
-
-        const remainingSlots = 6 - photos.length;
-        if (fileArray.length > remainingSlots) {
-            showError("You can only upload up to 6 photos");
-            e.target.value = '';
-            return;
-        }
-
-        // Reset the input so the same file can be selected again
+        // Reset the input
         e.target.value = '';
 
         try {
             setIsUploading(true);
-            const url: string[] = await uploadMultipleFiles(fileArray);
-            setValue("photos", [...photos, ...url], { shouldValidate: true });
+            const url = await uploadFile(file);
+            setValue("profilePhoto", url, { shouldValidate: true });
         } catch (error: any) {
             showError(error.response?.data?.message || "Failed to upload photo");
         } finally {
@@ -91,8 +79,8 @@ export default function CompleteProfileForm() {
         }
     };
 
-    const removePhoto = (index: number) => {
-        setValue("photos", photos.filter((_, i) => i !== index), { shouldValidate: true });
+    const removePhoto = () => {
+        setValue("profilePhoto", "", { shouldValidate: true });
     };
 
     return (
@@ -148,33 +136,35 @@ export default function CompleteProfileForm() {
                     {errors.interestedIn?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.interestedIn.message}</p>}
                 </div>
 
-                {/* Profile Photos */}
+                {/* Profile Photo */}
                 <div className="space-y-2">
-                    <label className="text-gray-400 text-sm ml-1">Profile Photos (Min 2)</label>
-                    <div className="grid grid-cols-3 gap-2">
-                        {photos.map((url: string, index: number) => (
-                            <div key={index} className="relative aspect-square rounded-xl overflow-hidden group">
-                                <Image src={url} alt={`Photo ${index + 1}`} fill className="object-cover" unoptimized />
+                    <label className="text-gray-400 text-sm ml-1">Profile Photo</label>
+                    <div className="flex flex-col items-center gap-4">
+                        {profilePhoto ? (
+                            <div className="relative w-40 h-40 rounded-2xl overflow-hidden group">
+                                <Image src={profilePhoto} alt="Profile" fill className="object-cover" unoptimized />
                                 <button
                                     type="button"
-                                    onClick={() => removePhoto(index)}
-                                    className="absolute top-1 right-1 p-1 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={removePhoto}
+                                    className="absolute top-2 right-2 p-1.5 bg-black/70 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
-                                    <X size={14} />
+                                    <X size={16} />
                                 </button>
                             </div>
-                        ))}
-                        {photos.length < 6 && (
+                        ) : (
                             <button
                                 type="button"
                                 onClick={handlePhotoUpload}
                                 disabled={isUploading}
-                                className="aspect-square rounded-xl border border-dashed border-white/20 flex flex-col items-center justify-center text-gray-500 hover:text-primary hover:border-primary/50 transition-colors bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-40 h-40 rounded-2xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center text-gray-500 hover:text-primary hover:border-primary/50 transition-colors bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isUploading ? (
-                                    <Loader2 className="animate-spin" size={24} />
+                                    <Loader2 className="animate-spin" size={32} />
                                 ) : (
-                                    <Plus size={24} />
+                                    <>
+                                        <Camera size={32} className="mb-2" />
+                                        <span className="text-sm">Upload Photo</span>
+                                    </>
                                 )}
                             </button>
                         )}
@@ -184,11 +174,10 @@ export default function CompleteProfileForm() {
                             onChange={onFileChange}
                             className="hidden"
                             accept="image/*"
-                            multiple
                         />
                     </div>
-                    {errors.photos?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.photos.message}</p>}
-                    <p className="text-xs text-gray-500 text-center">Upload 2-6 photos to complete your profile</p>
+                    {errors.profilePhoto?.message && <p className="text-red-500 text-[10px] mt-1 ml-1 text-center">{errors.profilePhoto.message}</p>}
+                    <p className="text-xs text-gray-500 text-center">This will be your main profile photo</p>
                 </div>
 
                 <Button type='submit' disabled={isSubmitting}>

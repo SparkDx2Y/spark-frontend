@@ -19,6 +19,12 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
     const likeOpacity = useTransform(x, [50, 150], [0, 1]);
     const passOpacity = useTransform(x, [-50, -150], [0, 1]);
 
+    // Combine profile photo with gallery photos
+    const displayPhotos = [
+        ...(profile.profilePhoto ? [profile.profilePhoto] : []),
+        ...(profile.photos || [])
+    ];
+
     //? state for current photo index for photo navigation
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
@@ -33,7 +39,7 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
 
     const nextPhoto = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (profile.photos && currentPhotoIndex < profile.photos.length - 1) {
+        if (displayPhotos.length > 0 && currentPhotoIndex < displayPhotos.length - 1) {
             setCurrentPhotoIndex(prev => prev + 1);
         }
     };
@@ -59,7 +65,7 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
             <div className="relative h-full w-full rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-gray-900">
                 {/* Profile Photo */}
                 <Image
-                    src={profile.photos?.[currentPhotoIndex] || "/placeholder-user.png"}
+                    src={displayPhotos[currentPhotoIndex] || "/placeholder-user.png"}
                     alt={profile.name}
                     fill
                     className="object-cover pointer-events-none"
@@ -72,9 +78,9 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
 
 
                 {/* Photo Navigation Indicators */}
-                {profile.photos && profile.photos.length > 1 && (
+                {displayPhotos.length > 1 && (
                     <div className="absolute top-4 inset-x-4 flex gap-1.5 z-20">
-                        {profile.photos.map((_, i) => (
+                        {displayPhotos.map((_, i) => (
                             <div
                                 key={i}
                                 className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i === currentPhotoIndex ? "bg-white shadow-sm" : "bg-white/30"
@@ -113,7 +119,7 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
                                 {profile.name}, <span className="font-medium opacity-90">{profile.age}</span>
                             </h2>
                             <p className="text-gray-200 text-lg flex items-center gap-2 font-medium drop-shadow-md capitalize">
-                                
+
                                 {profile.gender}
                             </p>
                         </div>
