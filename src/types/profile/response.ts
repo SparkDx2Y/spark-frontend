@@ -3,9 +3,11 @@ export interface ProfileResponse {
     userId: string;
     name: string;
     age?: number;
-    gender: 'male' | 'female';
+    gender?: 'male' | 'female';
     interestedIn?: 'male' | 'female';
-    photos?: string[];
+    profilePhoto?: string | null;
+    coverPhoto?: string | null;
+    photos: string[];
 }
 
 
