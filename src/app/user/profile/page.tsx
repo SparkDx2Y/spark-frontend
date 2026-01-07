@@ -63,7 +63,15 @@ export default function UserProfilePage() {
         try {
             setSaving((prev) => ({ ...prev, avatar: true }));
             const url = await uploadFile(file);
-            const response = await updateProfile({ profilePhoto: url });
+
+            // Add new photo to the front of gallery and set as profile photo
+            const updatedPhotos = [url, ...(profile.photos || [])].slice(0, 6); // Keep max 6 photos
+
+            const response = await updateProfile({
+                profilePhoto: url,
+                photos: updatedPhotos,
+                coverPhoto: profile.coverPhoto // Preserve cover photo
+            });
             setProfile({ ...response.profile, photos: response.profile.photos || [] });
             updateAuthPhoto(url);
             showSuccess("Profile photo updated");
