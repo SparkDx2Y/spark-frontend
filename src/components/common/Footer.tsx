@@ -70,7 +70,7 @@ export default function Footer() {
                     {/*  center section the logo  */}
                     <div className="flex flex-col items-center self-center translate-y-8 md:translate-y-15">
 
-                        <Image src='/SparkLogo.png' alt='Spark' width={360} height={160} priority className="w-[260px] sm:w-[300px] md:w-[360px] opacity-90" />
+                        <Image src='/SparkLogo.png' alt='Spark' width={360} height={160} priority className="w-[260px] sm:w-[300px] md:w-[360px] h-auto opacity-90" />
 
                         <div className='mt-8 flex flex-wrap justify-center gap-4 text-[11px] tracking-wide text-gray-500'>
                             <p className="text-sm sm:text-base text-gray-400 tracking-wide text-center">Where meaningful connections begin</p>
