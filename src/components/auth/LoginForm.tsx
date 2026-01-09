@@ -9,10 +9,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { FcGoogle } from "react-icons/fc";
+import { GoogleLogin } from "@react-oauth/google";
 import { loginSchema, LoginSchemaType } from "@/validations/auth/login.schema";
 import { handleFormError } from "@/utils/handleFormError";
-import { login } from "@/services/authService";
-import { showSuccess } from "@/utils/toast";
+import { login, googleLogin } from "@/services/authService";
+import { showSuccess, showError } from "@/utils/toast";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/store/features/auth/authSlice";
 
@@ -26,6 +27,33 @@ export default function LoginForm() {
       role: 'user'
     }
   })
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      if (!credentialResponse.credential) {
+        showError("Google Login failed: No credential received");
+        return;
+      }
+      const response = await googleLogin(credentialResponse.credential);
+
+      dispatch(setCredentials({
+        user: {
+          ...response.user,
+          isProfileCompleted: response.isProfileCompleted
+        }
+      }))
+
+      if (response.isProfileCompleted) {
+        showSuccess(response.message)
+        router.push('/user/home')
+      } else {
+        router.push('/complete-profile')
+      }
+    } catch (error: any) {
+      showError(error.response?.data?.message || "Google Login failed")
+    }
+  }
+
 
   const onSubmit = async (data: LoginSchemaType) => {
     try {
@@ -65,15 +93,17 @@ export default function LoginForm() {
       </div>
 
 
-      <div className="grid grid-cols-2 gap-4">
-        <button className="w-full flex items-center justify-center px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 transition">
-          Facebook
-        </button>
-
-        <button className="w-full flex items-center justify-center px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 transition">
-          <FcGoogle className="w-5 h-5 mr-2" />
-          Google
-        </button>
+      <div className="flex justify-center">
+        <div className="w-full">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => showError("Google Login failed")}
+            theme="filled_black"
+            shape="pill"
+            text="continue_with"
+            width="100%"
+          />
+        </div>
       </div>
 
 
