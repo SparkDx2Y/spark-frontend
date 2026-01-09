@@ -9,4 +9,5 @@ export const AUTH_ENDPOINTS = {
     FORGOT_PASSWORD_VERIFY_OTP: "/auth/forgot-password/verify-otp",
     RESET_PASSWORD: "/auth/reset-password",
     ME: "/auth/me",
+    GOOGLE_LOGIN: "/auth/google-login",
 } as const;
