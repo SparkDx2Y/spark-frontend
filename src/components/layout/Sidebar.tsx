@@ -79,6 +79,7 @@ const Sidebar = () => {
                             alt="Spark"
                             width={180}
                             height={60}
+                            unoptimized
                             className="w-[60px] h-auto object-contain relative z-10 drop-shadow-[0_0_8px_rgba(255,75,125,0.3)]"
                             priority
                         />
@@ -149,6 +150,7 @@ const Sidebar = () => {
                                         alt="Your Profile"
                                         width={40}
                                         height={40}
+                                        unoptimized
                                         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                                     />
                                 ) : (

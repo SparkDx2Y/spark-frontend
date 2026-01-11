@@ -46,6 +46,11 @@ export const login = async (data: LoginPayload): Promise<LoginResponse> => {
   return response.data;
 };
 
+export const googleLogin = async (token: string): Promise<LoginResponse> => {
+  const response = await api.post<LoginResponse>(AUTH_ENDPOINTS.GOOGLE_LOGIN, { token });
+  return response.data;
+};
+
 
 
 // -----------------------------

@@ -69,7 +69,11 @@ export default function UserProfilePage() {
                 profilePhoto: url
             });
 
-            setProfile({ ...response.profile, photos: response.profile.photos || [] });
+            
+            setProfile((prev) => {
+                if (!prev) return response.profile;
+                return { ...prev, ...response.profile, photos: response.profile.photos ?? prev.photos ?? [] };
+            });
             updateAuthPhoto(url);
             showSuccess("Profile photo updated");
         } catch (error: unknown) {
@@ -86,7 +90,10 @@ export default function UserProfilePage() {
             setSaving((prev) => ({ ...prev, cover: true }));
             const url = await uploadFile(file);
             const response = await updateProfile({ coverPhoto: url });
-            setProfile({ ...response.profile, photos: response.profile.photos || [] });
+            setProfile((prev) => {
+                if (!prev) return response.profile;
+                return { ...prev, ...response.profile, photos: response.profile.photos ?? prev.photos ?? [] };
+            });
             showSuccess("Cover photo updated");
         } catch (error: unknown) {
             console.error("Failed to update cover photo", error);
@@ -120,7 +127,10 @@ export default function UserProfilePage() {
                 photos: updatedPhotos
             });
 
-            setProfile({ ...response.profile, photos: response.profile.photos || [] });
+            setProfile((prev) => {
+                if (!prev) return response.profile;
+                return { ...prev, ...response.profile, photos: response.profile.photos ?? prev.photos ?? [] };
+            });
             showSuccess("Gallery updated");
         } catch (error: unknown) {
             console.error("Failed to update gallery", error);
@@ -143,7 +153,11 @@ export default function UserProfilePage() {
                 photos: updatedPhotos
             });
 
-            setProfile({ ...response.profile, photos: response.profile.photos || [] });
+            setProfile((prev) => {
+                if (!prev) return response.profile;
+                return { ...prev, ...response.profile, photos: response.profile.photos ?? prev.photos ?? [] };
+            });
+            
             showSuccess("Photo removed");
         } catch (error: unknown) {
             console.error("Failed to remove photo", error);
@@ -252,7 +266,7 @@ export default function UserProfilePage() {
 
                         <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-3 flex-wrap">
-                                <h1 className="text-3xl md:text-4xl font-bold">{profile.name || authUser?.name}</h1>
+                                <h1 className="text-3xl md:text-4xl font-bold">{authUser?.name}</h1>
                                 <span className="px-3 py-1 rounded-full bg-white/10 text-sm border border-white/10">
                                     {profile.age ? `${profile.age} yrs` : "Age not set"}
                                 </span>
