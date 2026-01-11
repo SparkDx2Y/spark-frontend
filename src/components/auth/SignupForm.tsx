@@ -10,34 +10,67 @@ import Input from "../ui/Input";
 import Button from "../ui/Button";
 
 
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { signupSchema, SignupSchemaType } from "@/validations/auth/signup.schema";
-import { signup } from "@/services/authService";
+import { signup, googleLogin } from "@/services/authService";
 import { handleFormError } from "@/utils/handleFormError";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "@/store/features/auth/authSlice";
 
 export default function SignupForm() {
 
     const router = useRouter()
+    const dispatch = useAppDispatch()
 
     //^ Initialize the  react hookform
-    const { register, handleSubmit, setError,  formState: { errors, isSubmitting } } = useForm<SignupSchemaType>({
+    const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<SignupSchemaType>({
         resolver: zodResolver(signupSchema)
     });
 
+    const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+        try {
+            if (!credentialResponse.credential) {
+                showError("Google Signup failed: No credential received");
+                return;
+            }
+
+            const response = await googleLogin(credentialResponse.credential);
+
+            dispatch(setCredentials({
+                user: {
+                    ...response.user,
+                    isProfileCompleted: response.isProfileCompleted
+                }
+            }))
+
+            if (response.isProfileCompleted) {
+                showSuccess(response.message)
+                router.push('/user/home')
+            } else {
+                router.push('/complete-profile')
+            }
+        } catch (error: any) {
+            showError(error.response?.data?.message || "Google Signup failed")
+        }
+    }
+
+
+
     //^ Handle the submit
-    const onSubmit = async (data: SignupSchemaType ) => {
+    const onSubmit = async (data: SignupSchemaType) => {
         try {
 
-           const response =  await signup(data)
+            const response = await signup(data)
 
             showSuccess(response.message)
 
             router.push('/verify-otp?flow=signup')
 
-        } catch(error: unknown) {
+        } catch (error: unknown) {
 
             handleFormError(error, setError, {
-                email:'email'
+                email: 'email'
             })
         }
     }
@@ -51,19 +84,21 @@ export default function SignupForm() {
                 <p className="text-gray-400">Join Spark and start your journey</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <button className="w-full flex items-center justify-center px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 transition">
-                    Facebook
-                </button>
-
-                <button className="w-full flex items-center justify-center px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-gray-300 hover:bg-white/10 transition">
-                    <FcGoogle className="w-5 h-5 mr-2" />
-                    Google
-                </button>
+            <div className="flex justify-center">
+                <div className="w-full">
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => showError("Google Signup failed")}
+                        theme="filled_black"
+                        shape="pill"
+                        text="signup_with"
+                        width="100%"
+                    />
+                </div>
             </div>
 
-            { errors.root?.message && (
-                <p className="text-red-500 text-sm text-center">{ errors.root.message }</p>
+            {errors.root?.message && (
+                <p className="text-red-500 text-sm text-center">{errors.root.message}</p>
             )}
 
 

@@ -1,7 +1,7 @@
 # Spark — Modern Dating Application (Frontend)
 
 ## Project Logo
-![Spark Logo](public/spark-logo.png)
+![Spark Logo](public/SparkLogo.png)
 
 Spark is a clean, responsive, and modern dating application interface built with Next.js.  
 Designed for smooth interactions and a polished user experience, Spark provides the core UI foundation for a dating platform.

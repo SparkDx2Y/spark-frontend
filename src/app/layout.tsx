@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
-
+import ReduxProvider from "@/store/providers/ReduxProvider";
 
 export const metadata: Metadata = {
   title: 'Spark',
@@ -14,9 +14,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
-        {children}
+        <ReduxProvider>
+          {children}
+        </ReduxProvider>
 
         <Toaster position="top-right" toastOptions={{
           duration: 3000,

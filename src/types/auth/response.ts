@@ -1,11 +1,18 @@
 
 export interface SignupResponse {
-  userId: string;
   message: string;
 }
 
 export interface VerifyOtpResponse {
   message: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: 'user' | 'admin';
+    profilePhoto?: string | null;
+  };
+  isProfileCompleted: boolean;
 }
 
 export interface ResendOtpResponse {
@@ -19,7 +26,9 @@ export interface LoginResponse {
     name: string;
     email: string;
     role: 'user' | 'admin';
+    profilePhoto?: string | null;
   };
+  isProfileCompleted: boolean;
 }
 
 export interface ForgotPasswordResponse {
