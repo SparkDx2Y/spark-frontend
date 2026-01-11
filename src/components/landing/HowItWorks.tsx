@@ -71,9 +71,29 @@ const HowItWorks = () => {
                         >
                             {/* Card */}
                             <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/20 h-full">
-                                {/* Step Number */}
-                                <div className="absolute -top-4 -right-4 w-16 h-16 bg-linear-to-br from-primary to-pink-600 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg shadow-primary/50 group-hover:scale-110 transition-transform duration-300">
-                                    {step.number}
+                                {/* Step Number - Corner Ribbon Badge */}
+                                <div className="absolute -top-2 -right-2 w-16 h-16 group-hover:scale-110 transition-all duration-300">
+                                    <div className="relative w-full h-full">
+                                        {/* Ribbon shape */}
+                                        <svg className="w-full h-full drop-shadow-xl" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <defs>
+                                                <linearGradient id={`ribbon-gradient-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stopColor="#ff4b7d" />
+                                                    <stop offset="100%" stopColor="#ec4899" />
+                                                </linearGradient>
+                                            </defs>
+                                            {/* Main ribbon */}
+                                            <path d="M0 0L64 0L64 64L0 0Z" fill={`url(#ribbon-gradient-${index})`} />
+                                            {/* Folded corner effect */}
+                                            <path d="M0 0L20 0L0 20L0 0Z" fill="rgba(0,0,0,0.2)" />
+                                            {/* Highlight */}
+                                            <path d="M0 0L64 0L32 32L0 0Z" fill="rgba(255,255,255,0.15)" />
+                                        </svg>
+                                        {/* Number text */}
+                                        <span className="absolute top-1 right-1 text-lg font-extrabold text-white drop-shadow-md z-10">
+                                            {step.number}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 {/* Icon */}
