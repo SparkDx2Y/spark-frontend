@@ -65,7 +65,7 @@ const Sidebar = () => {
 
     return (
         <>
-            <aside className="w-20 bg-black/95 backdrop-blur-xl fixed left-0 top-0 h-screen flex flex-col items-center py-8 border-r border-white/5 z-50 shadow-2xl">
+            <aside className="hidden md:flex w-20 bg-black/95 backdrop-blur-xl fixed left-0 top-0 h-screen flex-col items-center py-8 border-r border-white/5 z-50 shadow-2xl">
                 {/* Logo Section */}
                 <Link
                     href="/user/home"
