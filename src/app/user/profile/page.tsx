@@ -69,7 +69,7 @@ export default function UserProfilePage() {
                 profilePhoto: url
             });
 
-            
+
             setProfile((prev) => {
                 if (!prev) return response.profile;
                 return { ...prev, ...response.profile, photos: response.profile.photos ?? prev.photos ?? [] };
@@ -157,7 +157,7 @@ export default function UserProfilePage() {
                 if (!prev) return response.profile;
                 return { ...prev, ...response.profile, photos: response.profile.photos ?? prev.photos ?? [] };
             });
-            
+
             showSuccess("Photo removed");
         } catch (error: unknown) {
             console.error("Failed to remove photo", error);
@@ -201,16 +201,20 @@ export default function UserProfilePage() {
                     <div className="w-full h-full bg-linear-to-r from-primary/20 to-purple-600/20" />
                 )}
                 <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute bottom-4 right-4">
-                    <Button
+                <div className="absolute top-6 right-6 z-30">
+                    <button
                         type="button"
                         onClick={() => coverInputRef.current?.click()}
                         disabled={saving.cover}
-                        className="flex items-center gap-2 w-auto px-4 py-2"
+                        className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-black/40 hover:bg-primary backdrop-blur-3xl border border-white/20 text-white rounded-full transition-all active:scale-90 shadow-2xl group"
+                        title="Change cover photo"
                     >
-                        {saving.cover ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                        Change cover
-                    </Button>
+                        {saving.cover ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <Camera className="w-5 h-5 transition-transform group-hover:rotate-12" />
+                        )}
+                    </button>
                     <input
                         ref={coverInputRef}
                         type="file"
@@ -226,10 +230,13 @@ export default function UserProfilePage() {
             </div>
 
             {/* Profile header */}
-            <div className="max-w-5xl mx-auto px-6 -mt-16 relative z-10">
-                <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-6 lg:p-8 shadow-2xl">
-                    <div className="flex flex-col md:flex-row md:items-end gap-6">
-                        <div className="relative w-32 h-32 rounded-3xl border-4 border-black/60 overflow-hidden shadow-xl bg-black">
+            <div className="max-w-5xl mx-auto px-4 md:px-6 -mt-16 md:-mt-24 relative z-20">
+                <div className="bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/20 p-6 md:p-10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] relative overflow-hidden group">
+                    {/* Interior ambient glow - more pronounced */}
+                    <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/20 transition-all duration-700" />
+
+                    <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
+                        <div className="relative w-32 h-32 md:w-44 md:h-44 mx-auto md:mx-0 rounded-[2.5rem] border-4 border-neutral-900 overflow-hidden shadow-2xl bg-neutral-800 shrink-0">
                             {profile.profilePhoto || profile.photos?.[0] ? (
                                 <Image
                                     src={profile.profilePhoto || profile.photos?.[0]}
@@ -264,89 +271,122 @@ export default function UserProfilePage() {
                             />
                         </div>
 
-                        <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-3 flex-wrap">
-                                <h1 className="text-3xl md:text-4xl font-bold">{authUser?.name}</h1>
-                                <span className="px-3 py-1 rounded-full bg-white/10 text-sm border border-white/10">
-                                    {profile.age ? `${profile.age} yrs` : "Age not set"}
-                                </span>
-                                <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm border border-primary/30">
-                                    {profile.gender || "Gender not set"}
-                                </span>
-                                <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-200 text-sm border border-purple-500/30">
+                        <div className="flex-1 space-y-3 text-center md:text-left">
+                            <div className="flex items-center justify-center md:justify-start gap-2 md:gap-3 flex-wrap">
+                                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{authUser?.name}</h1>
+                                <div className="flex gap-2 w-full justify-center md:w-auto md:justify-start">
+                                    <span className="px-3 py-1 rounded-full bg-white/10 text-xs md:text-sm border border-white/10 whitespace-nowrap">
+                                        {profile.age ? `${profile.age} yrs` : "Age not set"}
+                                    </span>
+                                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs md:text-sm border border-primary/30 whitespace-nowrap">
+                                        {profile.gender || "Gender not set"}
+                                    </span>
+                                </div>
+                                <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-200 text-xs md:text-sm border border-purple-500/30">
                                     Interested in {profile.interestedIn || "—"}
                                 </span>
                             </div>
-                            <p className="text-gray-400 flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-green-400" />
-                                Keep your photos updated to get better matches.
+                            <p className="text-gray-400 flex items-center justify-center md:justify-start gap-2 text-sm">
+                                <ShieldCheck className="w-4 h-4 text-green-400 shrink-0" />
+                                Keep your photos updated for better visibility.
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Gallery */}
-            <div className="max-w-5xl mx-auto px-6 mt-10 pb-16 relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 className="text-xl font-semibold">Photo gallery</h2>
-                        <p className="text-gray-400 text-sm">Add up to 6 photos. First photo is used as your profile image.</p>
-                    </div>
-                    <Button
-                        type="button"
-                        onClick={() => galleryInputRef.current?.click()}
-                        disabled={saving.gallery || (profile.photos?.length || 0) >= 6}
-                        className="flex items-center gap-2"
-                    >
-                        {saving.gallery ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                        Add photos
-                    </Button>
-                    <input
-                        ref={galleryInputRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => {
-                            if (e.target.files) {
-                                handleGalleryAdd(e.target.files);
-                                e.target.value = "";
-                            }
-                        }}
-                    />
+            {/* Gallery Section */}
+            <div className="max-w-5xl mx-auto px-4 md:px-6 mt-6 md:mt-10 pb-24 md:pb-16 relative z-10">
+                <div className="mb-6">
+                    <h2 className="text-xl md:text-2xl font-bold tracking-tight">Gallery</h2>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
                     {(profile.photos || []).map((url, index) => (
-                        <div key={url + index} className="relative group rounded-2xl overflow-hidden border border-white/10 bg-white/5">
-                            <div className="aspect-4/5 relative">
-                                <Image src={url} alt={`Photo ${index + 1}`} fill className="object-cover" unoptimized />
-                            </div>
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-end">
-                                <div className="w-full flex justify-between items-center p-3">
-                                    <span className="text-sm text-white/80">Photo {index + 1}</span>
+                        <div key={url + index} className="relative group aspect-3/4 rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-xl transition-transform duration-500 hover:scale-[1.02]">
+                            <Image src={url} alt={`Photo ${index + 1}`} fill className="object-cover" unoptimized />
+
+                            {/* Gallery Item Control Overlay */}
+                            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/60 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300">
+                                {/* Top Actions */}
+                                <div className="absolute top-2 right-2 flex gap-2">
                                     <button
                                         type="button"
                                         onClick={() => handleRemovePhoto(index)}
                                         disabled={saving.gallery}
-                                        className="p-2 rounded-full bg-red-500/80 text-white hover:bg-red-500 transition disabled:opacity-50"
+                                        className="p-2 rounded-xl bg-black/40 hover:bg-black/80 backdrop-blur-md border border-white/10 text-red-500 transition-all active:scale-95 shadow-lg disabled:opacity-50"
+                                        title="Remove photo"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
                                 </div>
+
+                                {/* Bottom Info */}
+                                <div className="absolute bottom-2 left-2">
+                                    <span className="text-[10px] font-bold text-white/90 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg uppercase tracking-widest border border-white/5">
+                                        Photo {index + 1}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     ))}
+
+                    {/* The Action Card - Replaces the 'Add Photo' button */}
+                    {(profile.photos?.length || 0) < 6 && (
+                        <button
+                            onClick={() => galleryInputRef.current?.click()}
+                            disabled={saving.gallery}
+                            className={`
+                                aspect-3/4 rounded-2xl border-2 border-dashed transition-all duration-500 flex flex-col items-center justify-center gap-4 relative group/add
+                                ${saving.gallery
+                                    ? 'border-white/5 bg-white/2 cursor-not-allowed'
+                                    : 'border-white/10 bg-white/3 hover:border-primary/50 hover:bg-primary/5 cursor-pointer shadow-xl'
+                                }
+                            `}
+                        >
+                            <input
+                                ref={galleryInputRef}
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => {
+                                    if (e.target.files) {
+                                        handleGalleryAdd(e.target.files);
+                                        e.target.value = "";
+                                    }
+                                }}
+                            />
+
+                            {/* Animated Background Glow on Hover */}
+                            <div className="absolute inset-0 bg-primary/0 group-hover/add:bg-primary/5 blur-3xl transition-all duration-700 pointer-events-none" />
+
+                            <div className={`
+                                p-4 rounded-full transition-all duration-500
+                                ${saving.gallery ? 'bg-white/5' : 'bg-primary/10 group-hover/add:bg-primary group-hover/add:scale-110 shadow-[0_0_20px_rgba(255,75,125,0.2)]'}
+                            `}>
+                                {saving.gallery ? (
+                                    <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
+                                ) : (
+                                    <Plus className="w-6 h-6 text-primary group-hover/add:text-white" />
+                                )}
+                            </div>
+                            <div className="text-center z-10">
+                                <p className={`text-xs font-bold uppercase tracking-[0.2em] transition-colors ${saving.gallery ? 'text-gray-600' : 'text-gray-400 group-hover/add:text-white'}`}>
+                                    {saving.gallery ? 'Uploading...' : 'Add Photo'}
+                                </p>
+                            </div>
+                        </button>
+                    )}
                 </div>
 
                 {profile.photos?.length === 0 && (
-                    <div className="border border-dashed border-white/20 rounded-2xl p-10 text-center text-gray-400 bg-white/5 mt-4">
-                        No photos yet. Add your first photo to build your gallery.
+                    <div className="border border-dashed border-white/10 rounded-3xl p-16 text-center bg-white/2 mt-8">
+                        <Camera className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+                        <h3 className="text-gray-500 font-medium italic">Create your story—add your first gallery photo.</h3>
                     </div>
                 )}
             </div>
         </div>
     );
 }
-
