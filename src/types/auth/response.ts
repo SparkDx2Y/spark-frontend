@@ -11,6 +11,7 @@ export interface VerifyOtpResponse {
     email: string;
     role: 'user' | 'admin';
     profilePhoto?: string | null;
+    interests?: string[];
   };
   isProfileCompleted: boolean;
   isInterestsSelected: boolean;
@@ -28,6 +29,7 @@ export interface LoginResponse {
     email: string;
     role: 'user' | 'admin';
     profilePhoto?: string | null;
+    interests?: string[];
   };
   isProfileCompleted: boolean;
   isInterestsSelected: boolean;
