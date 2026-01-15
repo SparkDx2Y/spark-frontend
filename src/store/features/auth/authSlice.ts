@@ -8,6 +8,7 @@ interface User {
     isProfileCompleted: boolean;
     isInterestsSelected: boolean;
     profilePhoto?: string | null;
+    interests?: string[];
 }
 
 interface AuthState {
