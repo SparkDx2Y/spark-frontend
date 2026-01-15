@@ -8,8 +8,26 @@ export interface ProfileResponse {
     profilePhoto?: string | null;
     coverPhoto?: string | null;
     photos: string[];
+    interests?: string[];
 }
 
+
+export interface InterestResponse {
+    id: string;
+    name: string;
+}
+
+export interface InterestCategoryWithInterests {
+    id: string;
+    name: string;
+    interests: InterestResponse[];
+}
+
+export interface UpdateInterestsResponse {
+    message: string;
+    isInterestsSelected: boolean;
+    profile: ProfileResponse;
+}
 
 export interface CompleteProfileResponse {
     message: string;

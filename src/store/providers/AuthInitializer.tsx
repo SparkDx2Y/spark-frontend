@@ -16,7 +16,7 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
             setIsInitialized(true);
             return;
         }
-        
+
         const initAuth = async () => {
             try {
                 dispatch(setLoading(true));
@@ -26,7 +26,9 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
                     dispatch(setCredentials({
                         user: {
                             ...response.user,
-                            isProfileCompleted: response.isProfileCompleted
+                            isProfileCompleted: response.isProfileCompleted,
+                            isInterestsSelected: response.isInterestsSelected,
+                            interests: response.user.interests || []
                         }
                     }));
                 }

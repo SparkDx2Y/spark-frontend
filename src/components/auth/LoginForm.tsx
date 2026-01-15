@@ -39,15 +39,18 @@ export default function LoginForm() {
       dispatch(setCredentials({
         user: {
           ...response.user,
-          isProfileCompleted: response.isProfileCompleted
+          isProfileCompleted: response.isProfileCompleted,
+          isInterestsSelected: response.isInterestsSelected
         }
       }))
 
-      if (response.isProfileCompleted) {
+      if (!response.isProfileCompleted) {
+        router.push('/complete-profile')
+      } else if (!response.isInterestsSelected) {
+        router.push('/interests')
+      } else {
         showSuccess(response.message)
         router.push('/user/home')
-      } else {
-        router.push('/complete-profile')
       }
     } catch (error: any) {
       showError(error.response?.data?.message || "Google Login failed")
@@ -63,15 +66,18 @@ export default function LoginForm() {
       dispatch(setCredentials({
         user: {
           ...response.user,
-          isProfileCompleted: response.isProfileCompleted
+          isProfileCompleted: response.isProfileCompleted,
+          isInterestsSelected: response.isInterestsSelected
         }
       }))
 
-      if (response.isProfileCompleted) {
+      if (!response.isProfileCompleted) {
+        router.push('/complete-profile')
+      } else if (!response.isInterestsSelected) {
+        router.push('/interests')
+      } else {
         showSuccess(response.message)
         router.push('/user/home')
-      } else {
-        router.push('/complete-profile')
       }
 
     } catch (error: unknown) {
