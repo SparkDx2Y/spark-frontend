@@ -1,4 +1,3 @@
-import AuthFormWrapper from "@/components/auth/AuthFormWrapper";
 import InterestsSelection from "@/components/auth/InterestsSelection";
 
 export const metadata = {
@@ -8,16 +7,17 @@ export const metadata = {
 
 export default function InterestsPage() {
     return (
-        <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
-            <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-primary/10 w-full max-w-2xl overflow-hidden">
-                {/* Decorative background glow */}
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 blur-[100px] rounded-full" />
-                <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-secondary/20 blur-[100px] rounded-full" />
-
-                <div className="relative z-10">
+        <main className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden">
+            <div className="w-full max-w-3xl relative z-10">
+                <div className="bg-white/3 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] transform-gpu backface-hidden will-change-transform">
                     <InterestsSelection />
                 </div>
             </div>
         </main>
     );
 }
+
+
+
+
+
