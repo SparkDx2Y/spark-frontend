@@ -27,7 +27,8 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
                         user: {
                             ...response.user,
                             isProfileCompleted: response.isProfileCompleted,
-                            isInterestsSelected: response.isInterestsSelected
+                            isInterestsSelected: response.isInterestsSelected,
+                            interests: response.user.interests || []
                         }
                     }));
                 }
