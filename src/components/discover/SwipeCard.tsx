@@ -3,8 +3,9 @@
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Heart, X, Info } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ProfileResponse } from "@/types/profile/response";
+import { useAppSelector } from "@/store/hooks";
 
 interface SwipeCardProps {
     profile: ProfileResponse;
@@ -13,6 +14,8 @@ interface SwipeCardProps {
 }
 
 export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) {
+    const currentUser = useAppSelector((state) => state.auth.user);
+    const myInterests = currentUser?.interests || [];
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-25, 25]);
     const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
@@ -27,6 +30,24 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
 
     //? state for current photo index for photo navigation
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
+    // Smart sorting: Shared interests first, then others
+    const sortedInterests = useMemo(() => {
+        if (!profile.interests || profile.interests.length === 0) return [];
+
+        const shared: string[] = [];
+        const others: string[] = [];
+
+        profile.interests.forEach(interest => {
+            if (myInterests.includes(interest)) {
+                shared.push(interest);
+            } else {
+                others.push(interest);
+            }
+        });
+
+        return [...shared, ...others];
+    }, [profile.interests, myInterests]);
 
     //? handle drag end for swipe actions 
     const handleDragEnd = (_: any, info: PanInfo) => {
@@ -113,16 +134,45 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
 
                 {/* Info Section */}
                 <div className="absolute bottom-0 left-0 right-0 p-8 z-20 pointer-events-none">
-                    <div className="flex items-end justify-between">
-                        <div className="space-y-1">
-                            <h2 className="text-4xl font-bold text-white flex items-center gap-3 drop-shadow-lg">
-                                {profile.name}, <span className="font-medium opacity-90">{profile.age}</span>
-                            </h2>
-                            <p className="text-gray-200 text-lg flex items-center gap-2 font-medium drop-shadow-md capitalize">
-
-                                {profile.gender}
-                            </p>
+                    <div className="space-y-3">
+                        <div className="flex items-end justify-between">
+                            <div className="space-y-1">
+                                <h2 className="text-4xl font-bold text-white flex items-center gap-3 drop-shadow-lg">
+                                    {profile.name}, <span className="font-medium opacity-90">{profile.age}</span>
+                                </h2>
+                                <p className="text-gray-200 text-lg flex items-center gap-2 font-medium drop-shadow-md capitalize">
+                                    {profile.gender}
+                                </p>
+                            </div>
                         </div>
+
+                        {/* Interest Tags */}
+                        {sortedInterests.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                                {sortedInterests.slice(0, 5).map((interest, index) => {
+                                    const isShared = myInterests.includes(interest);
+                                    return (
+                                        <motion.div
+                                            key={interest}
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            className={`px-3 py-1.5 rounded-full backdrop-blur-md border shadow-lg text-sm font-medium ${isShared
+                                                    ? 'bg-primary/20 border-primary/40 text-primary shadow-primary/20'
+                                                    : 'bg-white/10 border-white/20 text-white'
+                                                }`}
+                                        >
+                                            {interest}
+                                        </motion.div>
+                                    );
+                                })}
+                                {sortedInterests.length > 5 && (
+                                    <div className="px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium shadow-lg">
+                                        +{sortedInterests.length - 5}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
