@@ -6,6 +6,7 @@ interface User {
     email: string;
     role: string;
     isProfileCompleted: boolean;
+    isInterestsSelected: boolean;
     profilePhoto?: string | null;
 }
 
