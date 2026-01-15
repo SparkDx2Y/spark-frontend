@@ -13,6 +13,7 @@ export interface VerifyOtpResponse {
     profilePhoto?: string | null;
   };
   isProfileCompleted: boolean;
+  isInterestsSelected: boolean;
 }
 
 export interface ResendOtpResponse {
@@ -29,6 +30,7 @@ export interface LoginResponse {
     profilePhoto?: string | null;
   };
   isProfileCompleted: boolean;
+  isInterestsSelected: boolean;
 }
 
 export interface ForgotPasswordResponse {
