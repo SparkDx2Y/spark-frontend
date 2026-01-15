@@ -46,11 +46,16 @@ export default function CompleteProfileForm() {
                 dispatch(setCredentials({
                     user: {
                         ...userResponse.user,
-                        isProfileCompleted: userResponse.isProfileCompleted
+                        isProfileCompleted: userResponse.isProfileCompleted,
+                        isInterestsSelected: userResponse.isInterestsSelected
                     }
                 }));
 
-                router.push('/user/home');
+                if (!userResponse.isInterestsSelected) {
+                    router.push('/interests');
+                } else {
+                    router.push('/user/home');
+                }
             }
         } catch (error: unknown) {
             handleFormError(error, setError);

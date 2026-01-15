@@ -67,7 +67,8 @@ export default function OtpForm() {
         dispatch(setCredentials({
           user: {
             ...response.user,
-            isProfileCompleted: response.isProfileCompleted
+            isProfileCompleted: response.isProfileCompleted,
+            isInterestsSelected: response.isInterestsSelected
           }
         }))
 
