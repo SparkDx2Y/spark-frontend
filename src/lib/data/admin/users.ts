@@ -1,24 +1,11 @@
-import 'server-only';
-import { cookies } from 'next/headers';
+import { getServerConfig } from '../base';
 import { GetAllUsersResponse } from '@/types/admin/userList/response';
 
 /**
  * SERVER-SIDE ONLY: Fetch users with authentication
- * This function runs ONLY on the server 
- * Returns Promise with users and pagination data
  */
 export async function getServerUsers(params: { search?: string; page?: number; limit?: number; }): Promise<GetAllUsersResponse> {
-
-    // Get cookies from the server request
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
-
-    if (!accessToken) {
-        throw new Error('Unauthorized: No access token found');
-    }
-
-    // API URL 
-    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api/v1';
+    const { token, apiUrl } = await getServerConfig();
 
     // Build query string
     const queryParams = new URLSearchParams();
@@ -34,7 +21,7 @@ export async function getServerUsers(params: { search?: string; page?: number; l
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'Cookie': `accessToken=${accessToken}`,
+            'Cookie': `accessToken=${token}`,
         },
         credentials: 'include',
         cache: 'no-store',
