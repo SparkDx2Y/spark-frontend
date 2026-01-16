@@ -1,7 +1,6 @@
 'use client';
 
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { Heart, X, Info } from "lucide-react";
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { ProfileResponse } from "@/types/profile/response";
@@ -16,6 +15,9 @@ interface SwipeCardProps {
 export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) {
     const currentUser = useAppSelector((state) => state.auth.user);
     const myInterests = currentUser?.interests || [];
+    //? state for current photo index for photo navigation
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-25, 25]);
     const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
@@ -28,8 +30,6 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
         ...(profile.photos || [])
     ];
 
-    //? state for current photo index for photo navigation
-    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
     // Smart sorting: Shared interests first, then others
     const sortedInterests = useMemo(() => {
