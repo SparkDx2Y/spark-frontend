@@ -1,3 +1,4 @@
+import { ADMIN_ENDPOINTS } from '@/constants/api';
 import {  getServerConfig } from '../base';
 import { GetAllCategoriesResponse, GetAllInterestsResponse } from '@/types/admin/interest';
 
@@ -8,11 +9,11 @@ export async function getInterestsData() {
     const { token, apiUrl } = await getServerConfig();
     // Fetch both Categories and Interests in parallel
     const [categoriesRes, interestsRes] = await Promise.all([
-        fetch(`${apiUrl}/admin/categories`, {
+        fetch(`${apiUrl}${ADMIN_ENDPOINTS.GET_CATEGORIES}`, {
             headers: { 'Cookie': `accessToken=${token}` },
             cache: 'no-store'
         }),
-        fetch(`${apiUrl}/admin/interests`, {
+        fetch(`${apiUrl}${ADMIN_ENDPOINTS.GET_INTERESTS}`, {
             headers: { 'Cookie': `accessToken=${token}` },
             cache: 'no-store'
         })

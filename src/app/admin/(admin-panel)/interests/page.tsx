@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getInterestsData } from "@/lib/data/admin/interests";
+import { getInterestsData } from "@/lib/data/admin/interests.data";
 import InterestsManager from "@/components/admin/InterestsManager";
 
 /**
