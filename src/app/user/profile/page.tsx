@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { getServerProfile } from "@/lib/data/user/userProfile.data";
-import ProfileManager from "@/components/user/ProfileManager";
+import ProfileManager from "@/components/user/profile/ProfileManager";
 import { Loader2 } from "lucide-react";
 
 /**
