@@ -7,7 +7,7 @@ import { ProfileResponse } from '@/types/profile/response';
 export async function getServerMatchFeed(): Promise<ProfileResponse[]> {
     try {
 
-        await new Promise(resolve => setTimeout(resolve, 3000)); 
+        
         const { token, apiUrl } = await getServerConfig();
 
         const response = await fetch(`${apiUrl}/match/feed`, {
