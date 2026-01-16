@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Loader2, RefreshCw } from 'lucide-react';
-import SwipeCard from '@/components/discover/SwipeCard';
+import SwipeCard from '@/components/user/discover/SwipeCard';
 import { getMatchFeed, swipeAction } from '@/services/matchService';
 import { ProfileResponse } from '@/types/profile/response';
 import Button from '@/components/ui/Button';
