@@ -59,10 +59,9 @@ const MobileNav = () => {
     return (
         <nav className="md:hidden fixed bottom-5 left-0 right-0 px-4 z-50 flex justify-center">
             {/* The Unified Dock */}
-            <div className="relative flex items-center bg-black/40 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-1 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]">
-
+            <div className="relative flex items-center p-[1px] rounded-[2.5rem] bg-linear-to-r from-white/5 via-primary/40 to-white/5 shadow-2xl shadow-primary/10">
                 {/* Nav Links */}
-                <div className="flex items-center">
+                <div className="flex items-center bg-black/90 backdrop-blur-3xl rounded-[2.5rem] p-1">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href;
                         const Icon = item.icon;
