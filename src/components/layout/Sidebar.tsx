@@ -65,7 +65,7 @@ const Sidebar = () => {
 
     return (
         <>
-            <aside className="hidden md:flex fixed left-6 top-1/2 -translate-y-1/2 h-[90vh] w-[5.5rem] z-50 rounded-full p-[1px] bg-linear-to-b from-white/5 via-primary/40 to-white/5 shadow-2xl shadow-primary/5">
+            <aside className="hidden md:flex fixed left-6 top-1/2 -translate-y-1/2 h-[90vh] w-22 z-50 rounded-full p-px bg-linear-to-b from-white/5 via-primary/40 to-white/5 shadow-2xl shadow-primary/5">
                 {/* Inner Content - Solid background to create the border effect */}
                 <div className="relative h-full w-full rounded-full bg-black/90 backdrop-blur-xl flex flex-col items-center py-8">
                     {/* Logo Section */}
