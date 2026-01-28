@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -32,6 +32,11 @@ const MobileNav = () => {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+    // Close menu when route changes
+    useEffect(() => {
+        setIsMenuOpen(false);
+    }, [pathname]);
+
     const handleLogoutConfirm = async () => {
         setIsLoggingOut(true);
         try {
@@ -47,7 +52,7 @@ const MobileNav = () => {
         }
     };
 
-    // Define all tabs here for consistent rendering
+    // Define all tabs
     const navItems = [
         { icon: MessageSquare, href: "/user/messages", label: "Inbox" },
         { icon: Bell, href: "/user/notifications", label: "Alerts" },
@@ -82,7 +87,7 @@ const MobileNav = () => {
                                 </AnimatePresence>
 
                                 {item.isCenter ? (
-                                    <Link href={item.href} className="relative">
+                                    <Link href={item.href} className="relative" onClick={() => setIsMenuOpen(false)}>
                                         <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500 overflow-hidden ${isActive ? 'scale-110' : ''}`}>
                                             {/* Glow Effect for Active Spark */}
                                             <AnimatePresence>
@@ -128,6 +133,7 @@ const MobileNav = () => {
                                     <Link
                                         href={item.href}
                                         className="w-full h-full flex flex-col items-center justify-center relative group/item"
+                                        onClick={() => setIsMenuOpen(false)}
                                     >
                                         <Icon className={`w-6 h-6 transition-all duration-500 ${isActive ? 'text-white translate-y-[-2px]' : 'text-gray-500 group-hover/item:text-gray-300'}`} />
                                         <AnimatePresence>
