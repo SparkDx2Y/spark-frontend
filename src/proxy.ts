@@ -109,7 +109,10 @@ export const config = {
         "/forgot-password",
         "/verify-otp",
         "/reset-password",
+        "/reset-password",
         "/complete-profile",
+        "/interests",
+        "/location",
     ],
 };
 
