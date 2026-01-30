@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
+import { MapPin } from "lucide-react";
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { ProfileResponse } from "@/types/profile/response";
@@ -142,6 +143,15 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
                                 </h2>
                                 <p className="text-gray-200 text-lg flex items-center gap-2 font-medium drop-shadow-md capitalize">
                                     {profile.gender}
+                                    {profile.distanceKm !== undefined && (
+                                        <>
+                                            <span className="w-1 h-1 rounded-full bg-white/50" />
+                                            <span className="flex items-center gap-1">
+                                                <MapPin className="w-4 h-4" />
+                                                {profile.distanceKm} km away
+                                            </span>
+                                        </>
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -158,8 +168,8 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ delay: index * 0.05 }}
                                             className={`px-3 py-1.5 rounded-full backdrop-blur-md border shadow-lg text-sm font-medium ${isShared
-                                                    ? 'bg-primary/20 border-primary/40 text-primary shadow-primary/20'
-                                                    : 'bg-white/10 border-white/20 text-white'
+                                                ? 'bg-primary/20 border-primary/40 text-primary shadow-primary/20'
+                                                : 'bg-white/10 border-white/20 text-white'
                                                 }`}
                                         >
                                             {interest}
