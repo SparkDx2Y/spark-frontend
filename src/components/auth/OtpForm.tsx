@@ -65,11 +65,7 @@ export default function OtpForm() {
         const response = await verifyOtp(data);
 
         dispatch(setCredentials({
-          user: {
-            ...response.user,
-            isProfileCompleted: response.isProfileCompleted,
-            isInterestsSelected: response.isInterestsSelected
-          }
+          user: response.user
         }))
 
         showSuccess(response.message)
