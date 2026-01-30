@@ -26,8 +26,6 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
                     dispatch(setCredentials({
                         user: {
                             ...response.user,
-                            isProfileCompleted: response.isProfileCompleted,
-                            isInterestsSelected: response.isInterestsSelected,
                             interests: response.user.interests || []
                         }
                     }));
