@@ -7,6 +7,7 @@ interface User {
     role: string;
     isProfileCompleted: boolean;
     isInterestsSelected: boolean;
+    isLocationCompleted: boolean;
     profilePhoto?: string | null;
     interests?: string[];
 }
