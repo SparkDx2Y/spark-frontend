@@ -1,6 +1,6 @@
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
-import InterestsGuard from "@/components/guards/InterestsGuard";
+import OnboardingGuard from "@/components/guards/OnboardingGuard";
 
 export default function UserLayout({
     children,
@@ -12,9 +12,9 @@ export default function UserLayout({
             <Sidebar />
             <MobileNav />
             <main className="flex-1 md:ml-20 min-h-screen pb-24 md:pb-0">
-                <InterestsGuard>
+                <OnboardingGuard>
                     {children}
-                </InterestsGuard>
+                </OnboardingGuard>
             </main>
         </div>
     );
