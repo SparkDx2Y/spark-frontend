@@ -9,6 +9,7 @@ export interface ProfileResponse {
     coverPhoto?: string | null;
     photos: string[];
     interests?: string[];
+    distanceKm?: number;
 }
 
 
