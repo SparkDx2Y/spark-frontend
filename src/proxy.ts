@@ -36,6 +36,8 @@ export default async function middleware(request: NextRequest) {
     const isUserRoute = pathname.startsWith('/user');
     const isAdminRoute = pathname.startsWith('/admin') && pathname !== '/admin/login';
     const isProfileCompleteRoute = pathname.startsWith('/complete-profile');
+    const isInterestsRoute = pathname.startsWith('/interests');
+    const isLocationRoute = pathname.startsWith('/location');
 
     // 3.  Guest Users (No Token)
     if (!token) {
@@ -54,22 +56,55 @@ export default async function middleware(request: NextRequest) {
         const { payload } = await jwtVerify(token, JWT_SECRET);
         const role = payload.role as string;
         const isProfileCompleted = payload.isProfileCompleted as boolean;
+        const isInterestsSelected = payload.isInterestsSelected as boolean;
+        const isLocationCompleted = payload.isLocationCompleted as boolean;
 
         // 4. Incomplete Profile Handler (The Jail)
         if (!isProfileCompleted) {
-
+            // Allow access to profile completion route and public routes
             if (isProfileCompleteRoute || isLandingPage || isAuthRoute) {
                 return NextResponse.next();
             }
-
+            // Redirect to complete profile if not completed
             return NextResponse.redirect(new URL('/complete-profile', request.url));
         }
 
+        // 5. Profile completed but trying to access profile completion route
         if (isProfileCompleteRoute && isProfileCompleted) {
+            return NextResponse.redirect(new URL('/interests', request.url));
+        }
+
+        // 6. Interests Selection Handler
+        if (!isInterestsSelected) {
+            // Allow access to interests route and public routes
+            if (isInterestsRoute || isLandingPage || isAuthRoute) {
+                return NextResponse.next();
+            }
+            // Redirect to interests if not selected
+            return NextResponse.redirect(new URL('/interests', request.url));
+        }
+
+        // 7. Interests selected but trying to access interests route
+        if (isInterestsRoute && isInterestsSelected) {
+            return NextResponse.redirect(new URL('/location', request.url));
+        }
+
+        // 8. Location Selection Handler
+        if (!isLocationCompleted) {
+            // Allow access to location route and public routes
+            if (isLocationRoute || isLandingPage || isAuthRoute) {
+                return NextResponse.next();
+            }
+            // Redirect to location if not selected
+            return NextResponse.redirect(new URL('/location', request.url));
+        }
+
+        // 9. Location selected but trying to access location route
+        if (isLocationRoute && isLocationCompleted) {
             return NextResponse.redirect(new URL('/user/home', request.url));
         }
 
-
+        // 10. Authenticated users trying to access landing/auth pages
         if (isLandingPage || isAuthRoute) {
             if (role === 'admin') {
                 return NextResponse.redirect(new URL('/admin', request.url));

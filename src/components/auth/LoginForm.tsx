@@ -44,6 +44,8 @@ export default function LoginForm() {
         router.push('/complete-profile')
       } else if (!response.user.isInterestsSelected) {
         router.push('/interests')
+      } else if (!response.user.isLocationCompleted) {
+        router.push('/location')
       } else {
         showSuccess(response.message)
         router.push('/user/home')
