@@ -21,7 +21,7 @@ export default function MessagesPage() {
     const [sending, setSending] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { socket, emitTyping, onlineUsers, typingUsers, setUnreadMessageCount } = useSocketContext();
+    const { socket, emitTyping, onlineUsers, typingUsers, setUnreadMessageCount, joinChat, leaveChat } = useSocketContext();
 
     const currentUser = useAppSelector((state) => state.auth.user);
 
@@ -40,6 +40,16 @@ export default function MessagesPage() {
             }
         }
     }, [matchIdFromUrl, matches]);
+
+    // Join/Leave chat room
+    useEffect(() => {
+        if (selectedMatch) {
+            joinChat(selectedMatch.id);
+            return () => {
+                leaveChat(selectedMatch.id);
+            };
+        }
+    }, [selectedMatch, joinChat, leaveChat]);
 
     // Listen for real-time messages
     useEffect(() => {
@@ -302,7 +312,7 @@ export default function MessagesPage() {
                                 onChange={handleTyping}
                                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                                 placeholder="Type a message..."
-                                className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-full focus:outline-none focus:border-primary/50 focus:bg-white/10 transition px-6"
+                                className="flex-1 py-3 bg-white/5 border border-white/10 rounded-full focus:outline-none focus:border-primary/50 focus:bg-white/10 transition px-6"
                                 disabled={sending}
                             />
                             <button
