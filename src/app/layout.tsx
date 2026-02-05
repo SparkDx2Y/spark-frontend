@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import ReduxProvider from "@/store/providers/ReduxProvider";
+import { SocketProvider } from "@/contexts/SocketContext";
 
 export const metadata: Metadata = {
   title: 'Spark',
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="en" data-scroll-behavior="smooth">
       <body>
         <ReduxProvider>
-          {children}
+          <SocketProvider>
+            {children}
+          </SocketProvider>
         </ReduxProvider>
 
         <Toaster position="top-right" toastOptions={{
