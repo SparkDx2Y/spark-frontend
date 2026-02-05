@@ -22,13 +22,12 @@ export default function NotificationsPage() {
     const { socket, unreadCount, setUnreadCount } = useSocketContext();
 
 
+    // Load notifications from the database on mount and when socket receives a notification
     useEffect(() => {
         loadNotifications();
 
         if (socket) {
             socket.on('notification', (data) => {
-                // Prepend new notification or reload
-                // For simplicity, we'll reload to get the consistent DB structure
                 loadNotifications();
             });
 
@@ -38,6 +37,7 @@ export default function NotificationsPage() {
         }
     }, [socket]);
 
+    // Load notifications from the database
     const loadNotifications = async () => {
         try {
             const data = await getNotifications();
@@ -49,6 +49,7 @@ export default function NotificationsPage() {
         }
     };
 
+    // Mark a notification as read
     const handleRead = async (notificationId: string, isRead: boolean) => {
         if (isRead) return;
 
@@ -63,6 +64,7 @@ export default function NotificationsPage() {
         }
     };
 
+    // Mark all notifications as read
     const handleReadAll = async () => {
         try {
             await markAllNotificationsAsRead();
@@ -73,6 +75,7 @@ export default function NotificationsPage() {
         }
     };
 
+    // Handle notification click
     const handleNotificationClick = async (notification: NotificationResponse) => {
         await handleRead(notification.id, notification.isRead);
 
@@ -105,6 +108,7 @@ export default function NotificationsPage() {
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
+    // Loading state for notifications skeleton
     if (loading) {
         return (
             <div className="p-8 max-w-4xl mx-auto">
