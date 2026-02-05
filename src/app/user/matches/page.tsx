@@ -73,7 +73,7 @@ export default function MatchesPage() {
                 <p className="text-gray-400 mb-6">Start swiping to find your perfect match!</p>
                 <button
                     onClick={() => router.push('/user/home')}
-                    className="px-6 py-3 bg-gradient-to-r from-primary to-purple-500 rounded-lg font-semibold hover:opacity-90 transition"
+                    className="px-6 py-3 bg-linear-to-r from-primary to-purple-500 rounded-lg font-semibold hover:opacity-90 transition"
                 >
                     Start Swiping
                 </button>
@@ -105,7 +105,7 @@ export default function MatchesPage() {
                                     alt={otherUser.name}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 
                                 {/* Name overlay */}
                                 <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -123,7 +123,7 @@ export default function MatchesPage() {
                             {/* Action Button */}
                             <button
                                 onClick={() => handleChatClick(match.id)}
-                                className="w-full p-4 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 transition-all flex items-center justify-center gap-2 font-semibold"
+                                className="w-full p-4 bg-linear-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 transition-all flex items-center justify-center gap-2 font-semibold"
                             >
                                 <MessageCircle className="w-5 h-5" />
                                 Send Message

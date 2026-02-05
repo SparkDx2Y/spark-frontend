@@ -145,7 +145,7 @@ export default function MessagesPage() {
     return (
         <div className="flex h-[calc(100vh-0px)] md:h-screen pt-4 md:pt-0">
             {/* Matches List - Left Sidebar */}
-            <div className={`${selectedMatch ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 border-r border-white/10 bg-black flex-shrink-0 h-full`}>
+            <div className={`${selectedMatch ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 border-r border-white/10 bg-black shrink-0 h-full`}>
                 <div className="p-4 border-b border-white/10 pl-6">
                     <h2 className="text-xl font-bold">Messages</h2>
                     <p className="text-sm text-gray-400">{matches.length} conversations</p>
@@ -301,7 +301,7 @@ export default function MessagesPage() {
                             <button
                                 onClick={handleSendMessage}
                                 disabled={!newMessage.trim() || sending}
-                                className="p-3 bg-gradient-to-r from-primary to-purple-500 rounded-full hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20 aspect-square flex items-center justify-center transform hover:scale-105 active:scale-95"
+                                className="p-3 bg-linear-to-r from-primary to-purple-500 rounded-full hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20 aspect-square flex items-center justify-center transform hover:scale-105 active:scale-95"
                             >
                                 <Send className="w-5 h-5 ml-0.5" />
                             </button>
