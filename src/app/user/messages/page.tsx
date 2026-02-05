@@ -157,6 +157,7 @@ export default function MessagesPage() {
                             <p className="text-gray-400">No matches yet</p>
                         </div>
                     ) : (
+                        // Render matches
                         <div className="divide-y divide-white/5">
                             {matches.map((match) => {
                                 const otherUser = match.users.find(u => u.userId !== currentUser?.id) || match.users[0];
@@ -230,9 +231,10 @@ export default function MessagesPage() {
                     </div>
 
 
-                    {/* Messages */}
+                    {/* Messages  (rendering messages) */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                         {messages.map((msg) => {
+                            // Check if the message is from the current user
                             const isOwn = msg.senderId === currentUser?.id;
 
                             return (
@@ -240,6 +242,7 @@ export default function MessagesPage() {
                                     key={msg.id}
                                     className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                                 >
+                                    {/* Message bubble  where the message is displayed like left side and right side for user*/}
                                     <div
                                         className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${isOwn
                                             ? 'bg-linear-to-r from-primary to-purple-600 text-white rounded-tr-sm'
