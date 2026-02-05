@@ -13,6 +13,11 @@ export const getMatches = async (): Promise<MatchResponse[]> => {
     return response.data;
 };
 
+export const getUnreadMessageCount = async (): Promise<number> => {
+    const response = await api.get<{ count: number }>(MESSAGE_ENDPOINTS.GET_COUNT);
+    return response.data.count;
+};
+
 export const getMessages = async (matchId: string, limit?: number): Promise<MessageResponse[]> => {
     const url = MESSAGE_ENDPOINTS.GET_MESSAGES(matchId);
     const response = await api.get<MessageResponse[]>(url, {

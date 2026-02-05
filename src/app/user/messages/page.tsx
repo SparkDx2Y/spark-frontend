@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getMatches, getMessages, sendMessage, markMessagesAsRead } from '@/services/messageService';
+import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMessageCount } from '@/services/messageService';
 import { MatchResponse, MessageResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
@@ -21,7 +21,7 @@ export default function MessagesPage() {
     const [sending, setSending] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { socket, emitTyping, onlineUsers, typingUsers } = useSocketContext();
+    const { socket, emitTyping, onlineUsers, typingUsers, setUnreadMessageCount } = useSocketContext();
 
     const currentUser = useAppSelector((state) => state.auth.user);
 
@@ -45,18 +45,23 @@ export default function MessagesPage() {
     useEffect(() => {
         if (!socket || !selectedMatch) return;
 
-        socket.on('message', (data) => {
+        const handleNewMessage = (data: any) => {
             if (data.matchId === selectedMatch.id) {
                 setMessages(prev => [...prev, data.message]);
                 scrollToBottom();
 
                 // Mark as read
-                markMessagesAsRead(selectedMatch.id);
+                markMessagesAsRead(selectedMatch.id).then(async () => {
+                    const count = await getUnreadMessageCount();
+                    setUnreadMessageCount(count);
+                });
             }
-        });
+        };
+
+        socket.on('message', handleNewMessage);
 
         return () => {
-            socket.off('message');
+            socket.off('message', handleNewMessage);
         };
     }, [socket, selectedMatch]);
 
@@ -86,6 +91,8 @@ export default function MessagesPage() {
             const msgs = await getMessages(match.id, 50);
             setMessages(msgs);
             await markMessagesAsRead(match.id);
+            const count = await getUnreadMessageCount();
+            setUnreadMessageCount(count);
         } catch (error) {
             console.error('Failed to load messages:', error);
         }

@@ -25,7 +25,7 @@ const Sidebar = () => {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
-    const { unreadCount } = useSocketContext();
+    const { unreadCount, unreadMessageCount } = useSocketContext();
 
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -33,7 +33,7 @@ const Sidebar = () => {
     const navItems = [
         { icon: Home, label: "Discover", href: "/user/home" },
         { icon: Heart, label: "Matches", href: "/user/matches" },
-        { icon: MessageSquare, label: "Messages", href: "/user/messages" },
+        { icon: MessageSquare, label: "Messages", href: "/user/messages", badge: unreadMessageCount },
         { icon: Bell, label: "Notifications", href: "/user/notifications", badge: unreadCount },
         { icon: Sparkles, label: "Premium", href: "/user/premium", color: "text-yellow-400" },
         { icon: Settings, label: "Settings", href: "/user/settings" },

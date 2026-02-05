@@ -11,6 +11,8 @@ interface SocketContextType {
     typingUsers: { [matchId: string]: string[] };
     unreadCount: number;
     setUnreadCount: React.Dispatch<React.SetStateAction<number>>;
+    unreadMessageCount: number;
+    setUnreadMessageCount: React.Dispatch<React.SetStateAction<number>>;
     emitTyping: (matchId: string, isTyping: boolean) => void;
 }
 

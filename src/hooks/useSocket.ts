@@ -1,8 +1,9 @@
-import { useEffect, useState, useCallback} from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAppSelector } from '@/store/hooks';
 import { showSuccess, showInfo } from '@/utils/toast';
 import { getNotificationCount } from '@/services/notificationService';
+import { getUnreadMessageCount } from '@/services/messageService';
 
 export const useSocket = () => {
     const [socket, setSocket] = useState<Socket | null>(null);
@@ -10,6 +11,7 @@ export const useSocket = () => {
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
     const [typingUsers, setTypingUsers] = useState<{ [matchId: string]: string[] }>({});
     const [unreadCount, setUnreadCount] = useState(0);
+    const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
     const user = useAppSelector((state) => state.auth.user);
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
@@ -36,17 +38,21 @@ export const useSocket = () => {
             transports: ['websocket', 'polling']
         });
 
-        // Initial fetch of unread count
-        const fetchUnreadCount = async () => {
+        // Initial fetch of unread counts
+        const fetchInitialCounts = async () => {
             try {
-                const count = await getNotificationCount();
-                setUnreadCount(count);
+                const [notifCount, msgCount] = await Promise.all([
+                    getNotificationCount(),
+                    getUnreadMessageCount()
+                ]);
+                setUnreadCount(notifCount);
+                setUnreadMessageCount(msgCount);
             } catch (error) {
-                console.error('Failed to fetch unread count:', error);
+                console.error('Failed to fetch initial counts:', error);
             }
         };
 
-        fetchUnreadCount();
+        fetchInitialCounts();
 
 
         // Connection events(registering the user in socket)
@@ -82,6 +88,12 @@ export const useSocket = () => {
         newSocket.on('match', (data) => {
             setUnreadCount(prev => prev + 1);
             showSuccess("It's a Match!");
+        });
+
+        newSocket.on('message', (data) => {
+
+            // Increment unread count
+            setUnreadMessageCount(prev => prev + 1);
         });
 
 
@@ -157,6 +169,8 @@ export const useSocket = () => {
         typingUsers,
         unreadCount,
         setUnreadCount,
+        unreadMessageCount,
+        setUnreadMessageCount,
         emitTyping
     };
 
