@@ -5,6 +5,8 @@ export const PROFILE_ENDPOINTS = {
     GET_INTERESTS: "/profile/interests",
     UPDATE_INTERESTS: "/profile/interests",
     UPDATE_LOCATION: "/profile/location",
+    PUBLIC_PROFILE: (userId: string) => `/profile/${userId}`,
 } as const;
+
 
 
