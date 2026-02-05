@@ -8,9 +8,13 @@ import { jwtVerify } from 'jose';
    it means in here we are doing this because we are using jose library
    and we need to encode the secret key to bytes for verification process
 ===================================================== */
-const JWT_SECRET = new TextEncoder().encode(
-    process.env.JWT_ACCESS_SECRET || 'access_secret'
-);
+const secret = process.env.JWT_ACCESS_SECRET;
+
+if (!secret) {
+    throw new Error('JWT_ACCESS_SECRET is not defined');
+}
+
+const JWT_SECRET = new TextEncoder().encode(secret);
 
 /* =====================================================
    MIDDLEWARE
@@ -143,7 +147,6 @@ export const config = {
         "/signup",
         "/forgot-password",
         "/verify-otp",
-        "/reset-password",
         "/reset-password",
         "/complete-profile",
         "/interests",
