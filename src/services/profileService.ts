@@ -32,3 +32,9 @@ export const updateLocation = async (latitude: number, longitude: number): Promi
     const response = await api.put(PROFILE_ENDPOINTS.UPDATE_LOCATION, { latitude, longitude });
     return response.data;
 };
+
+export const getPublicProfile = async (userId: string): Promise<ProfileResponse> => {
+    const response = await api.get<ProfileResponse>(PROFILE_ENDPOINTS.PUBLIC_PROFILE(userId));
+    return response.data;
+};
+
