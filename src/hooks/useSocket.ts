@@ -156,11 +156,22 @@ export const useSocket = () => {
         if (socket && user) {
             socket.emit('typing', {
                 matchId,
-                userId: user.id,
                 isTyping
             });
         }
     }, [socket, user]);
+
+    const joinChat = useCallback((matchId: string) => {
+        if (socket && isConnected) {
+            socket.emit('join_chat', matchId);
+        }
+    }, [socket, isConnected]);
+
+    const leaveChat = useCallback((matchId: string) => {
+        if (socket && isConnected) {
+            socket.emit('leave_chat', matchId);
+        }
+    }, [socket, isConnected]);
 
     return {
         socket,
@@ -171,7 +182,9 @@ export const useSocket = () => {
         setUnreadCount,
         unreadMessageCount,
         setUnreadMessageCount,
-        emitTyping
+        emitTyping,
+        joinChat,
+        leaveChat
     };
 
 
