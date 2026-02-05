@@ -12,10 +12,11 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
-        if (!isAuthenticated || user) {
+        if (user) {
             setIsInitialized(true);
             return;
         }
+
 
         const initAuth = async () => {
             try {
