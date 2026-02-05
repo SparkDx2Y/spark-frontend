@@ -21,12 +21,14 @@ import { showSuccess, showError } from "@/utils/toast";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { useSocketContext } from "@/contexts/SocketContext";
 
 const MobileNav = () => {
     const pathname = usePathname();
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
+    const { unreadCount } = useSocketContext();
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -136,6 +138,11 @@ const MobileNav = () => {
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         <Icon className={`w-6 h-6 transition-all duration-500 ${isActive ? 'text-white translate-y-[-2px]' : 'text-gray-500 group-hover/item:text-gray-300'}`} />
+                                        {item.href === '/user/notifications' && unreadCount > 0 && (
+                                            <span className="absolute top-2 right-3 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-black">
+                                                {unreadCount > 9 ? '9+' : unreadCount}
+                                            </span>
+                                        )}
                                         <AnimatePresence>
                                             {isActive && (
                                                 <motion.span
