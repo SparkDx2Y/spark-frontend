@@ -14,6 +14,8 @@ interface SocketContextType {
     unreadMessageCount: number;
     setUnreadMessageCount: React.Dispatch<React.SetStateAction<number>>;
     emitTyping: (matchId: string, isTyping: boolean) => void;
+    joinChat: (matchId: string) => void;
+    leaveChat: (matchId: string) => void;
 }
 
 
