@@ -33,10 +33,7 @@ export default function AdminLoginForm() {
             // Allow access for admin only
             if (response.user.role === 'admin') {
                 dispatch(setCredentials({
-                    user: {
-                        ...response.user,
-                        isProfileCompleted: response.isProfileCompleted
-                    }
+                    user: response.user
                 }))
                 showSuccess("Admin Login successfully")
                 router.push('/admin/dashboard')

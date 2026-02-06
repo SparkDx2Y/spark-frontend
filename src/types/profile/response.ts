@@ -9,7 +9,10 @@ export interface ProfileResponse {
     coverPhoto?: string | null;
     photos: string[];
     interests?: string[];
+    distanceKm?: number;
+    hasSwiped?: boolean;
 }
+
 
 
 export interface InterestResponse {

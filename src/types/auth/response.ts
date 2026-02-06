@@ -12,9 +12,10 @@ export interface VerifyOtpResponse {
     role: 'user' | 'admin';
     profilePhoto?: string | null;
     interests?: string[];
+    isProfileCompleted: boolean;
+    isInterestsSelected: boolean;
+    isLocationCompleted: boolean;
   };
-  isProfileCompleted: boolean;
-  isInterestsSelected: boolean;
 }
 
 export interface ResendOtpResponse {
@@ -30,9 +31,10 @@ export interface LoginResponse {
     role: 'user' | 'admin';
     profilePhoto?: string | null;
     interests?: string[];
+    isProfileCompleted: boolean;
+    isInterestsSelected: boolean;
+    isLocationCompleted: boolean;
   };
-  isProfileCompleted: boolean;
-  isInterestsSelected: boolean;
 }
 
 export interface ForgotPasswordResponse {

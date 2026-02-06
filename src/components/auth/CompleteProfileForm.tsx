@@ -44,14 +44,10 @@ export default function CompleteProfileForm() {
                 const userResponse = await getCurrentUser();
 
                 dispatch(setCredentials({
-                    user: {
-                        ...userResponse.user,
-                        isProfileCompleted: userResponse.isProfileCompleted,
-                        isInterestsSelected: userResponse.isInterestsSelected
-                    }
+                    user: userResponse.user
                 }));
 
-                if (!userResponse.isInterestsSelected) {
+                if (!userResponse.user.isInterestsSelected) {
                     router.push('/interests');
                 } else {
                     router.push('/user/home');

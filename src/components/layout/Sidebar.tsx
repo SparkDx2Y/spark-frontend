@@ -18,12 +18,14 @@ import { logout as logoutService } from "@/services/authService";
 import { logout as logoutAction } from "@/store/features/auth/authSlice";
 import { showSuccess, showError } from "@/utils/toast";
 import ConfirmModal from "@/components/ui/ConfirmModal";
+import { useSocketContext } from "@/contexts/SocketContext";
 
 const Sidebar = () => {
     const pathname = usePathname();
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
+    const { unreadCount, unreadMessageCount } = useSocketContext();
 
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -31,8 +33,8 @@ const Sidebar = () => {
     const navItems = [
         { icon: Home, label: "Discover", href: "/user/home" },
         { icon: Heart, label: "Matches", href: "/user/matches" },
-        { icon: MessageSquare, label: "Messages", href: "/user/messages", badge: 2 },
-        { icon: Bell, label: "Notifications", href: "/user/notifications", badge: 3 },
+        { icon: MessageSquare, label: "Messages", href: "/user/messages", badge: unreadMessageCount },
+        { icon: Bell, label: "Notifications", href: "/user/notifications", badge: unreadCount },
         { icon: Sparkles, label: "Premium", href: "/user/premium", color: "text-yellow-400" },
         { icon: Settings, label: "Settings", href: "/user/settings" },
     ];
@@ -108,7 +110,7 @@ const Sidebar = () => {
 
                                     <div className="relative transition-transform duration-300 group-hover:scale-110">
                                         <Icon className={`w-5 h-5 ${isActive ? "drop-shadow-[0_0_8px_rgba(255,75,125,0.5)]" : ""}`} />
-                                        {item.badge && (
+                                        {item.badge !== undefined && item.badge > 0 && (
                                             <span className="absolute -top-2 -right-2 bg-primary text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-black shadow-lg">
                                                 {item.badge}
                                             </span>

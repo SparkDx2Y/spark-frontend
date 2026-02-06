@@ -12,10 +12,11 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
-        if (!isAuthenticated || user) {
+        if (user) {
             setIsInitialized(true);
             return;
         }
+
 
         const initAuth = async () => {
             try {
@@ -26,8 +27,6 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
                     dispatch(setCredentials({
                         user: {
                             ...response.user,
-                            isProfileCompleted: response.isProfileCompleted,
-                            isInterestsSelected: response.isInterestsSelected,
                             interests: response.user.interests || []
                         }
                     }));

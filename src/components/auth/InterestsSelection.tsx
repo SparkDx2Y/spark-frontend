@@ -61,7 +61,7 @@ export default function InterestsSelection() {
             }
 
             showSuccess('Preferences saved!');
-            router.push('/user/home');
+            router.push('/location');
         } catch (error: any) {
             showError(error.response?.data?.message || 'Failed to save interests');
         } finally {

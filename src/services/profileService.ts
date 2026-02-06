@@ -27,3 +27,14 @@ export const updateInterests = async (interests: string[]): Promise<UpdateIntere
     const response = await api.post<UpdateInterestsResponse>(PROFILE_ENDPOINTS.UPDATE_INTERESTS, { interests });
     return response.data;
 };
+
+export const updateLocation = async (latitude: number, longitude: number): Promise<{ message: string; isLocationCompleted: boolean }> => {
+    const response = await api.put(PROFILE_ENDPOINTS.UPDATE_LOCATION, { latitude, longitude });
+    return response.data;
+};
+
+export const getPublicProfile = async (userId: string): Promise<ProfileResponse> => {
+    const response = await api.get<ProfileResponse>(PROFILE_ENDPOINTS.PUBLIC_PROFILE(userId));
+    return response.data;
+};
+

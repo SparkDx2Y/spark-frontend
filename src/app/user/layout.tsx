@@ -1,6 +1,7 @@
 import Sidebar from "@/components/layout/Sidebar";
 import MobileNav from "@/components/layout/MobileNav";
-import InterestsGuard from "@/components/guards/InterestsGuard";
+import OnboardingGuard from "@/components/guards/OnboardingGuard";
+import MatchModal from "@/components/user/MatchModal";
 
 export default function UserLayout({
     children,
@@ -11,11 +12,13 @@ export default function UserLayout({
         <div className="flex min-h-screen bg-black text-gray-100 overflow-x-hidden">
             <Sidebar />
             <MobileNav />
-            <main className="flex-1 md:ml-20 min-h-screen pb-24 md:pb-0">
-                <InterestsGuard>
+            <main className="flex-1 md:ml-32 min-h-screen pb-24 md:pb-0">
+
+                <OnboardingGuard>
                     {children}
-                </InterestsGuard>
+                </OnboardingGuard>
             </main>
+            <MatchModal />
         </div>
     );
 }
