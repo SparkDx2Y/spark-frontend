@@ -343,7 +343,7 @@ export default function MessagesPage() {
                                                 }
                                             `}
                                         >
-                                            <p className="leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+                                            <p className="leading-relaxed whitespace-pre-wrap wrap-break-word">{msg.content}</p>
                                         </div>
                                         <p className={`text-[10px] mt-1.5 font-medium px-1 ${isOwn ? 'text-gray-400' : 'text-gray-500'}`}>
                                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
