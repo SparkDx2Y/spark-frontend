@@ -4,15 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-    Home,
-    Heart,
-    MessageSquare,
-    Bell,
-    Sparkles,
-    Settings,
-    LogOut
-} from "lucide-react";
+import { Home, Heart, MessageSquare, Bell, Sparkles, Settings, LogOut } from "lucide-react";
+import { motion } from "framer-motion";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { logout as logoutService } from "@/services/authService";
 import { logout as logoutAction } from "@/store/features/auth/authSlice";
@@ -100,7 +93,7 @@ const Sidebar = () => {
                                 <Link
                                     key={item.label}
                                     href={item.href}
-                                    className={`group relative flex items-center justify-center w-full py-2 transition-all duration-300 ${isActive ? "text-primary" : item.color || "text-gray-500 hover:text-white"
+                                    className={`group relative flex items-center justify-center w-full py-2 transition-all duration-300 ${isActive ? "text-primary" : item.color || "text-gray-500 hover:text-primary"
                                         }`}
                                 >
                                     {/* Active Indicator Dot */}
@@ -108,16 +101,36 @@ const Sidebar = () => {
                                         <div className="absolute left-1 w-1 h-8 bg-primary rounded-full shadow-[0_0_10px_rgba(255,75,125,0.8)]"></div>
                                     )}
 
-                                    <div className="relative transition-transform duration-300 group-hover:scale-110">
-                                        <Icon className={`w-5 h-5 ${isActive ? "drop-shadow-[0_0_8px_rgba(255,75,125,0.5)]" : ""}`} />
-                                        {item.badge !== undefined && item.badge > 0 && (
-                                            <span className="absolute -top-2 -right-2 bg-primary text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-black shadow-lg">
-                                                {item.badge}
-                                            </span>
-                                        )}
-                                    </div>
+                                    <motion.div
+                                        initial={{ rotateY: 0 }}
+                                        whileHover={{
+                                            rotateY: 180,
+                                            scale: 1.1,
+                                            filter: "drop-shadow(0 0 8px rgba(255, 75, 125, 0.6))",
+                                        }}
+                                        transition={{
+                                            duration: 0.4,
+                                            ease: "easeInOut"
+                                        }}
+                                        className="relative"
+                                    >
+                                        <motion.div
+                                            variants={{
+                                                hover: { rotateY: 180 }
+                                            }}
+                                            transition={{ duration: 0.4 }}
+                                            className="relative"
+                                        >
+                                            <Icon className={`w-5 h-5 ${isActive ? "drop-shadow-[0_0_8px_rgba(255,75,125,0.5)]" : ""}`} />
+                                            {item.badge !== undefined && item.badge > 0 && (
+                                                <span className="absolute -top-2 -right-2 bg-primary text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full border-2 border-black shadow-lg">
+                                                    {item.badge}
+                                                </span>
+                                            )}
+                                        </motion.div>
+                                    </motion.div>
 
-                                    {/* Tooltip - Modern Styled */}
+                                    {/* Tooltip */}
                                     <span className="absolute left-[80%] ml-4 bg-zinc-900 border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 whitespace-nowrap pointer-events-none z-50 shadow-xl">
                                         {item.label}
                                         {/* Tooltip Arrow */}
@@ -135,9 +148,29 @@ const Sidebar = () => {
                             onClick={handleLogoutClick}
                             className="group relative flex items-center justify-center w-full py-2 text-gray-500 hover:text-red-500 transition-all duration-300"
                         >
-                            <div className="relative transition-transform duration-300 group-hover:scale-110">
-                                <LogOut className="w-5 h-5" />
-                            </div>
+                            <motion.div
+                                initial={{ rotateY: 0 }}
+                                whileHover={{
+                                    rotateY: 180,
+                                    scale: 1.1,
+                                    filter: "drop-shadow(0 0 8px rgba(239, 68, 68, 0.6))", // Red glow for logout
+                                }}
+                                transition={{
+                                    duration: 0.4,
+                                    ease: "easeInOut"
+                                }}
+                                className="relative"
+                            >
+                                <motion.div
+                                    variants={{
+                                        hover: { rotateY: 180 }
+                                    }}
+                                    transition={{ duration: 0.4 }}
+                                    className="relative"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                </motion.div>
+                            </motion.div>
 
                             {/* Tooltip */}
                             <span className="absolute left-[80%] ml-4 bg-zinc-900 border border-white/10 text-white px-3 py-1.5 rounded-lg text-xs font-medium opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 whitespace-nowrap pointer-events-none z-50 shadow-xl">
