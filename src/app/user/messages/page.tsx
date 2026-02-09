@@ -6,7 +6,7 @@ import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMess
 import { MatchResponse, MessageResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
-import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare } from 'lucide-react';
+import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function MessagesPage() {
@@ -22,6 +22,7 @@ export default function MessagesPage() {
     const [showAttachments, setShowAttachments] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     const { socket, emitTyping, onlineUsers, typingUsers, setUnreadMessageCount, joinChat, leaveChat } = useSocketContext();
 
     const currentUser = useAppSelector((state) => state.auth.user);
@@ -52,12 +53,27 @@ export default function MessagesPage() {
         }
     }, [selectedMatch, joinChat, leaveChat]);
 
-    // Listen for real-time messages
+    // Helper to move active chat to top
+    const updateMatchList = (matchId: string, content: string, createdAt: string) => {
+        setMatches(prev => {
+            const index = prev.findIndex(m => m.id === matchId);
+            if (index === -1) return prev;
+
+            const updatedMatch = { ...prev[index], lastMessage: content, lastMessageAt: createdAt };
+            const newMatches = [...prev];
+            newMatches.splice(index, 1);
+            newMatches.unshift(updatedMatch);
+            return newMatches;
+        });
+    };
+
+    // Listen for real-time messages & Update Sidebar Order
     useEffect(() => {
-        if (!socket || !selectedMatch) return;
+        if (!socket) return;
 
         const handleNewMessage = (data: any) => {
-            if (data.matchId === selectedMatch.id) {
+            // 1. Update Messages Area (if chat is open)
+            if (selectedMatch && data.matchId === selectedMatch.id) {
                 setMessages(prev => [...prev, data.message]);
                 scrollToBottom();
 
@@ -67,6 +83,9 @@ export default function MessagesPage() {
                     setUnreadMessageCount(count);
                 });
             }
+
+            // 2. Update Sidebar (Move chat to top)
+            updateMatchList(data.matchId, data.message.content, data.message.createdAt);
         };
 
         socket.on('message', handleNewMessage);
@@ -85,7 +104,13 @@ export default function MessagesPage() {
     const loadMatches = async () => {
         try {
             const data = await getMatches();
-            setMatches(data);
+            // Sort by lastMessageAt descending (newest first)
+            const sortedData = data.sort((a, b) => {
+                const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+                const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+                return dateB - dateA;
+            });
+            setMatches(sortedData);
         } catch (error) {
             console.error('Failed to load matches:', error);
         } finally {
@@ -123,7 +148,17 @@ export default function MessagesPage() {
 
             setMessages(prev => [...prev, message]);
             setNewMessage('');
+
+            // Reset textarea height
+            if (inputRef.current) {
+                inputRef.current.style.height = '44px';
+            }
+
             emitTyping(selectedMatch.id, false);
+
+            // Reorder Sidebar
+            updateMatchList(selectedMatch.id, message.content, message.createdAt);
+
         } catch (error) {
             console.error('Failed to send message:', error);
         } finally {
@@ -132,8 +167,16 @@ export default function MessagesPage() {
     };
 
     // Handle typing for messages page
-    const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNewMessage(e.target.value);
+        setShowAttachments(false); // Hide attachments when typing
+
+        // Auto-resize textarea
+        if (inputRef.current) {
+            inputRef.current.style.height = 'auto';
+            inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+        }
+
         if (selectedMatch) {
             emitTyping(selectedMatch.id, e.target.value.length > 0);
         }
@@ -284,13 +327,10 @@ export default function MessagesPage() {
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-base md:text-lg text-white leading-tight">{otherUser.name}</h3>
-                                            {isOnline ? (
+                                            {isOnline && (
                                                 <p className="text-[10px] md:text-xs text-green-400 font-medium flex items-center gap-1.5">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shadow-sm" />
                                                     Online
                                                 </p>
-                                            ) : (
-                                                <p className="text-[10px] md:text-xs text-gray-500">Offline</p>
                                             )}
                                         </div>
                                     </div>
@@ -314,42 +354,71 @@ export default function MessagesPage() {
 
 
                     {/* Messages Area */}
-                    <div className="flex-1 overflow-y-auto min-h-0 p-4 md:p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                        <div className="flex justify-center my-4">
-                            <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] text-gray-500 font-medium uppercase tracking-widest border border-white/5">
-                                Today
-                            </span>
-                        </div>
-
+                    <div
+                        className="flex-1 overflow-y-auto min-h-0 p-4 md:p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+                        onClick={() => setShowAttachments(false)} // Close attachments on click
+                    >
                         {messages.map((msg, index) => {
                             const isOwn = msg.senderId === currentUser?.id;
                             const isConsecutive = index > 0 && messages[index - 1].senderId === msg.senderId;
 
+                            // --- SIMPLIFIED DATE LOGIC ---
+                            const date = new Date(msg.createdAt);
+                            const prevDate = index > 0 ? new Date(messages[index - 1].createdAt) : null;
+
+                            // 1. Check if the day has changed compared to the previous message
+                            // .toDateString() gives us "Fri Nov 15 2024", perfect for comparing days!
+                            const showDateSeparator = !prevDate || date.toDateString() !== prevDate.toDateString();
+
+                            // 2. Determine what to write (Today, Yesterday, or Date)
+                            let dateLabel = '';
+                            if (showDateSeparator) {
+                                const today = new Date();
+                                const yesterday = new Date();
+                                yesterday.setDate(today.getDate() - 1);
+
+                                if (date.toDateString() === today.toDateString()) {
+                                    dateLabel = 'Today';
+                                } else if (date.toDateString() === yesterday.toDateString()) {
+                                    dateLabel = 'Yesterday';
+                                } else {
+                                    dateLabel = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                                }
+                            }
+
                             return (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    transition={{ duration: 0.3 }}
-                                    key={msg.id}
-                                    className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
-                                >
-                                    <div className={`max-w-[70%] sm:max-w-[60%] flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
-                                        <div
-                                            className={`
-                                                relative px-5 py-3 shadow-md backdrop-blur-sm text-sm md:text-base selection:bg-black/30 selection:text-white
-                                                ${isOwn
-                                                    ? `bg-linear-to-br from-primary via-primary/90 to-purple-600 text-white ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tr-none'}`
-                                                    : `bg-[#1a1a1a] text-gray-100 border border-white/5 ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tl-none'}`
-                                                }
-                                            `}
-                                        >
-                                            <p className="leading-relaxed whitespace-pre-wrap wrap-break-word">{msg.content}</p>
+                                <div key={msg.id}>
+                                    {showDateSeparator && (
+                                        <div className="flex justify-center my-6">
+                                            <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] text-gray-500 font-medium uppercase tracking-widest border border-white/5">
+                                                {dateLabel}
+                                            </span>
                                         </div>
-                                        <p className={`text-[10px] mt-1.5 font-medium px-1 ${isOwn ? 'text-gray-400' : 'text-gray-500'}`}>
-                                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </p>
-                                    </div>
-                                </motion.div>
+                                    )}
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        transition={{ duration: 0.3 }}
+                                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group mb-6`} // Added margin bottom for spacing
+                                    >
+                                        <div className={`max-w-[70%] sm:max-w-[60%] flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                                            <div
+                                                className={`
+                                                    relative px-5 py-3 shadow-md backdrop-blur-sm text-sm md:text-base selection:bg-black/30 selection:text-white
+                                                    ${isOwn
+                                                        ? `bg-linear-to-br from-primary via-primary/90 to-purple-600 text-white ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tr-none'}`
+                                                        : `bg-[#1a1a1a] text-gray-100 border border-white/5 ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tl-none'}`
+                                                    }
+                                                `}
+                                            >
+                                                <p className="leading-relaxed whitespace-pre-wrap wrap-break-wordbreak-word break-all">{msg.content}</p>
+                                            </div>
+                                            <p className={`text-[10px] mt-1.5 font-medium px-1 ${isOwn ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                </div>
                             );
                         })}
 
@@ -389,29 +458,32 @@ export default function MessagesPage() {
                     {/* Enhanced Message Input Area */}
                     <div className="p-3 pb-24 md:p-6 md:pb-6 bg-black border-t border-white/5 shrink-0 z-30">
                         <div className="max-w-4xl mx-auto relative flex items-end gap-2 md:gap-3">
-                            {/* Attachment Menu Popup */}
+                            {/* Attachment Menu Popup - Redesigned Horizontal Pill */}
                             <AnimatePresence>
                                 {showAttachments && (
                                     <motion.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                                        animate={{ opacity: 1, y: -0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                                        className="absolute bottom-full left-0 mb-4 p-2 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl flex flex-col gap-2 z-50 min-w-[160px]"
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: -8, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        className="absolute bottom-full left-0 mb-2 p-1.5 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl flex items-center gap-1 z-50 origin-bottom-left"
                                     >
                                         {[
-                                            { icon: ImageIcon, color: "text-blue-400", label: "Photos", bg: "bg-blue-400/10 hover:bg-blue-400/20" },
-                                            { icon: Camera, color: "text-purple-400", label: "Camera", bg: "bg-purple-400/10 hover:bg-purple-400/20" },
-                                            { icon: Mic, color: "text-red-400", label: "Audio", bg: "bg-red-400/10 hover:bg-red-400/20" },
+                                            { icon: ImageIcon, color: "text-blue-400", label: "Media", bg: "hover:bg-blue-400/20" },
+                                            { icon: Camera, color: "text-purple-400", label: "Camera", bg: "hover:bg-purple-400/20" },
+                                            { icon: Mic, color: "text-red-400", label: "Audio", bg: "hover:bg-red-400/20" },
                                         ].map((item, idx) => (
-                                            <button
+                                            <motion.button
                                                 key={idx}
-                                                className={`flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 ${item.bg} group w-full`}
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                className={`p-3 rounded-full transition-all duration-200 ${item.bg} group relative`}
                                             >
-                                                <div className={`p-2 rounded-full ${item.bg.split(' ')[0]} ${item.color}`}>
-                                                    <item.icon className="w-5 h-5" />
-                                                </div>
-                                                <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">{item.label}</span>
-                                            </button>
+                                                <item.icon className={`w-5 h-5 ${item.color}`} />
+                                                {/* Tooltip */}
+                                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                                                    {item.label}
+                                                </span>
+                                            </motion.button>
                                         ))}
                                     </motion.div>
                                 )}
@@ -421,22 +493,33 @@ export default function MessagesPage() {
                             <motion.button
                                 whileTap={{ scale: 0.9 }}
                                 onClick={() => setShowAttachments(!showAttachments)}
-                                className={`p-2.5 md:p-3.5 rounded-full transition-all duration-300 shrink-0 ${showAttachments ? 'bg-white/20 text-white rotate-45' : 'bg-white/10 text-gray-400 hover:text-white hover:bg-white/15'}`}
+                                className={`p-2.5 md:p-3.5 rounded-full transition-all duration-300 shrink-0 ${showAttachments ? 'bg-black/20 text-white rotate-45' : 'bg-white/10 text-gray-400 hover:text-white hover:bg-white/15'}`}
                             >
                                 <Plus className="w-5 h-5 md:w-6 md:h-6" />
                             </motion.button>
 
                             {/* Text Input */}
-                            <div className="flex-1 bg-white/5 border border-white/10 focus-within:border-primary/50 focus-within:bg-white/10 rounded-[20px] md:rounded-[28px] transition-all duration-300 flex items-center min-h-[44px] md:min-h-[52px]">
-                                <input
-                                    type="text"
+                            <div className="flex-1 bg-white/5 border border-white/10 focus-within:border-primary/50 focus-within:bg-white/10 rounded-[20px] md:rounded-[28px] transition-all duration-300 flex items-end min-h-[44px] pr-2 relative">
+                                <textarea
+                                    ref={inputRef}
                                     value={newMessage}
                                     onChange={handleTyping}
-                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                    onFocus={() => setShowAttachments(false)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
                                     placeholder="Message..."
-                                    className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 px-4 py-2.5 md:px-6 md:py-3.5 text-sm md:text-base text-white placeholder:text-gray-500"
+                                    rows={1}
+                                    className="flex-1 w-full min-w-0 bg-transparent border-none outline-none focus:outline-none focus:ring-0 px-4 py-3 text-sm md:text-base text-white placeholder:text-gray-500 resize-none max-h-32 mb-px scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+                                    style={{ minHeight: '44px' }}
                                     disabled={sending}
                                 />
+                                <button className="p-2 mb-1.5 rounded-full text-gray-400 hover:text-yellow-400 hover:bg-white/5 transition-colors shrink-0">
+                                    <Smile className="w-5 h-5 md:w-6 md:h-6" />
+                                </button>
                             </div>
 
                             {/* Dynamic Send / Mic Button */}
