@@ -1,3 +1,7 @@
+'use client';
+
+import { motion } from 'framer-motion';
+
 const Features = () => {
     const features = [
         {
@@ -61,10 +65,22 @@ const Features = () => {
         <section className="relative w-full px-4 sm:px-6 pt-4 sm:pt-6 lg:pt-8 pb-10 sm:pb-12 lg:pb-14 bg-linear-to-b from-black via-gray-950 to-black">
 
             {/* Large Container - Matches the reference image shape */}
-            <div className="relative w-full rounded-[40px] sm:rounded-[60px] md:rounded-[80px] lg:rounded-[100px] overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 p-8 sm:p-12 lg:p-20 shadow-2xl">
+            <motion.div
+                className="relative w-full rounded-[40px] sm:rounded-[60px] md:rounded-[80px] lg:rounded-[100px] overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 p-8 sm:p-12 lg:p-20 shadow-2xl"
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.8 }}
+            >
 
                 {/* Header Section - Title Left, Description Right */}
-                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 sm:mb-16 lg:mb-20">
+                <motion.div
+                    className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 sm:mb-16 lg:mb-20"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                >
                     <div className="max-w-xl">
                         <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-mono tracking-tight text-white mb-2">
                             FEATURES
@@ -76,14 +92,18 @@ const Features = () => {
                             Built with precision, security, and user experience in mind.
                         </p>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                     {features.map((feature, index) => (
-                        <div
+                        <motion.div
                             key={index}
                             className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-[30px] p-8 sm:p-10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:scale-[1.02]"
+                            initial={{ opacity: 0, y: 40 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, amount: 0.2 }}
+                            transition={{ duration: 0.6, delay: index * 0.1 }}
                         >
                             {/* Icon */}
                             <div className="w-12 h-12 sm:w-14 sm:h-14 text-white mb-6 group-hover:scale-110 transition-transform duration-300">
@@ -100,10 +120,10 @@ const Features = () => {
 
                             {/* Hover Gradient Overlay */}
                             <div className="absolute inset-0 rounded-[30px] bg-linear-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
-            </div>
+            </motion.div>
 
         </section>
     );

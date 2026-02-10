@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from 'framer-motion';
 
 const Stats = () => {
     const [counts, setCounts] = useState({ users: 0, matches: 0, messages: 0, success: 0 });
@@ -65,7 +66,13 @@ const Stats = () => {
         <section className="relative w-full pt-16 sm:pt-20 lg:pt-24 pb-8 sm:pb-10 lg:pb-12 bg-linear-to-b from-black via-gray-950 to-black">
 
             {/* Section Title */}
-            <div className="text-center mb-8 sm:mb-12 lg:mb-16 max-w-3xl mx-auto px-4">
+            <motion.div
+                className="text-center mb-8 sm:mb-12 lg:mb-16 max-w-3xl mx-auto px-4"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.8 }}
+            >
                 <h2 className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 font-mono tracking-tight">
                     <span className="text-white">
                         MILESTONES
@@ -74,15 +81,19 @@ const Stats = () => {
                 <p className="text-sm xs:text-base sm:text-lg text-gray-400 font-light leading-relaxed px-2">
                     Join millions of users who have found their perfect match
                 </p>
-            </div>
+            </motion.div>
 
             {/* Stats Grid - 2 columns on tablet and up */}
             <div className="w-full px-4 sm:px-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
                     {stats.map((stat, index) => (
-                        <div
+                        <motion.div
                             key={index}
                             className="group relative"
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, amount: 0.2 }}
+                            transition={{ duration: 0.6, delay: index * 0.2 }}
                         >
                             {/* Pill-shaped card */}
                             <div className="relative h-full rounded-[40px] xs:rounded-[50px] sm:rounded-[60px] lg:rounded-[80px] overflow-hidden bg-linear-to-br from-white/5 via-white/10 to-white/5 backdrop-blur-xl border border-white/10 shadow-2xl p-6 xs:p-8 sm:p-10 lg:p-12 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-primary/20">
@@ -119,7 +130,7 @@ const Stats = () => {
                                 <div className="hidden xs:block absolute top-3 sm:top-4 right-3 sm:right-4 w-12 sm:w-16 h-12 sm:h-16 border-t-2 border-r-2 border-primary/20 rounded-tr-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                                 <div className="hidden xs:block absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-12 sm:w-16 h-12 sm:h-16 border-b-2 border-l-2 border-purple-500/20 rounded-bl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </div>
