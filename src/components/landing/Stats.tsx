@@ -1,117 +1,129 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from "react";
 
 const Stats = () => {
-    const [isVisible, setIsVisible] = useState(false);
-    const sectionRef = useRef<HTMLDivElement>(null);
-
-    const stats = [
-        { value: 2000000, suffix: '+', label: 'Active Users', prefix: '' },
-        { value: 1.6, suffix: 'M', label: 'Messages Daily', prefix: '' },
-        { value: 95, suffix: '%', label: 'Success Rate', prefix: '' },
-        { value: 50, suffix: '+', label: 'Countries', prefix: '' }
-    ];
+    const [counts, setCounts] = useState({ users: 0, matches: 0, messages: 0, success: 0 });
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                }
-            },
-            { threshold: 0.1 }
-        );
-        const currentRef = sectionRef.current;
+        const targets = { users: 2000000, matches: 500000, messages: 1600000, success: 95 };
+        const duration = 2000;
+        const steps = 60;
+        const interval = duration / steps;
 
-        if (currentRef) {
-            observer.observe(currentRef);
-        }
+        let currentStep = 0;
+        const timer = setInterval(() => {
+            currentStep++;
+            const progress = currentStep / steps;
 
+            setCounts({
+                users: Math.floor(targets.users * progress),
+                matches: Math.floor(targets.matches * progress),
+                messages: Math.floor(targets.messages * progress),
+                success: Math.floor(targets.success * progress),
+            });
 
-        return () => {
-            if (currentRef) {
-                observer.unobserve(currentRef);
+            if (currentStep >= steps) {
+                clearInterval(timer);
+                setCounts(targets);
             }
-        };
+        }, interval);
+
+        return () => clearInterval(timer);
     }, []);
 
-    const AnimatedCounter = ({ end, suffix, prefix }: { end: number; suffix: string; prefix: string }) => {
-        const [count, setCount] = useState(0);
-
-        useEffect(() => {
-            if (!isVisible) return;
-
-            let startTime: number;
-            const duration = 2000;
-
-            const animate = (currentTime: number) => {
-                if (!startTime) startTime = currentTime;
-                const progress = Math.min((currentTime - startTime) / duration, 1);
-
-                setCount(Math.floor(progress * end));
-
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                }
-            };
-
-            requestAnimationFrame(animate);
-        }, [end]);
-
-        const formatNumber = (num: number) => {
-            if (end >= 1000000) {
-                return (num / 1000000).toFixed(1);
-            }
-            return num.toLocaleString();
-        };
-
-        return (
-            <span className="text-5xl sm:text-6xl font-bold bg-linear-to-r from-primary via-pink-400 to-purple-500 bg-clip-text text-transparent">
-                {prefix}{formatNumber(count)}{suffix}
-            </span>
-        );
+    const formatNumber = (num: number) => {
+        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M+`;
+        if (num >= 1000) return `${(num / 1000).toFixed(0)}K+`;
+        return num.toString();
     };
 
+    const stats = [
+        {
+            value: formatNumber(counts.users),
+            label: "Active Users",
+            description: "Growing community of people seeking meaningful connections worldwide"
+        },
+        {
+            value: formatNumber(counts.matches),
+            label: "Matches Made",
+            description: "Successful matches created through our intelligent matching algorithm"
+        },
+        {
+            value: formatNumber(counts.messages),
+            label: "Messages Daily",
+            description: "Real conversations happening every day between matched users"
+        },
+        {
+            value: `${counts.success}%`,
+            label: "Success Rate",
+            description: "Users who found meaningful connections within their first month"
+        }
+    ];
+
     return (
-        <section ref={sectionRef} className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            {/* Background decoration */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-linear-to-r from-primary/20 to-purple-600/20 rounded-full blur-3xl opacity-20"></div>
+        <section className="relative w-full pt-16 sm:pt-20 lg:pt-24 pb-8 sm:pb-10 lg:pb-12 bg-linear-to-b from-black via-gray-950 to-black">
+
+            {/* Section Title */}
+            <div className="text-center mb-8 sm:mb-12 lg:mb-16 max-w-3xl mx-auto px-4">
+                <h2 className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 font-mono tracking-tight">
+                    <span className="text-white">
+                        MILESTONES
+                    </span>
+                </h2>
+                <p className="text-sm xs:text-base sm:text-lg text-gray-400 font-light leading-relaxed px-2">
+                    Join millions of users who have found their perfect match
+                </p>
             </div>
 
-            <div className="relative z-10">
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+            {/* Stats Grid - 2 columns on tablet and up */}
+            <div className="w-full px-4 sm:px-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
                     {stats.map((stat, index) => (
                         <div
                             key={index}
-                            className="text-center group"
-                            style={{ animationDelay: `${index * 150}ms` }}
+                            className="group relative"
                         >
-                            <div className="mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                                <AnimatedCounter end={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
+                            {/* Pill-shaped card */}
+                            <div className="relative h-full rounded-[40px] xs:rounded-[50px] sm:rounded-[60px] lg:rounded-[80px] overflow-hidden bg-linear-to-br from-white/5 via-white/10 to-white/5 backdrop-blur-xl border border-white/10 shadow-2xl p-6 xs:p-8 sm:p-10 lg:p-12 hover:border-white/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-primary/20">
+
+                                {/* Gradient overlay */}
+                                <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                                {/* Content */}
+                                <div className="relative z-10 flex flex-col items-center justify-center text-center h-full min-h-[220px] xs:min-h-[260px] sm:min-h-[300px]">
+
+                                    {/* Large Number */}
+                                    <div className="mb-4 xs:mb-6 sm:mb-8">
+                                        <div className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold font-mono tracking-tighter bg-linear-to-r from-pink-400 via-pink-500 to-fuchsia-500 bg-clip-text text-transparent transition-all duration-500 leading-none">
+                                            {stat.value}
+                                        </div>
+                                    </div>
+
+                                    {/* Label */}
+                                    <div className="mb-3 sm:mb-4">
+                                        <h3 className="text-base xs:text-lg sm:text-xl lg:text-2xl font-semibold text-gray-300 font-mono tracking-wide">
+                                            {stat.label}
+                                        </h3>
+                                    </div>
+
+                                    {/* Description */}
+                                    <div className="max-w-md px-2">
+                                        <p className="text-xs xs:text-sm sm:text-base text-gray-500 leading-relaxed font-light">
+                                            {stat.description}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Decorative corner accents - Hidden on very small screens */}
+                                <div className="hidden xs:block absolute top-3 sm:top-4 right-3 sm:right-4 w-12 sm:w-16 h-12 sm:h-16 border-t-2 border-r-2 border-primary/20 rounded-tr-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                <div className="hidden xs:block absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-12 sm:w-16 h-12 sm:h-16 border-b-2 border-l-2 border-purple-500/20 rounded-bl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             </div>
-                            <p className="text-lg text-gray-400 font-medium group-hover:text-gray-300 transition-colors">
-                                {stat.label}
-                            </p>
                         </div>
                     ))}
                 </div>
-
-                {/* Divider */}
-
-                <div className="mt-16 flex items-center justify-center gap-2">
-                    <div className="h-px w-32 bg-linear-to-r from-transparent to-white/20"></div>
-                    <div className="flex gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                        <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                        <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                    </div>
-                    <div className="h-px w-32 bg-linear-to-l from-transparent to-white/20"></div>
-                </div>
-
             </div>
+
         </section>
     );
 };

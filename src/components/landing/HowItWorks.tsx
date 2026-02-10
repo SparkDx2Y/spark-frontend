@@ -1,126 +1,170 @@
-
 const HowItWorks = () => {
-    const steps = [
-        {
-            number: "01",
-            title: "Create Your Profile",
-            description: "Sign up in seconds and build your profile with photos and interests. Show the world who you really are.",
-            icon: (
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-            )
-        },
-        {
-            number: "02",
-            title: "Get Smart Matches",
-            description: "Our AI algorithm analyzes your preferences and suggests compatible matches based on shared values and interests.",
-            icon: (
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-            )
-        },
-        {
-            number: "03",
-            title: "Start Connecting",
-            description: "Like profiles that catch your eye. When there's a mutual match, start chatting and see where it goes!",
-            icon: (
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-            )
-        },
-        {
-            number: "04",
-            title: "Find Your Match",
-            description: "Build meaningful connections through conversations, video calls, and shared experiences. Your story starts here.",
-            icon: (
-                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-            )
-        }
-    ];
-
     return (
-        <section id="how-it-works" className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-            {/* Section Header */}
-            <div className="text-center mb-20">
-                <h2 className="text-4xl sm:text-5xl font-bold mb-4">
-                    <span className="bg-linear-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                        How It Works
-                    </span>
+        <section className="relative w-full px-4 sm:px-6 pt-8 lg:pt-10 pb-6 lg:pb-8 bg-linear-to-b from-black via-gray-950 to-black overflow-hidden">
+
+            {/* Header */}
+            <div className="text-center mb-16 lg:mb-24 relative z-10">
+                <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold font-mono tracking-tighter text-white mb-6">
+                    HOW IT WORKS
                 </h2>
-                <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-                    Finding love has never been easier. Just four simple steps to your perfect match.
+                <p className="text-lg text-gray-400 font-light max-w-2xl mx-auto">
+                    Centralized connection. Decentralized possibilities.
                 </p>
             </div>
 
-            {/* Steps */}
-            <div className="relative">
-                {/* Connection Line - Hidden on mobile */}
-                <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-linear-to-r from-primary/20 via-pink-500/40 to-purple-600/20 -translate-y-1/2"></div>
+            <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20">
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
-                    {steps.map((step, index) => (
-                        <div
-                            key={index}
-                            className="relative group"
-                            style={{ animationDelay: `${index * 200}ms` }}
-                        >
-                            {/* Card */}
-                            <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/20 h-full">
-                                {/* Step Number - Corner Ribbon Badge */}
-                                <div className="absolute -top-2 -right-2 w-16 h-16 group-hover:scale-110 transition-all duration-300">
-                                    <div className="relative w-full h-full">
-                                        {/* Ribbon shape */}
-                                        <svg className="w-full h-full drop-shadow-xl" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <defs>
-                                                <linearGradient id={`ribbon-gradient-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stopColor="#ff4b7d" />
-                                                    <stop offset="100%" stopColor="#ec4899" />
-                                                </linearGradient>
-                                            </defs>
-                                            {/* Main ribbon */}
-                                            <path d="M0 0L64 0L64 64L0 0Z" fill={`url(#ribbon-gradient-${index})`} />
-                                            {/* Folded corner effect */}
-                                            <path d="M0 0L20 0L0 20L0 0Z" fill="rgba(0,0,0,0.2)" />
-                                            {/* Highlight */}
-                                            <path d="M0 0L64 0L32 32L0 0Z" fill="rgba(255,255,255,0.15)" />
-                                        </svg>
-                                        {/* Number text */}
-                                        <span className="absolute top-1 right-1 text-lg font-extrabold text-white drop-shadow-md z-10">
-                                            {step.number}
-                                        </span>
+                {/* Left Column: Steps 1 & 2 */}
+                <div className="flex flex-col gap-12 lg:gap-24 w-full lg:w-1/3">
+
+                    {/* Step 1 */}
+                    <div className="group text-center lg:text-right">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 text-blue-400 font-bold text-xl mb-4 border border-blue-500/20 group-hover:scale-110 transition-transform duration-300">01</div>
+                        <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">Create Profile</h3>
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                            Sign up in seconds. Upload your best photos and write a killer bio.
+                        </p>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="group text-center lg:text-right">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-500/10 text-purple-400 font-bold text-xl mb-4 border border-purple-500/20 group-hover:scale-110 transition-transform duration-300">02</div>
+                        <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-purple-400 transition-colors">Smart Match</h3>
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                            Our AI analyzes your personality and preferences to find your match.
+                        </p>
+                    </div>
+
+                </div>
+
+                {/* Center: Phone Mockup / Visual Anchor */}
+                <div className="relative w-full max-w-sm lg:max-w-md aspect-9/16 bg-black/40 backdrop-blur-xl rounded-[3rem] border border-white/10 shadow-2xl shadow-pink-500/20 flex items-center justify-center  overflow-hidden z-20 group">
+
+                    {/* Inner subtle glow border (Like Login Component) */}
+                    <div className="absolute inset-0 rounded-[3rem] border border-pink-500/30 opacity-30 pointer-events-none group-hover:opacity-50 transition-opacity duration-500"></div>
+
+                    {/* Screen Content: "It's a Spark" Match Moment */}
+                    <div className="absolute inset-3 bg-gray-900 rounded-[2.5rem] overflow-hidden flex flex-col">
+
+                        {/* Dynamic Background */}
+                        <div className="absolute inset-0 bg-linear-to-br from-gray-900 via-pink-900/40 to-black z-0"></div>
+                        <div className="absolute top-[-50%] left-[-50%] right-[-50%] bottom-[-50%] bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-pink-500/20 via-transparent to-transparent animate-spin-slow opacity-50 z-0"></div>
+
+                        {/* Status Bar */}
+                        <div className="h-8 w-full flex justify-between items-center px-6 mt-2 relative z-10">
+                            <div className="text-[10px] text-white font-mono">0:01</div>
+                            <div className="flex gap-1.5">
+                                <div className="w-4 h-2.5 bg-white rounded-sm"></div>
+                                <div className="w-0.5 h-2.5 bg-white/30 rounded-full"></div>
+                            </div>
+                        </div>
+
+                        {/* Main Content - Swipe Deck */}
+                        <div className="flex-1 flex flex-col relative z-10 p-4">
+
+                            {/* Card Stack Area */}
+                            <div className="flex-1 relative">
+
+                                {/* Background Cards (Stack Effect) */}
+                                <div className="absolute inset-0 top-6 bg-gray-800/40 rounded-3xl transform scale-95 blur-sm"></div>
+                                <div className="absolute inset-0 top-3 bg-gray-800/60 rounded-3xl transform scale-[0.97]"></div>
+
+                                {/* Active Profile Card */}
+                                <div className="absolute inset-0 bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+
+                                    {/* Profile Photo */}
+                                    <div className="absolute inset-0 bg-center bg-cover" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80")' }}>
+
+                                        {/* Gradient Overlay */}
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent"></div>
+
+                                        {/* NOPE Overlay (Left Swipe) */}
+                                        <div className="absolute inset-0 bg-red-500/0 flex items-center justify-center pointer-events-none">
+                                            <div className="border-4 border-red-500 rounded-2xl px-6 py-3 rotate-[-20deg] opacity-0">
+                                                <span className="text-red-500 font-black text-4xl">NOPE</span>
+                                            </div>
+                                        </div>
+
+                                        {/* LIKE Overlay (Right Swipe) */}
+                                        <div className="absolute inset-0 bg-green-500/0 flex items-center justify-center pointer-events-none">
+                                            <div className="border-4 border-green-500 rounded-2xl px-6 py-3 rotate-20 opacity-0">
+                                                <span className="text-green-500 font-black text-4xl">LIKE</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Top Info Bar */}
+                                        <div className="absolute top-0 left-0 right-0 p-6">
+                                            <div className="flex gap-2">
+                                                <div className="flex-1 h-1 bg-white rounded-full"></div>
+                                                <div className="flex-1 h-1 bg-white/30 rounded-full"></div>
+                                                <div className="flex-1 h-1 bg-white/30 rounded-full"></div>
+                                                <div className="flex-1 h-1 bg-white/30 rounded-full"></div>
+                                            </div>
+                                        </div>
+
+                                        {/* Profile Info - Bottom */}
+                                        <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
+                                            <div>
+                                                <div className="flex items-baseline gap-2 mb-2">
+                                                    <h2 className="text-3xl font-bold text-white drop-shadow-2xl">Jessica</h2>
+                                                    <span className="text-xl text-white/90 drop-shadow-lg">25</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-white/90 mb-3">
+                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                                                    </svg>
+                                                    <span className="text-sm drop-shadow-lg">5 kilometers away</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-2">
+                                                <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-medium border border-white/30">
+                                                    Photography
+                                                </span>
+                                                <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-medium border border-white/30">
+                                                    Foodie
+                                                </span>
+                                                <span className="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-medium border border-white/30">
+                                                    Travel
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* Icon */}
-                                <div className="inline-flex items-center justify-center w-20 h-20 bg-linear-to-br from-primary/20 to-purple-600/20 rounded-2xl mb-6 text-primary group-hover:text-pink-400 transition-colors duration-300">
-                                    {step.icon}
-                                </div>
-
-                                {/* Content */}
-                                <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-primary transition-colors">
-                                    {step.title}
-                                </h3>
-                                <p className="text-gray-400 leading-relaxed">
-                                    {step.description}
-                                </p>
                             </div>
 
-                            {/* Arrow - Hidden on mobile and last item */}
-                            {index < steps.length - 1 && (
-                                <div className="hidden lg:block absolute top-1/2 -right-3 -translate-y-1/2 z-20">
-                                    <svg className="w-6 h-6 text-primary animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
-                                </div>
-                            )}
                         </div>
-                    ))}
+
+                    </div>
+
+                    {/* Reflection */}
+                    <div className="absolute top-0 right-0 w-1/2 h-full bg-linear-to-l from-white/5 to-transparent pointer-events-none"></div>
                 </div>
+
+
+                {/* Right Column: Steps 3 & 4 */}
+                <div className="flex flex-col gap-12 lg:gap-24 w-full lg:w-1/3">
+
+                    {/* Step 3 */}
+                    <div className="group text-center lg:text-left">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-pink-500/10 text-pink-400 font-bold text-xl mb-4 border border-pink-500/20 group-hover:scale-110 transition-transform duration-300">03</div>
+                        <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-pink-400 transition-colors">Connect</h3>
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                            Start real conversations. Video chat, share moments instantly.
+                        </p>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="group text-center lg:text-left">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/10 text-orange-400 font-bold text-xl mb-4 border border-orange-500/20 group-hover:scale-110 transition-transform duration-300">04</div>
+                        <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-orange-400 transition-colors">Meet Up</h3>
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                            Take the connection to the real world safely.
+                        </p>
+                    </div>
+
+                </div>
+
             </div>
 
         </section>
@@ -128,9 +172,3 @@ const HowItWorks = () => {
 };
 
 export default HowItWorks;
-
-
-
-
-
-
