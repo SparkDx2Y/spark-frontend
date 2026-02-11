@@ -16,12 +16,12 @@ const Hero = () => {
   return (
     <section
       ref={ref}
-      className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-black pb-8 sm:pb-12"
+      className="relative w-full h-auto flex flex-col items-center justify-center overflow-hidden bg-black pb-6 pt-1 sm:pt-1" 
     >
 
       {/* Full-width pill-shaped container */}
       <motion.div
-        className="relative w-full h-screen rounded-[40px] xs:rounded-[60px] sm:rounded-[80px] lg:rounded-[100px] xl:rounded-[120px] overflow-hidden bg-black shadow-2xl border border-white/10 shadow-pink-500/20"
+        className="relative w-full h-auto min-h-[550px] sm:min-h-[600px] lg:h-screen rounded-[40px] xs:rounded-[60px] sm:rounded-[80px] lg:rounded-[100px] xl:rounded-[120px] overflow-hidden bg-black shadow-2xl border border-white/10 shadow-pink-500/20 flex flex-col justify-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
@@ -49,10 +49,10 @@ const Hero = () => {
         <div className="absolute inset-0 bg-linear-to-br from-gray-900/60 via-black/40 to-gray-900/60"></div>
 
         {/* Centered Content */}
-        <div className="relative h-full flex items-center justify-center px-4 xs:px-6 sm:px-10 md:px-12 lg:px-16 py-6 xs:py-8 sm:py-10 md:py-12">
+        <div className="relative h-full flex items-center justify-center px-4 xs:px-6 sm:px-10 md:px-12 lg:px-16 pb-8 xs:pb-12 sm:pb-16 pt-24 xs:pt-32 sm:pt-40 md:pt-20">
 
           {/* Content Container - Centered */}
-          <div className="flex flex-col items-center justify-center text-center space-y-5 xs:space-y-6 sm:space-y-7 md:space-y-8 lg:space-y-10 max-w-4xl mx-auto pt-6 xs:pt-8 sm:pt-10 md:pt-12">
+          <div className="flex flex-col items-center justify-center text-center space-y-5 xs:space-y-6 sm:space-y-7 md:space-y-8 lg:space-y-10 max-w-4xl mx-auto">
 
             {/* Main Heading - Centered & Responsive */}
             <motion.h1
