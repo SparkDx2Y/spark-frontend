@@ -21,7 +21,7 @@ const Hero = () => {
 
       {/* Full-width pill-shaped container */}
       <motion.div
-        className="relative w-full h-auto min-h-[550px] sm:min-h-[600px] lg:h-screen rounded-[40px] xs:rounded-[60px] sm:rounded-[80px] lg:rounded-[100px] xl:rounded-[120px] overflow-hidden bg-black shadow-2xl border border-white/10 shadow-pink-500/20 flex flex-col justify-center"
+        className="relative w-full h-auto min-h-[550px] sm:min-h-[600px] lg:h-screen rounded-[40px] xs:rounded-[60px] sm:rounded-[80px] lg:rounded-[100px] xl:rounded-[120px] overflow-hidden bg-black border border-white/10 shadow-[0_10px_40px_-10px_rgba(236,72,153,0.3)] flex flex-col justify-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
@@ -65,7 +65,7 @@ const Hero = () => {
                 Your one in a million
               </span>
               <br />
-              <span className="bg-linear-to-r from-primary via-pink-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-primary via-pink-400 to-purple-500 bg-clip-text text-transparent animate-gradient-shift">
                 might be closer than you think.
               </span>
             </motion.h1>

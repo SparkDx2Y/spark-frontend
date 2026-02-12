@@ -19,7 +19,7 @@ export default function Footer() {
             <div className='relative z-10 w-full px-0 pb-0'>
 
                 {/* Larger full-width pill-shaped container */}
-                <div className="relative w-full min-h-[650px] sm:min-h-[750px] rounded-[80px] sm:rounded-[100px] lg:rounded-[120px] overflow-hidden border border-white/10 shadow-2xl">
+                <div className="relative w-full min-h-[650px] sm:min-h-[750px] rounded-[80px] sm:rounded-[100px] lg:rounded-[120px] overflow-hidden border border-white/10 shadow-[0_-10px_40px_-10px_rgba(236,72,153,0.3)]">
 
                     {/* Gradient overlays */}
                     <div className="absolute inset-0 bg-linear-to-tr from-primary/5 via-transparent to-purple-600/5 pointer-events-none"></div>
