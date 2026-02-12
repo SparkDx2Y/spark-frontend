@@ -16,7 +16,7 @@ const Hero = () => {
   return (
     <section
       ref={ref}
-      className="relative w-full h-auto flex flex-col items-center justify-center overflow-hidden bg-black pb-6 pt-1 sm:pt-1" 
+      className="relative w-full h-auto flex flex-col items-center justify-center overflow-hidden bg-black pb-6 pt-1 sm:pt-1"
     >
 
       {/* Full-width pill-shaped container */}
@@ -49,7 +49,7 @@ const Hero = () => {
         <div className="absolute inset-0 bg-linear-to-br from-gray-900/60 via-black/40 to-gray-900/60"></div>
 
         {/* Centered Content */}
-        <div className="relative h-full flex items-center justify-center px-4 xs:px-6 sm:px-10 md:px-12 lg:px-16 pb-8 xs:pb-12 sm:pb-16 pt-24 xs:pt-32 sm:pt-40 md:pt-20">
+        <div className="relative h-full flex items-center justify-center px-4 xs:px-6 sm:px-10 md:px-12 lg:px-16 pb-8 xs:pb-12 sm:pb-16 pt-28 xs:pt-36 sm:pt-44 md:pt-32 lg:pt-40">
 
           {/* Content Container - Centered */}
           <div className="flex flex-col items-center justify-center text-center space-y-5 xs:space-y-6 sm:space-y-7 md:space-y-8 lg:space-y-10 max-w-4xl mx-auto">
