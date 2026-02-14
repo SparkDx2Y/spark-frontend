@@ -6,8 +6,86 @@ import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMess
 import { MatchResponse, MessageResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
-import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile } from 'lucide-react';
+import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
+import { uploadChatMedia } from '@/services/fileService';
+
+function AudioMessage({ src, isOwn, isUploading }: { src: string; isOwn: boolean; isUploading?: boolean }) {
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+
+    const togglePlay = () => {
+        if (!audioRef.current || isUploading) return;
+        if (isPlaying) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+    };
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+        // Simple duration handling
+        const onLoadedMetadata = () => setDuration(audio.duration);
+
+        const handleEnded = () => setIsPlaying(false);
+
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+        audio.addEventListener('loadedmetadata', onLoadedMetadata);
+        audio.addEventListener('ended', handleEnded);
+
+        return () => {
+            audio.removeEventListener('timeupdate', handleTimeUpdate);
+            audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+            audio.removeEventListener('ended', handleEnded);
+        };
+    }, []);
+
+    const formatTime = (time: number) => {
+        if (!time || isNaN(time)) return "0:00";
+        const min = Math.floor(time / 60);
+        const sec = Math.floor(time % 60);
+        return `${min}:${sec.toString().padStart(2, '0')}`;
+    };
+
+    return (
+        <div className={`flex items-center gap-3 min-w-[200px] py-1 ${isUploading ? 'opacity-80' : ''}`}>
+            <button
+                onClick={togglePlay}
+                disabled={isUploading}
+                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isOwn ? 'bg-white/20 hover:bg-white/30' : 'bg-primary/20 hover:bg-primary/30'} transition-colors ${isUploading ? 'cursor-not-allowed' : ''}`}
+            >
+                {isUploading ? (
+                    <Loader2 className={`w-5 h-5 animate-spin ${isOwn ? 'text-white' : 'text-primary'}`} />
+                ) : isPlaying ? (
+                    <Pause className={`w-5 h-5 ${isOwn ? 'text-white' : 'text-primary'}`} />
+                ) : (
+                    <Play className={`w-5 h-5 ${isOwn ? 'text-white' : 'text-primary'}`} />
+                )}
+            </button>
+            <div className="flex-1 space-y-2">
+                <div className={`h-1.5 w-full rounded-full ${isOwn ? 'bg-white/20' : 'bg-white/10'}`}>
+                    <div
+                        className={`h-full rounded-full ${isOwn ? 'bg-white' : 'bg-primary'} transition-all`}
+                        style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
+                    />
+                </div>
+                <div className="flex justify-between text-[10px] opacity-70">
+                    <span>{formatTime(currentTime)}</span>
+                    <span>{isUploading ? 'Sending...' : formatTime(duration)}</span>
+                </div>
+            </div>
+            <audio ref={audioRef} src={src} className="hidden" preload="metadata" />
+        </div>
+    );
+}
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
@@ -20,6 +98,23 @@ export default function MessagesPage() {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [showAttachments, setShowAttachments] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [uploading, setUploading] = useState(false);
+
+    // Audio recording state
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingTime, setRecordingTime] = useState(0);
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const shouldSendAfterStopRef = useRef(false);
+    const [isPaused, setIsPaused] = useState(false);
+    const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const audioInputRef = useRef<HTMLInputElement>(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -48,10 +143,11 @@ export default function MessagesPage() {
         if (selectedMatch) {
             joinChat(selectedMatch.id);
             return () => {
+                emitTyping(selectedMatch.id, false);
                 leaveChat(selectedMatch.id);
             };
         }
-    }, [selectedMatch, joinChat, leaveChat]);
+    }, [selectedMatch, joinChat, leaveChat, emitTyping]);
 
     // Helper to move active chat to top
     const updateMatchList = (matchId: string, content: string, createdAt: string) => {
@@ -85,7 +181,8 @@ export default function MessagesPage() {
             }
 
             // 2. Update Sidebar (Move chat to top)
-            updateMatchList(data.matchId, data.message.content, data.message.createdAt);
+            const previewContent = data.message.type === 'text' ? data.message.content : `Sent an ${data.message.type}`;
+            updateMatchList(data.matchId, previewContent, data.message.createdAt);
         };
 
         socket.on('message', handleNewMessage);
@@ -123,6 +220,8 @@ export default function MessagesPage() {
         setSelectedMatch(match);
         setMessages([]);
         setShowAttachments(false); // Close attachments when switching chats
+        setNewMessage(''); // Clear input when switching chats
+        deleteRecording(); // Reset audio recording state
 
         try {
             const msgs = await getMessages(match.id, 50);
@@ -136,31 +235,56 @@ export default function MessagesPage() {
     };
 
     // Handle send message for messages page
-    const handleSendMessage = async () => {
-        if (!newMessage.trim() || !selectedMatch || sending) return;
+    const handleSendMessage = async (customContent?: string, type: 'text' | 'image' | 'audio' = 'text') => {
+        const content = customContent || newMessage.trim();
+        if (!content || !selectedMatch || sending) return;
+
+        let tempId: string | null = null;
+
+        // Optimistic Text Update
+        if (type === 'text') {
+            setNewMessage('');
+            if (inputRef.current) inputRef.current.style.height = '44px';
+            emitTyping(selectedMatch.id, false);
+
+            tempId = `temp-${Date.now()}`;
+            const optimisticMessage: MessageResponse = {
+                id: tempId,
+                matchId: selectedMatch.id,
+                senderId: currentUser?.id || '',
+                content: content,
+                type: 'text',
+                isRead: false,
+                createdAt: new Date().toISOString()
+            };
+            setMessages(prev => [...prev, optimisticMessage]);
+        }
 
         setSending(true);
         try {
             const message = await sendMessage({
                 matchId: selectedMatch.id,
-                content: newMessage.trim()
+                content: content,
+                type: type
             });
 
-            setMessages(prev => [...prev, message]);
-            setNewMessage('');
-
-            // Reset textarea height
-            if (inputRef.current) {
-                inputRef.current.style.height = '44px';
+            if (tempId) {
+                // Replace optimistic message
+                setMessages(prev => prev.map(m => m.id === tempId ? message : m));
+            } else {
+                setMessages(prev => [...prev, message]);
             }
 
-            emitTyping(selectedMatch.id, false);
-
             // Reorder Sidebar
-            updateMatchList(selectedMatch.id, message.content, message.createdAt);
+            updateMatchList(selectedMatch.id, type === 'text' ? message.content : `Sent an ${type}`, message.createdAt);
 
         } catch (error) {
             console.error('Failed to send message:', error);
+            if (tempId) {
+                // Remove optimistic message
+                setMessages(prev => prev.filter(m => m.id !== tempId));
+                setNewMessage(content); // Restore content?
+            }
         } finally {
             setSending(false);
         }
@@ -180,6 +304,241 @@ export default function MessagesPage() {
         if (selectedMatch) {
             emitTyping(selectedMatch.id, e.target.value.length > 0);
         }
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedMatch) return;
+
+        setShowAttachments(false);
+
+        // Optimistic Update
+        const tempId = `temp-${Date.now()}`;
+        const blobUrl = URL.createObjectURL(file);
+
+        const optimisticMessage: MessageResponse = {
+            id: tempId,
+            matchId: selectedMatch.id,
+            senderId: currentUser?.id || '',
+            content: blobUrl,
+            type: 'image',
+            isRead: false,
+            createdAt: new Date().toISOString()
+        };
+
+        setMessages(prev => [...prev, optimisticMessage]);
+
+        try {
+            const url = await uploadChatMedia(file, 'image');
+            const message = await sendMessage({
+                matchId: selectedMatch.id,
+                content: url,
+                type: 'image'
+            });
+
+            setMessages(prev => prev.map(m => m.id === tempId ? message : m));
+            updateMatchList(selectedMatch.id, 'Sent an image', message.createdAt);
+            URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error('Failed to upload image:', error);
+            setMessages(prev => prev.filter(m => m.id !== tempId));
+            // alert('Failed to upload image');
+        } finally {
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedMatch) return;
+
+        setShowAttachments(false);
+
+        // Optimistic Update
+        const tempId = `temp-${Date.now()}`;
+        const blobUrl = URL.createObjectURL(file);
+
+        const optimisticMessage: MessageResponse = {
+            id: tempId,
+            matchId: selectedMatch.id,
+            senderId: currentUser?.id || '',
+            content: blobUrl,
+            type: 'audio',
+            isRead: false,
+            createdAt: new Date().toISOString()
+        };
+
+        setMessages(prev => [...prev, optimisticMessage]);
+
+        try {
+            const url = await uploadChatMedia(file, 'audio');
+            const message = await sendMessage({
+                matchId: selectedMatch.id,
+                content: url,
+                type: 'audio'
+            });
+
+            setMessages(prev => prev.map(m => m.id === tempId ? message : m));
+            updateMatchList(selectedMatch.id, 'Sent an audio', message.createdAt);
+            URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error('Failed to upload audio:', error);
+            setMessages(prev => prev.filter(m => m.id !== tempId));
+            // alert('Failed to upload audio');
+        } finally {
+            if (audioInputRef.current) audioInputRef.current.value = '';
+        }
+    };
+
+    const handleEmojiClick = (emojiData: EmojiClickData) => {
+        setNewMessage(prev => prev + emojiData.emoji);
+        // Focus the textarea after selecting an emoji
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    };
+
+    // Audio Recording Functions
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorderRef.current = new MediaRecorder(stream);
+            audioChunksRef.current = [];
+
+            mediaRecorderRef.current.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorderRef.current.onstop = () => {
+                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                setAudioBlob(audioBlob);
+                stream.getTracks().forEach(track => track.stop());
+                setIsPaused(false);
+
+                if (shouldSendAfterStopRef.current) {
+                    handleAudioSend(audioBlob);
+                    shouldSendAfterStopRef.current = false;
+                }
+            };
+
+            mediaRecorderRef.current.start();
+            setIsRecording(true);
+            setIsPaused(false);
+            shouldSendAfterStopRef.current = false;
+            setRecordingTime(0);
+
+            timerRef.current = setInterval(() => {
+                if (!shouldSendAfterStopRef.current) { // Don't increment if about to stop
+                    setRecordingTime(prev => prev + 1);
+                }
+            }, 1000);
+        } catch (error) {
+            console.error('Error starting recording:', error);
+            // alert('Could not access microphone');
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            setIsPaused(false);
+            if (timerRef.current) clearInterval(timerRef.current);
+        }
+    };
+
+    const pauseRecording = () => {
+        if (mediaRecorderRef.current && isRecording && !isPaused) {
+            mediaRecorderRef.current.pause();
+            setIsPaused(true);
+            if (timerRef.current) clearInterval(timerRef.current);
+        }
+    };
+
+    const resumeRecording = () => {
+        if (mediaRecorderRef.current && isRecording && isPaused) {
+            mediaRecorderRef.current.resume();
+            setIsPaused(false);
+            timerRef.current = setInterval(() => {
+                setRecordingTime(prev => prev + 1);
+            }, 1000);
+        }
+    };
+
+    const sendRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            shouldSendAfterStopRef.current = true;
+            stopRecording();
+        } else if (audioBlob) {
+            handleAudioSend(audioBlob);
+        }
+    };
+
+    const deleteRecording = () => {
+        if (isRecording && mediaRecorderRef.current) {
+            mediaRecorderRef.current.onstop = null; // Prevent onstop from firing
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            setIsPaused(false);
+            if (timerRef.current) clearInterval(timerRef.current);
+        }
+        setAudioBlob(null);
+        setRecordingTime(0);
+    };
+
+    const handleAudioSend = async (blobToSend?: Blob) => {
+        const blob = blobToSend || audioBlob;
+        if (!blob || !selectedMatch) return;
+
+        // Optimistic Update
+        const tempId = `temp-${Date.now()}`;
+        const localUrl = URL.createObjectURL(blob);
+        const optimisticMessage: MessageResponse = {
+            id: tempId,
+            matchId: selectedMatch.id,
+            senderId: currentUser?.id || '',
+            content: localUrl,
+            type: 'audio',
+            isRead: false,
+            createdAt: new Date().toISOString()
+        };
+
+        setMessages(prev => [...prev, optimisticMessage]);
+        setAudioBlob(null);
+        setRecordingTime(0);
+        // Don't set sending=true to block UI for audio, let it happen in background?
+        // But we usually block to prevent double sends? 
+        // For optimistic, we usually don't block. 
+
+        try {
+            const url = await uploadChatMedia(blob, 'audio');
+            const message = await sendMessage({
+                matchId: selectedMatch.id,
+                content: url,
+                type: 'audio'
+            });
+
+            // Replace optimistic message
+            setMessages(prev => prev.map(m => m.id === tempId ? message : m));
+
+            // Reorder Sidebar (Real update)
+            updateMatchList(selectedMatch.id, 'Sent an audio', message.createdAt);
+
+            URL.revokeObjectURL(localUrl); // Cleanup
+        } catch (error) {
+            console.error('Failed to send audio:', error);
+            // Remove optimistic message on failure
+            setMessages(prev => prev.filter(m => m.id !== tempId));
+            // alert('Failed to send audio message');
+        }
+    };
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     const scrollToBottom = () => {
@@ -356,7 +715,10 @@ export default function MessagesPage() {
                     {/* Messages Area */}
                     <div
                         className="flex-1 overflow-y-auto min-h-0 p-4 md:p-6 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
-                        onClick={() => setShowAttachments(false)} // Close attachments on click
+                        onClick={() => {
+                            setShowAttachments(false);
+                            setShowEmojiPicker(false);
+                        }}
                     >
                         {messages.map((msg, index) => {
                             const isOwn = msg.senderId === currentUser?.id;
@@ -386,6 +748,11 @@ export default function MessagesPage() {
                                 }
                             }
 
+                            // Helper to detect if message is ONLY emojis (using a broad emoji regex pattern)
+                            // This regex matches Extended Pictographic characters, Emoji Presentation characters, and whitespace.
+                            const isEmoji = msg.type === 'text' && /^[\p{Extended_Pictographic}\p{Emoji_Presentation}\s]+$/u.test(msg.content);
+                            const isImage = msg.type === 'image';
+
                             return (
                                 <div key={msg.id}>
                                     {showDateSeparator && (
@@ -404,18 +771,55 @@ export default function MessagesPage() {
                                         <div className={`max-w-[70%] sm:max-w-[60%] flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                                             <div
                                                 className={`
-                                                    relative px-5 py-3 shadow-md backdrop-blur-sm text-sm md:text-base selection:bg-black/30 selection:text-white
-                                                    ${isOwn
-                                                        ? `bg-linear-to-br from-primary via-primary/90 to-purple-600 text-white ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tr-none'}`
-                                                        : `bg-[#1a1a1a] text-gray-100 border border-white/5 ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tl-none'}`
+                                                    relative selection:bg-black/30 selection:text-white
+                                                    ${isEmoji
+                                                        ? 'bg-transparent text-7xl md:text-8xl p-0 shadow-none border-none leading-none' /* Emoji Style - Fixed large size */
+                                                        : `text-sm md:text-base ${isImage
+                                                            ? `p-1.5 shadow-md backdrop-blur-sm ${ // Image Style (Reduced Padding)
+                                                            isOwn
+                                                                ? `bg-transparent ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tr-none'}`
+                                                                : `bg-[#1a1a1a] border border-white/5 ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tl-none'}`
+                                                            }`
+                                                            : `px-5 py-3 shadow-md backdrop-blur-sm ${ // Standard Text Style
+                                                            isOwn
+                                                                ? `bg-linear-to-br from-primary via-primary/90 to-purple-600 text-white ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tr-none'}`
+                                                                : `bg-[#1a1a1a] text-gray-100 border border-white/5 ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tl-none'}`
+                                                            }`
+                                                        }`
                                                     }
                                                 `}
                                             >
-                                                <p className="leading-relaxed whitespace-pre-wrap wrap-break-wordbreak-word break-all">{msg.content}</p>
+                                                {msg.type === 'text' && (
+                                                    <p className={`leading-relaxed whitespace-pre-wrap wrap-break-wordbreak-word break-all ${isEmoji ? 'leading-normal' : ''}`}>{msg.content}</p>
+                                                )}
+                                                {msg.type === 'image' && (
+                                                    <div className="relative group">
+                                                        <img
+                                                            src={msg.content}
+                                                            alt="Message attachment"
+                                                            className={`max-w-xs md:max-w-sm max-h-60 md:max-h-80 object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity ${msg.id.startsWith('temp-') ? 'opacity-50' : ''}`}
+                                                            onClick={() => !msg.id.startsWith('temp-') && setLightboxImage(msg.content)}
+                                                        />
+                                                        {msg.id.startsWith('temp-') && (
+                                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                                <Loader2 className="w-8 h-8 text-white animate-spin" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {msg.type === 'audio' && (
+                                                    <AudioMessage
+                                                        src={msg.content}
+                                                        isOwn={isOwn}
+                                                        isUploading={msg.id.startsWith('temp-')}
+                                                    />
+                                                )}
                                             </div>
-                                            <p className={`text-[10px] mt-1.5 font-medium px-1 ${isOwn ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </p>
+                                            {!isEmoji && !msg.id.startsWith('temp-') && (
+                                                <p className={`text-[10px] mt-1.5 font-medium px-1 ${isOwn ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
+                                            )}
                                         </div>
                                     </motion.div>
                                 </div>
@@ -424,6 +828,7 @@ export default function MessagesPage() {
 
                         {/* Typing Indicator */}
                         {(() => {
+                            if (!selectedMatch) return null;
                             const otherUser = selectedMatch.users.find(u => u.userId !== currentUser?.id) || selectedMatch.users[0];
                             const isTyping = typingUsers[selectedMatch.id]?.includes(otherUser.userId);
 
@@ -433,7 +838,7 @@ export default function MessagesPage() {
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="flex justify-start"
+                                    className="flex justify-start mb-6"
                                 >
                                     <div className="bg-[#1a1a1a] border border-white/5 px-4 py-3 rounded-2xl rounded-tl-none flex items-center gap-2 shadow-sm">
                                         <div className="flex gap-1">
@@ -450,15 +855,13 @@ export default function MessagesPage() {
                                 </motion.div>
                             );
                         })()}
-
                         <div ref={messagesEndRef} />
                     </div>
-
 
                     {/* Enhanced Message Input Area */}
                     <div className="p-3 pb-24 md:p-6 md:pb-6 bg-black border-t border-white/5 shrink-0 z-30">
                         <div className="max-w-4xl mx-auto relative flex items-end gap-2 md:gap-3">
-                            {/* Attachment Menu Popup - Redesigned Horizontal Pill */}
+                            {/* ... Attachment Menu ... */}
                             <AnimatePresence>
                                 {showAttachments && (
                                     <motion.div
@@ -468,18 +871,18 @@ export default function MessagesPage() {
                                         className="absolute bottom-full left-0 mb-2 p-1.5 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl flex items-center gap-1 z-50 origin-bottom-left"
                                     >
                                         {[
-                                            { icon: ImageIcon, color: "text-blue-400", label: "Media", bg: "hover:bg-blue-400/20" },
+                                            { icon: ImageIcon, color: "text-blue-400", label: "Media", bg: "hover:bg-blue-400/20", onClick: () => fileInputRef.current?.click() },
                                             { icon: Camera, color: "text-purple-400", label: "Camera", bg: "hover:bg-purple-400/20" },
-                                            { icon: Mic, color: "text-red-400", label: "Audio", bg: "hover:bg-red-400/20" },
+                                            { icon: Mic, color: "text-red-400", label: "Audio", bg: "hover:bg-red-400/20", onClick: () => audioInputRef.current?.click() },
                                         ].map((item, idx) => (
                                             <motion.button
                                                 key={idx}
                                                 whileHover={{ scale: 1.1 }}
                                                 whileTap={{ scale: 0.9 }}
+                                                onClick={item.onClick}
                                                 className={`p-3 rounded-full transition-all duration-200 ${item.bg} group relative`}
                                             >
                                                 <item.icon className={`w-5 h-5 ${item.color}`} />
-                                                {/* Tooltip */}
                                                 <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                                                     {item.label}
                                                 </span>
@@ -488,6 +891,22 @@ export default function MessagesPage() {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+
+                            {/* Hidden File Input */}
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageUpload}
+                                accept="image/*"
+                                className="hidden"
+                            />
+                            <input
+                                type="file"
+                                ref={audioInputRef}
+                                onChange={handleAudioUpload}
+                                accept="audio/*"
+                                className="hidden"
+                            />
 
                             {/* Attachment Toggle Button */}
                             <motion.button
@@ -499,38 +918,130 @@ export default function MessagesPage() {
                             </motion.button>
 
                             {/* Text Input */}
-                            <div className="flex-1 bg-white/5 border border-white/10 focus-within:border-primary/50 focus-within:bg-white/10 rounded-[20px] md:rounded-[28px] transition-all duration-300 flex items-end min-h-[44px] pr-2 relative">
-                                <textarea
-                                    ref={inputRef}
-                                    value={newMessage}
-                                    onChange={handleTyping}
-                                    onFocus={() => setShowAttachments(false)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleSendMessage();
-                                        }
-                                    }}
-                                    placeholder="Message..."
-                                    rows={1}
-                                    className="flex-1 w-full min-w-0 bg-transparent border-none outline-none focus:outline-none focus:ring-0 px-4 py-3 text-sm md:text-base text-white placeholder:text-gray-500 resize-none max-h-32 mb-px scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
-                                    style={{ minHeight: '44px' }}
-                                    disabled={sending}
-                                />
-                                <button className="p-2 mb-1.5 rounded-full text-gray-400 hover:text-yellow-400 hover:bg-white/5 transition-colors shrink-0">
-                                    <Smile className="w-5 h-5 md:w-6 md:h-6" />
-                                </button>
+                            <div className="flex-1 bg-white/5 border border-white/10 focus-within:border-primary/50 focus-within:bg-white/10 rounded-[20px] md:rounded-[28px] transition-all duration-300 flex flex-col min-h-[44px] relative">
+                                {uploading && (
+                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-[20px] md:rounded-[28px] flex items-center justify-center z-20">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                            <span className="text-xs text-white">Sending media...</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {isRecording && (
+                                    <div className="absolute inset-0 bg-black rounded-[20px] md:rounded-[28px] flex items-center justify-between px-4 z-40">
+                                        <button
+                                            onClick={deleteRecording}
+                                            className="p-2 hover:bg-white/10 rounded-full text-red-500 transition-colors"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-2 h-2 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'}`} />
+                                                <span className="text-sm font-mono text-white">{formatTime(recordingTime)}</span>
+                                            </div>
+
+                                            <button
+                                                onClick={isPaused ? resumeRecording : pauseRecording}
+                                                className="p-2 hover:bg-white/10 rounded-full text-white transition-colors"
+                                            >
+                                                {isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                {audioBlob && (
+                                    <div className="absolute inset-0 bg-black rounded-[20px] md:rounded-[28px] flex items-center justify-between px-4 z-40">
+                                        <button
+                                            onClick={deleteRecording}
+                                            className="p-2 hover:bg-white/10 rounded-full text-red-500 transition-colors"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 bg-green-500 rounded-full" />
+                                            <span className="text-sm font-mono text-white">Audio Recorded</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex items-end pr-2">
+                                    <textarea
+                                        ref={inputRef}
+                                        value={newMessage}
+                                        onChange={handleTyping}
+                                        onFocus={() => {
+                                            setShowAttachments(false);
+                                            setShowEmojiPicker(false);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                if (newMessage.trim()) {
+                                                    handleSendMessage();
+                                                }
+                                            }
+                                        }}
+                                        placeholder="Message..."
+                                        rows={1}
+                                        className="flex-1 w-full min-w-0 bg-transparent border-none outline-none focus:outline-none focus:ring-0 px-4 py-3 text-sm md:text-base text-white placeholder:text-gray-500 resize-none max-h-32 mb-px scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+                                        style={{ minHeight: '44px' }}
+                                        disabled={sending || uploading}
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            setShowEmojiPicker(!showEmojiPicker);
+                                            setShowAttachments(false);
+                                        }}
+                                        className={`p-2 mb-1.5 rounded-full transition-colors shrink-0 ${showEmojiPicker ? 'text-yellow-400 bg-white/5' : 'text-gray-400 hover:text-yellow-400 hover:bg-white/5'}`}
+                                    >
+                                        <Smile className="w-5 h-5 md:w-6 md:h-6" />
+                                    </button>
+                                </div>
+
+                                {/* Emoji Picker Popup */}
+                                <AnimatePresence>
+                                    {showEmojiPicker && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                                            animate={{ opacity: 1, scale: 1, y: -10 }}
+                                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                            className="absolute bottom-full right-0 z-50 origin-bottom-right"
+                                        >
+                                            <div className="shadow-2xl rounded-2xl overflow-hidden border border-white/10">
+                                                <EmojiPicker
+                                                    onEmojiClick={handleEmojiClick}
+                                                    theme={Theme.DARK}
+                                                    autoFocusSearch={false}
+                                                    searchPlaceHolder="Search emojis..."
+                                                    width={320}
+                                                    height={400}
+                                                />
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
                             {/* Dynamic Send / Mic Button */}
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={newMessage.trim() ? handleSendMessage : undefined}
+                                onClick={() => {
+                                    if (isRecording || audioBlob) {
+                                        sendRecording();
+                                    } else if (newMessage.trim()) {
+                                        handleSendMessage();
+                                    } else {
+                                        startRecording();
+                                    }
+                                }}
                                 disabled={sending}
                                 className={`
                                     p-2.5 md:p-3.5 rounded-full shadow-lg shrink-0 flex items-center justify-center transition-all duration-500
-                                    ${newMessage.trim()
+                                    ${newMessage.trim() || isRecording || audioBlob
                                         ? 'bg-linear-to-r from-primary to-purple-600 text-white shadow-primary/25 translate-y-0'
                                         : 'bg-white/10 text-white hover:bg-white/20' // Mic style
                                     }
@@ -538,7 +1049,7 @@ export default function MessagesPage() {
                                 `}
                             >
                                 <AnimatePresence mode="wait">
-                                    {newMessage.trim() ? (
+                                    {(newMessage.trim() || isRecording || audioBlob) ? (
                                         <motion.div
                                             key="send"
                                             initial={{ scale: 0, rotate: -45 }}
@@ -587,6 +1098,40 @@ export default function MessagesPage() {
                     </motion.div>
                 </div>
             )}
+
+            {/* Lightbox Overlay */}
+            <AnimatePresence>
+                {lightboxImage && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setLightboxImage(null)}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 cursor-zoom-out"
+                    >
+                        <motion.button
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="absolute top-4 right-4 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors pointer-events-auto"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setLightboxImage(null);
+                            }}
+                        >
+                            <X className="w-6 h-6" />
+                        </motion.button>
+                        <motion.img
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            src={lightboxImage}
+                            alt="Full screen view"
+                            className="max-w-full max-h-screen object-contain pointer-events-auto cursor-default shadow-2xl rounded-sm"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
