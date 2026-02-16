@@ -1,17 +1,18 @@
 import { api } from "@/lib/axios";
 import { FILE_ENDPOINTS } from "@/constants/api";
+import { ApiResponse } from "@/types/api";
 
 export const uploadFile = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await api.post<{ url: string }>(FILE_ENDPOINTS.UPLOAD, formData, {
+    const response = await api.post<ApiResponse<{ url: string }>>(FILE_ENDPOINTS.UPLOAD, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
     });
 
-    return response.data.url;
+    return response.data.data.url;
 };
 
 export const uploadMultipleFiles = async (files: File[]): Promise<string[]> => {
@@ -20,13 +21,13 @@ export const uploadMultipleFiles = async (files: File[]): Promise<string[]> => {
         formData.append("files", file);
     });
 
-    const response = await api.post<{ urls: string[] }>(FILE_ENDPOINTS.UPLOAD_MULTIPLE, formData, {
+    const response = await api.post<ApiResponse<{ urls: string[] }>>(FILE_ENDPOINTS.UPLOAD_MULTIPLE, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
     });
 
-    return response.data.urls;
+    return response.data.data.urls;
 };
 
 export const uploadChatMedia = async (file: File | Blob, type: 'image' | 'audio'): Promise<string> => {
@@ -43,11 +44,11 @@ export const uploadChatMedia = async (file: File | Blob, type: 'image' | 'audio'
 
     formData.append("type", type);
 
-    const response = await api.post<{ url: string }>(FILE_ENDPOINTS.UPLOAD_CHAT_MEDIA, formData, {
+    const response = await api.post<ApiResponse<{ url: string }>>(FILE_ENDPOINTS.UPLOAD_CHAT_MEDIA, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
     });
 
-    return response.data.url;
+    return response.data.data.url;
 };

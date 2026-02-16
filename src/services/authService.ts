@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import { ApiResponse } from "@/types/api";
 
 import { AUTH_ENDPOINTS } from "@/constants/api";
 import { ForgotPasswordPayload, ForgotPasswordVerifyOtpPayload, LoginPayload, ResetPasswordPayload, SignupPayload, VerifyOtpPayload } from "@/types/auth/payload";
@@ -72,6 +73,15 @@ export const verifyForgotPasswordOtp = async (data: ForgotPasswordVerifyOtpPaylo
 }
 
 // -----------------------------
+// Resend FORGOT PASSWORD OTP
+// -----------------------------
+
+export const resendForgotPasswordOtp = async (): Promise<ResendOtpResponse> => {
+  const response = await api.post<ResendOtpResponse>(AUTH_ENDPOINTS.FORGOT_PASSWORD_RESEND_OTP);
+  return response.data;
+};
+
+// -----------------------------
 // Reset Password
 // -----------------------------
 
@@ -84,7 +94,7 @@ export const resetPassword = async (data: ResetPasswordPayload): Promise<ResetPa
 // Logout
 // -----------------------------
 
-export const logout = async (): Promise<{ message: string }> => {
+export const logout = async (): Promise<ApiResponse<null>> => {
   const response = await api.post(AUTH_ENDPOINTS.LOGOUT)
   return response.data
 }
@@ -93,7 +103,7 @@ export const logout = async (): Promise<{ message: string }> => {
 // Get Current User
 // -----------------------------
 
-export const getCurrentUser = async (): Promise<Omit<LoginResponse, 'message'>> => {
+export const getCurrentUser = async (): Promise<LoginResponse> => {
   const response = await api.get(AUTH_ENDPOINTS.ME);
   return response.data;
 };
