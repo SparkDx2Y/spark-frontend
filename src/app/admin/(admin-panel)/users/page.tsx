@@ -50,7 +50,7 @@ async function UsersListContent({ search, page }: { search: string; page: number
         limit: 10
     });
 
-    const { users, pagination } = response.data;
+    const { users, pagination } = response;
 
     return (
         <>

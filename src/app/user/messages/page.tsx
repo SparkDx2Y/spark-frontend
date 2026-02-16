@@ -150,12 +150,17 @@ export default function MessagesPage() {
     }, [selectedMatch, joinChat, leaveChat, emitTyping]);
 
     // Helper to move active chat to top
-    const updateMatchList = (matchId: string, content: string, createdAt: string) => {
+    const updateMatchList = (matchId: string, content: string, createdAt: string, type: 'text' | 'image' | 'audio' = 'text') => {
         setMatches(prev => {
             const index = prev.findIndex(m => m.id === matchId);
             if (index === -1) return prev;
 
-            const updatedMatch = { ...prev[index], lastMessage: content, lastMessageAt: createdAt };
+            const updatedMatch = {
+                ...prev[index],
+                lastMessage: content,
+                lastMessageAt: createdAt,
+                lastMessageType: type
+            };
             const newMatches = [...prev];
             newMatches.splice(index, 1);
             newMatches.unshift(updatedMatch);
@@ -175,14 +180,13 @@ export default function MessagesPage() {
 
                 // Mark as read
                 markMessagesAsRead(selectedMatch.id).then(async () => {
-                    const count = await getUnreadMessageCount();
-                    setUnreadMessageCount(count);
+                    const response = await getUnreadMessageCount();
+                    setUnreadMessageCount(response.data.count);
                 });
             }
 
             // 2. Update Sidebar (Move chat to top)
-            const previewContent = data.message.type === 'text' ? data.message.content : `Sent an ${data.message.type}`;
-            updateMatchList(data.matchId, previewContent, data.message.createdAt);
+            updateMatchList(data.matchId, data.message.content, data.message.createdAt, data.message.type);
         };
 
         socket.on('message', handleNewMessage);
@@ -200,9 +204,9 @@ export default function MessagesPage() {
     // Load matches
     const loadMatches = async () => {
         try {
-            const data = await getMatches();
+            const response = await getMatches();
             // Sort by lastMessageAt descending (newest first)
-            const sortedData = data.sort((a, b) => {
+            const sortedData = response.data.sort((a, b) => {
                 const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
                 const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
                 return dateB - dateA;
@@ -224,11 +228,11 @@ export default function MessagesPage() {
         deleteRecording(); // Reset audio recording state
 
         try {
-            const msgs = await getMessages(match.id, 50);
-            setMessages(msgs);
+            const response = await getMessages(match.id, 50);
+            setMessages(response.data);
             await markMessagesAsRead(match.id);
-            const count = await getUnreadMessageCount();
-            setUnreadMessageCount(count);
+            const countResponse = await getUnreadMessageCount();
+            setUnreadMessageCount(countResponse.data.count);
         } catch (error) {
             console.error('Failed to load messages:', error);
         }
@@ -262,11 +266,12 @@ export default function MessagesPage() {
 
         setSending(true);
         try {
-            const message = await sendMessage({
+            const response = await sendMessage({
                 matchId: selectedMatch.id,
                 content: content,
                 type: type
             });
+            const message = response.data;
 
             if (tempId) {
                 // Replace optimistic message
@@ -276,7 +281,7 @@ export default function MessagesPage() {
             }
 
             // Reorder Sidebar
-            updateMatchList(selectedMatch.id, type === 'text' ? message.content : `Sent an ${type}`, message.createdAt);
+            updateMatchList(selectedMatch.id, message.content, message.createdAt, message.type);
 
         } catch (error) {
             console.error('Failed to send message:', error);
@@ -330,14 +335,15 @@ export default function MessagesPage() {
 
         try {
             const url = await uploadChatMedia(file, 'image');
-            const message = await sendMessage({
+            const response = await sendMessage({
                 matchId: selectedMatch.id,
                 content: url,
                 type: 'image'
             });
+            const message = response.data;
 
             setMessages(prev => prev.map(m => m.id === tempId ? message : m));
-            updateMatchList(selectedMatch.id, 'Sent an image', message.createdAt);
+            updateMatchList(selectedMatch.id, message.content, message.createdAt, 'image');
             URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error('Failed to upload image:', error);
@@ -372,14 +378,15 @@ export default function MessagesPage() {
 
         try {
             const url = await uploadChatMedia(file, 'audio');
-            const message = await sendMessage({
+            const response = await sendMessage({
                 matchId: selectedMatch.id,
                 content: url,
                 type: 'audio'
             });
+            const message = response.data;
 
             setMessages(prev => prev.map(m => m.id === tempId ? message : m));
-            updateMatchList(selectedMatch.id, 'Sent an audio', message.createdAt);
+            updateMatchList(selectedMatch.id, message.content, message.createdAt, 'audio');
             URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error('Failed to upload audio:', error);
@@ -514,17 +521,18 @@ export default function MessagesPage() {
 
         try {
             const url = await uploadChatMedia(blob, 'audio');
-            const message = await sendMessage({
+            const response = await sendMessage({
                 matchId: selectedMatch.id,
                 content: url,
                 type: 'audio'
             });
+            const message = response.data;
 
             // Replace optimistic message
             setMessages(prev => prev.map(m => m.id === tempId ? message : m));
 
             // Reorder Sidebar (Real update)
-            updateMatchList(selectedMatch.id, 'Sent an audio', message.createdAt);
+            updateMatchList(selectedMatch.id, message.content, message.createdAt, 'audio');
 
             URL.revokeObjectURL(localUrl); // Cleanup
         } catch (error) {
@@ -647,6 +655,12 @@ export default function MessagesPage() {
                                                 </span>
                                             )}
                                         </div>
+                                        <p className={`text-sm truncate ${isSelected ? 'text-gray-300' : 'text-gray-500 group-hover:text-gray-400'}`}>
+                                            {match.lastMessageType === 'text' ? match.lastMessage :
+                                                match.lastMessageType === 'image' ? 'Sent an image' :
+                                                    match.lastMessageType === 'audio' ? 'Sent an audio' :
+                                                        match.lastMessage || 'Start a conversation'}
+                                        </p>
                                     </div>
                                 </motion.button>
                             );
