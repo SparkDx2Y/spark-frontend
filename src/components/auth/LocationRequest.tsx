@@ -34,7 +34,7 @@ export default function LocationRequest() {
                         dispatch(setCredentials({
                             user: {
                                 ...user,
-                                isLocationCompleted: response.isLocationCompleted
+                                isLocationCompleted: response.data.isLocationCompleted
                             }
                         }));
                     }

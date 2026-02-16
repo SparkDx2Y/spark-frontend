@@ -23,8 +23,8 @@ export default function SwipeManager({ initialProfiles }: SwipeManagerProps) {
     const refreshFeed = async () => {
         try {
             setIsLoading(true);
-            const data = await getMatchFeed();
-            setProfiles(data);
+            const response = await getMatchFeed();
+            setProfiles(response.data);
         } catch (error) {
             console.error("Failed to fetch profiles", error);
             showError("Failed to refresh feed");

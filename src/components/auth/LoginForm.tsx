@@ -37,14 +37,14 @@ export default function LoginForm() {
       const response = await googleLogin(credentialResponse.credential);
 
       dispatch(setCredentials({
-        user: response.user
+        user: response.data.user
       }))
 
-      if (!response.user.isProfileCompleted) {
+      if (!response.data.user.isProfileCompleted) {
         router.push('/complete-profile')
-      } else if (!response.user.isInterestsSelected) {
+      } else if (!response.data.user.isInterestsSelected) {
         router.push('/interests')
-      } else if (!response.user.isLocationCompleted) {
+      } else if (!response.data.user.isLocationCompleted) {
         router.push('/location')
       } else {
         showSuccess(response.message)
@@ -62,12 +62,12 @@ export default function LoginForm() {
       const response = await login({ ...data, role: 'user' })
 
       dispatch(setCredentials({
-        user: response.user
+        user: response.data.user
       }))
 
-      if (!response.user.isProfileCompleted) {
+      if (!response.data.user.isProfileCompleted) {
         router.push('/complete-profile')
-      } else if (!response.user.isInterestsSelected) {
+      } else if (!response.data.user.isInterestsSelected) {
         router.push('/interests')
       } else {
         showSuccess(response.message)
