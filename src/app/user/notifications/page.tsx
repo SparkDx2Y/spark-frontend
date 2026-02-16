@@ -40,8 +40,8 @@ export default function NotificationsPage() {
     // Load notifications from the database
     const loadNotifications = async () => {
         try {
-            const data = await getNotifications();
-            setNotifications(data);
+            const response = await getNotifications();
+            setNotifications(response.data);
         } catch (error) {
             console.error('Failed to load notifications:', error);
         } finally {

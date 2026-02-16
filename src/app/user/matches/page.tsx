@@ -35,8 +35,8 @@ export default function MatchesPage() {
 
     const loadMatches = async () => {
         try {
-            const data = await getMatches();
-            setMatches(data);
+            const response = await getMatches();
+            setMatches(response.data);
         } catch (error) {
             console.error('Failed to load matches:', error);
         } finally {

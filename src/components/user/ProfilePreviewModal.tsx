@@ -30,8 +30,8 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
             const fetchProfile = async () => {
                 try {
                     setLoading(true);
-                    const data = await getPublicProfile(userId);
-                    setProfile(data);
+                    const response = await getPublicProfile(userId);
+                    setProfile(response.data);
                 } catch (error) {
                     console.error("Failed to fetch profile", error);
                     showError("Failed to load profile details");
@@ -83,7 +83,7 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
             const response = await swipeAction({ targetId: userId, action });
 
             if (action === 'like') {
-                if (response.isMatch) {
+                if (response.data.isMatch) {
                     showSuccess("It's a Match!");
                 } else {
                     showSuccess("Liked!");

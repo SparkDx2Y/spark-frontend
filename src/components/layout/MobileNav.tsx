@@ -137,7 +137,17 @@ const MobileNav = () => {
                                         className="w-full h-full flex flex-col items-center justify-center relative group/item"
                                         onClick={() => setIsMenuOpen(false)}
                                     >
-                                        <Icon className={`w-6 h-6 transition-all duration-500 ${isActive ? 'text-white translate-y-[-2px]' : 'text-gray-500 group-hover/item:text-gray-300'}`} />
+                                        <motion.div
+                                            whileTap={{
+                                                rotateY: 180,
+                                                scale: 1.1,
+                                                filter: "drop-shadow(0 0 8px rgba(255, 75, 125, 0.6))",
+                                            }}
+                                            transition={{ duration: 0.4 }}
+                                            className="relative z-10"
+                                        >
+                                            <Icon className={`w-6 h-6 transition-colors duration-500 ${isActive ? 'text-white translate-y-[-2px]' : 'text-gray-500 group-hover/item:text-primary group-active/item:text-primary'}`} />
+                                        </motion.div>
 
                                         {item.href === '/user/notifications' && unreadCount > 0 && (
                                             <span className="absolute top-2 right-3 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-black">

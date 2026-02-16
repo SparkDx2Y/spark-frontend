@@ -45,8 +45,8 @@ export const useSocket = () => {
                     getNotificationCount(),
                     getUnreadMessageCount()
                 ]);
-                setUnreadCount(notifCount);
-                setUnreadMessageCount(msgCount);
+                setUnreadCount(notifCount.data.count);
+                setUnreadMessageCount(msgCount.data.count);
             } catch (error) {
                 console.error('Failed to fetch initial counts:', error);
             }

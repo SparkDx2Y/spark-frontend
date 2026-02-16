@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { otpSchema, OtpSchemaType } from "@/validations/auth/otp.schema";
 import { handleFormError } from "@/utils/handleFormError";
-import { resendOtp, verifyForgotPasswordOtp, verifyOtp } from "@/services/authService";
+import { resendForgotPasswordOtp, resendOtp, verifyForgotPasswordOtp, verifyOtp } from "@/services/authService";
 import { showSuccess } from "@/utils/toast";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/store/features/auth/authSlice";
@@ -65,7 +65,7 @@ export default function OtpForm() {
         const response = await verifyOtp(data);
 
         dispatch(setCredentials({
-          user: response.user
+          user: response.data.user
         }))
 
         showSuccess(response.message)
@@ -82,10 +82,11 @@ export default function OtpForm() {
   //^ Resend OTP
   const handleResendOtp = async () => {
     try {
+      const response = await (flow === "forgot-password"
+        ? resendForgotPasswordOtp()
+        : resendOtp());
 
-      const response = await resendOtp();
       showSuccess(response.message)
-
       setResendTime(RESENDTIME_DELAY)
 
     } catch (error: unknown) {

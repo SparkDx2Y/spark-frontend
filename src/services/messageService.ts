@@ -2,25 +2,26 @@ import { api } from "@/lib/axios";
 import { MESSAGE_ENDPOINTS } from "@/constants/api";
 import { MessageResponse, MatchResponse } from "@/types/message/response";
 import { SendMessagePayload } from "@/types/message/payload";
+import { ApiResponse } from "@/types/api";
 
-export const sendMessage = async (payload: SendMessagePayload): Promise<MessageResponse> => {
-    const response = await api.post<MessageResponse>(MESSAGE_ENDPOINTS.SEND, payload);
+export const sendMessage = async (payload: SendMessagePayload): Promise<ApiResponse<MessageResponse>> => {
+    const response = await api.post<ApiResponse<MessageResponse>>(MESSAGE_ENDPOINTS.SEND, payload);
     return response.data;
 };
 
-export const getMatches = async (): Promise<MatchResponse[]> => {
-    const response = await api.get<MatchResponse[]>(MESSAGE_ENDPOINTS.GET_MATCHES);
+export const getMatches = async (): Promise<ApiResponse<MatchResponse[]>> => {
+    const response = await api.get<ApiResponse<MatchResponse[]>>(MESSAGE_ENDPOINTS.GET_MATCHES);
     return response.data;
 };
 
-export const getUnreadMessageCount = async (): Promise<number> => {
-    const response = await api.get<{ count: number }>(MESSAGE_ENDPOINTS.GET_COUNT);
-    return response.data.count;
+export const getUnreadMessageCount = async (): Promise<ApiResponse<{ count: number }>> => {
+    const response = await api.get<ApiResponse<{ count: number }>>(MESSAGE_ENDPOINTS.GET_COUNT);
+    return response.data;
 };
 
-export const getMessages = async (matchId: string, limit?: number): Promise<MessageResponse[]> => {
+export const getMessages = async (matchId: string, limit?: number): Promise<ApiResponse<MessageResponse[]>> => {
     const url = MESSAGE_ENDPOINTS.GET_MESSAGES(matchId);
-    const response = await api.get<MessageResponse[]>(url, {
+    const response = await api.get<ApiResponse<MessageResponse[]>>(url, {
         params: limit ? { limit } : undefined
     });
     return response.data;

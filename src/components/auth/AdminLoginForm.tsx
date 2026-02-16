@@ -31,9 +31,9 @@ export default function AdminLoginForm() {
             const response = await login({ ...data, role: 'admin' })
 
             // Allow access for admin only
-            if (response.user.role === 'admin') {
+            if (response.data.user.role === 'admin') {
                 dispatch(setCredentials({
-                    user: response.user
+                    user: response.data.user
                 }))
                 showSuccess("Admin Login successfully")
                 router.push('/admin/dashboard')

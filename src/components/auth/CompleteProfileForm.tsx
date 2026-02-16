@@ -39,15 +39,15 @@ export default function CompleteProfileForm() {
             const response = await completeProfile(data);
             showSuccess(response.message);
 
-            if (response.isCompleted) {
+            if (response.data.isCompleted) {
                 // Fetch updated user data
                 const userResponse = await getCurrentUser();
 
                 dispatch(setCredentials({
-                    user: userResponse.user
+                    user: userResponse.data.user
                 }));
 
-                if (!userResponse.user.isInterestsSelected) {
+                if (!userResponse.data.user.isInterestsSelected) {
                     router.push('/interests');
                 } else {
                     router.push('/user/home');

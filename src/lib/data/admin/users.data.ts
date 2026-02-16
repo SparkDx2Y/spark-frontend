@@ -4,7 +4,7 @@ import { GetAllUsersResponse } from '@/types/admin/userList/response';
 /**
  * SERVER-SIDE ONLY: Fetch users with authentication
  */
-export async function getServerUsers(params: { search?: string; page?: number; limit?: number; }): Promise<GetAllUsersResponse> {
+export async function getServerUsers(params: { search?: string; page?: number; limit?: number; }): Promise<GetAllUsersResponse['data']> {
     const { token, apiUrl } = await getServerConfig();
 
     // Build query string
@@ -32,5 +32,6 @@ export async function getServerUsers(params: { search?: string; page?: number; l
         throw new Error(error.message || 'Failed to fetch users');
     }
 
-    return response.json();
+    const data = await response.json();
+    return data.data;
 }

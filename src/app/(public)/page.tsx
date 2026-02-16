@@ -16,7 +16,7 @@ const HowItWorks = dynamic(() => import("@/components/landing/HowItWorks"), {
 
 export default function LandingPage() {
   return (
-    <div className="pt-14">
+    <div>
 
 
       <Hero />

@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 const BackgroundImage = () => {
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 bg-black">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
       <div className="absolute inset-0 opacity-15">
         <Image
           src="/BgImage.png"

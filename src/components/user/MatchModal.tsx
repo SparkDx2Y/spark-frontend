@@ -46,7 +46,7 @@ export default function MatchModal() {
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
-            <div className="bg-gradient-to-br from-gray-900 to-black border border-white/20 rounded-3xl p-8 max-w-md w-full relative overflow-hidden animate-scaleIn">
+            <div className="bg-linear-to-br from-gray-900 to-black border border-white/20 rounded-3xl p-8 max-w-md w-full relative overflow-hidden animate-scaleIn">
                 {/* Decorative gradient blobs */}
                 <div className="absolute top-0 left-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
                 <div className="absolute bottom-0 right-0 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl" />
@@ -70,7 +70,7 @@ export default function MatchModal() {
                     </div>
 
                     {/* Title */}
-                    <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-shimmer">
+                    <h1 className="text-4xl font-bold mb-2 bg-linear-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-shimmer">
                         It's a Match!
                     </h1>
 
@@ -83,7 +83,7 @@ export default function MatchModal() {
                     <div className="space-y-3">
                         <button
                             onClick={handleSendMessage}
-                            className="w-full py-4 bg-gradient-to-r from-primary to-purple-500 rounded-xl font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 group"
+                            className="w-full py-4 bg-linear-to-r from-primary to-purple-500 rounded-xl font-semibold hover:opacity-90 transition flex items-center justify-center gap-2 group"
                         >
                             <MessageCircle className="w-5 h-5 group-hover:scale-110 transition" />
                             Send a Message

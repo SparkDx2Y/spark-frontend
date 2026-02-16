@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  
+
   /* custom color */
   --color-spark-pink: #ff2daa;
   --color-spark-purple: #6b21a8;
   --color-spark-dark: #020617;
- 
+
   --animate-spin-slow: spin-slow 4s linear infinite;
   --animate-fade-in-up: fade-in-up 1s ease-out forwards;
   --animate-float-delayed: float-delayed 8s ease-in-out infinite;
@@ -19,8 +19,13 @@
 /* --- KEYFRAMES  */
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 
@@ -100,9 +105,11 @@
   0% {
     transform: translateX(-10%) translateY(0) scale(1);
   }
+
   50% {
     transform: translateX(10%) translateY(-6%) scale(1.08);
   }
+
   100% {
     transform: translateX(-10%) translateY(0) scale(1);
   }
@@ -119,24 +126,20 @@
 }
 
 .smoke-dark-1 {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(108, 3, 61, 0.85),
-    rgba(0, 0, 0, 0.6),
-    transparent 70%
-  );
+  background: radial-gradient(ellipse at center,
+      rgba(108, 3, 61, 0.85),
+      rgba(0, 0, 0, 0.6),
+      transparent 70%);
   animation-duration: 55s;
   opacity: 0.6;
 }
 
 /* Secondary soft depth */
 .smoke-dark-2 {
-  background: radial-gradient(
-    ellipse at center,
-    rgba(30, 30, 30, 0.6),
-    rgba(0, 0, 0, 0.5),
-    transparent 75%
-  );
+  background: radial-gradient(ellipse at center,
+      rgba(30, 30, 30, 0.6),
+      rgba(0, 0, 0, 0.5),
+      transparent 75%);
   animation-duration: 55s;
   opacity: 0.6;
 }

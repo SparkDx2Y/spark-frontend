@@ -23,11 +23,11 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
                 dispatch(setLoading(true));
                 const response = await getCurrentUser();
 
-                if (response.user) {
+                if (response.data && response.data.user) {
                     dispatch(setCredentials({
                         user: {
-                            ...response.user,
-                            interests: response.user.interests || []
+                            ...response.data.user,
+                            interests: response.data.user.interests || []
                         }
                     }));
                 }

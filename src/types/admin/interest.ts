@@ -1,3 +1,5 @@
+import { ApiResponse } from '@/types/api';
+
 export interface Category {
     id: string;
     name: string;
@@ -19,22 +21,18 @@ export interface Interest {
     updatedAt?: string;
 }
 
-// Response
-export interface AdminResponse<T> {
-    message: string;
-    data: T;
-}
+
 
 
 // Response 
-export type GetAllCategoriesResponse = AdminResponse<Category[]>;
-export type GetAllInterestsResponse = AdminResponse<Interest[]>;
-export type CreateCategoryResponse = AdminResponse<Category>;
-export type CreateInterestResponse = AdminResponse<Interest>;
-export type UpdateCategoryResponse = AdminResponse<Category>;
-export type UpdateInterestResponse = AdminResponse<Interest>;
-export type SetCategoryActiveResponse = AdminResponse<Category>;
-export type SetInterestActiveResponse = AdminResponse<Interest>;
+export type GetAllCategoriesResponse = ApiResponse<Category[]>;
+export type GetAllInterestsResponse = ApiResponse<Interest[]>;
+export type CreateCategoryResponse = ApiResponse<Category>;
+export type CreateInterestResponse = ApiResponse<Interest>;
+export type UpdateCategoryResponse = ApiResponse<Category>;
+export type UpdateInterestResponse = ApiResponse<Interest>;
+export type SetCategoryActiveResponse = ApiResponse<Category>;
+export type SetInterestActiveResponse = ApiResponse<Interest>;
 
 
 // Request 

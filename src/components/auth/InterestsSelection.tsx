@@ -24,8 +24,8 @@ export default function InterestsSelection() {
     useEffect(() => {
         const fetchInterests = async () => {
             try {
-                const data = await getInterests();
-                setInterests(data);
+                const response = await getInterests();
+                setInterests(response.data);
             } catch (error) {
                 showError('Failed to load interests');
             } finally {
@@ -55,7 +55,7 @@ export default function InterestsSelection() {
                 dispatch(setCredentials({
                     user: {
                         ...user,
-                        isInterestsSelected: response.isInterestsSelected
+                        isInterestsSelected: response.data.isInterestsSelected
                     }
                 }));
             }

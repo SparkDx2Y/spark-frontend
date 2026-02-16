@@ -36,7 +36,7 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                 user: { ...authUser, profilePhoto: initialProfile.profilePhoto }
             }));
         }
-    }, []); 
+    }, []);
 
     const getErrorMessage = (error: unknown) => {
         if (typeof error === "object" && error !== null) {
@@ -64,8 +64,8 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
 
             setProfile((prev) => ({
                 ...prev,
-                ...response.profile,
-                photos: response.profile.photos ?? prev.photos ?? []
+                ...response.data.profile,
+                photos: response.data.profile.photos ?? prev.photos ?? []
             }));
 
             updateAuthPhoto(url);
@@ -84,8 +84,8 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
             const response = await updateProfile({ coverPhoto: url });
             setProfile((prev) => ({
                 ...prev,
-                ...response.profile,
-                photos: response.profile.photos ?? prev.photos ?? []
+                ...response.data.profile,
+                photos: response.data.profile.photos ?? prev.photos ?? []
             }));
             showSuccess("Cover photo updated");
         } catch (error: unknown) {
@@ -116,8 +116,8 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
 
             setProfile((prev) => ({
                 ...prev,
-                ...response.profile,
-                photos: response.profile.photos ?? prev.photos ?? []
+                ...response.data.profile,
+                photos: response.data.profile.photos ?? prev.photos ?? []
             }));
             showSuccess("Gallery updated");
         } catch (error: unknown) {
@@ -136,8 +136,8 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
 
             setProfile((prev) => ({
                 ...prev,
-                ...response.profile,
-                photos: response.profile.photos ?? prev.photos ?? []
+                ...response.data.profile,
+                photos: response.data.profile.photos ?? prev.photos ?? []
             }));
 
             showSuccess("Photo removed");

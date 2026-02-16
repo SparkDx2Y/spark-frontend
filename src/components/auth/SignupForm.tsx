@@ -38,10 +38,10 @@ export default function SignupForm() {
             const response = await googleLogin(credentialResponse.credential);
 
             dispatch(setCredentials({
-                user: response.user
+                user: response.data.user
             }))
 
-            if (response.user.isProfileCompleted) {
+            if (response.data.user.isProfileCompleted) {
                 showSuccess(response.message)
                 router.push('/user/home')
             } else {

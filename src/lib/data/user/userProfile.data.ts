@@ -21,5 +21,6 @@ export async function getServerProfile(): Promise<ProfileResponse> {
         throw new Error('Failed to fetch profile');
     }
 
-    return response.json();
+    const data = await response.json();
+    return data.data;
 }

@@ -1,3 +1,5 @@
+import { ApiResponse } from '@/types/api';
+
 export interface ProfileResponse {
     id: string;
     userId: string;
@@ -26,14 +28,12 @@ export interface InterestCategoryWithInterests {
     interests: InterestResponse[];
 }
 
-export interface UpdateInterestsResponse {
-    message: string;
+export type UpdateInterestsResponse = ApiResponse<{
     isInterestsSelected: boolean;
     profile: ProfileResponse;
-}
+}>;
 
-export interface CompleteProfileResponse {
-    message: string;
+export type CompleteProfileResponse = ApiResponse<{
     isCompleted: boolean;
     profile: ProfileResponse;
-}
+}>;
