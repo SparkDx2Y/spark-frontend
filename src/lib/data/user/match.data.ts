@@ -7,7 +7,7 @@ import { ProfileResponse } from '@/types/profile/response';
 export async function getServerMatchFeed(): Promise<ProfileResponse[]> {
     try {
 
-        
+
         const { token, apiUrl } = await getServerConfig();
 
         const response = await fetch(`${apiUrl}/match/feed`, {
@@ -18,8 +18,8 @@ export async function getServerMatchFeed(): Promise<ProfileResponse[]> {
             },
             cache: 'no-store',
         });
-        
-        if(response.status === 401 || response.status === 403) {
+
+        if (response.status === 401 || response.status === 403) {
             throw new Error('Unauthorized');
         }
 
@@ -27,7 +27,8 @@ export async function getServerMatchFeed(): Promise<ProfileResponse[]> {
             return [];
         }
 
-        return response.json();
+        const data = await response.json();
+        return data.data || [];
     } catch (error) {
         console.error("Error fetching match feed on server:", error);
         return [];
