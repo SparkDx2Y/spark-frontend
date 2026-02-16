@@ -1,10 +1,9 @@
 
-export interface SignupResponse {
-  message: string;
-}
+import { ApiResponse } from '@/types/api';
 
-export interface VerifyOtpResponse {
-  message: string;
+export type SignupResponse = ApiResponse<string>;
+
+export type VerifyOtpResponse = ApiResponse<{
   user: {
     id: string;
     name: string;
@@ -16,14 +15,11 @@ export interface VerifyOtpResponse {
     isInterestsSelected: boolean;
     isLocationCompleted: boolean;
   };
-}
+}>;
 
-export interface ResendOtpResponse {
-  message: string;
-}
+export type ResendOtpResponse = ApiResponse<string>;
 
-export interface LoginResponse {
-  message: string;
+export type LoginResponse = ApiResponse<{
   user: {
     id: string;
     name: string;
@@ -35,18 +31,12 @@ export interface LoginResponse {
     isInterestsSelected: boolean;
     isLocationCompleted: boolean;
   };
-}
+}>;
 
-export interface ForgotPasswordResponse {
-  message: string;
-}
+export type ForgotPasswordResponse = ApiResponse<string>;
 
-export interface ForgotPasswordVerifyOtpResponse {
-  message: string;
-}
+export type ForgotPasswordVerifyOtpResponse = ApiResponse<string>;
 
-export interface ResetPasswordResponse {
-  message: string;
-}
+export type ResetPasswordResponse = ApiResponse<string>;
 
 

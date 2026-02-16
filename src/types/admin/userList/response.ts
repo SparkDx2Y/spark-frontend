@@ -1,3 +1,5 @@
+import { ApiResponse } from '@/types/api';
+
 export interface User {
     _id: string;
     name: string;
@@ -17,14 +19,9 @@ export interface Pagination {
     totalPages: number;
 }
 
-export interface GetAllUsersResponse {
-    message: string;
-    data: {
-        users: User[];
-        pagination: Pagination;
-    };
-}
+export type GetAllUsersResponse = ApiResponse<{
+    users: User[];
+    pagination: Pagination;
+}>;
 
-export interface BlockUnblockResponse {
-    message: string;
-}
+export type BlockUnblockResponse = ApiResponse<null>;

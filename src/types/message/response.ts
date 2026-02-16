@@ -19,5 +19,6 @@ export interface MatchResponse {
     users: UserInfo[];
     lastMessageAt?: string;
     lastMessage?: string;
+    lastMessageType?: 'text' | 'image' | 'audio';
     createdAt: string;
 }
