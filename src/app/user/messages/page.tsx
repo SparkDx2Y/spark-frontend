@@ -6,11 +6,12 @@ import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMess
 import { MatchResponse, MessageResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
-import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2 } from 'lucide-react';
+import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { uploadChatMedia } from '@/services/fileService';
 import { useVideoCallContext } from '@/contexts/VideoCallContext';
+import ReportModal from '@/components/user/ReportModal';
 
 function AudioMessage({ src, isOwn, isUploading }: { src: string; isOwn: boolean; isUploading?: boolean }) {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -112,6 +113,8 @@ export default function MessagesPage() {
     const shouldSendAfterStopRef = useRef(false);
     const [isPaused, setIsPaused] = useState(false);
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+    const [showMenu, setShowMenu] = useState(false);
+    const [reportModalOpen, setReportModalOpen] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const audioInputRef = useRef<HTMLInputElement>(null);
@@ -771,9 +774,38 @@ export default function MessagesPage() {
                             >
                                 <Video className="w-4 h-4 md:w-5 md:h-5" />
                             </button>
-                            <button className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-300">
-                                <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
-                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowMenu(!showMenu)}
+                                    className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-300 relative z-30"
+                                >
+                                    <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
+                                </button>
+                                <AnimatePresence>
+                                    {showMenu && (
+                                        <>
+                                            <div className="fixed inset-0 z-20" onClick={() => setShowMenu(false)} />
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                                className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-xl overflow-hidden z-30 origin-top-right backdrop-blur-xl"
+                                            >
+                                                <button
+                                                    onClick={() => {
+                                                        setShowMenu(false);
+                                                        setReportModalOpen(true);
+                                                    }}
+                                                    className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 flex items-center gap-2 transition-colors"
+                                                >
+                                                    <AlertTriangle className="w-4 h-4" />
+                                                    Report User
+                                                </button>
+                                            </motion.div>
+                                        </>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         </div>
                     </div>
 
@@ -1211,6 +1243,12 @@ export default function MessagesPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <ReportModal
+                isOpen={reportModalOpen}
+                onClose={() => setReportModalOpen(false)}
+                reportedUserId={selectedMatch ? (selectedMatch.users.find(u => u.userId !== currentUser?.id)?.userId || selectedMatch.users[0]?.userId) : null}
+            />
 
         </div>
     );
