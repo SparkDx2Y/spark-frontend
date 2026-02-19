@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMessageCount } from '@/services/messageService';
+import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMessageCount, deleteMessage } from '@/services/messageService';
 import { MatchResponse, MessageResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
@@ -174,6 +174,19 @@ export default function MessagesPage() {
         if (!socket) return;
 
         const handleNewMessage = (data: any) => {
+            // Handle Message Deletion
+            if (data.type === 'message_deleted') {
+                if (selectedMatch && data.matchId === selectedMatch.id) {
+                    setMessages(prev => prev.filter(m => m.id !== data.messageId));
+                }
+                // Optionally update sidebar if last message was deleted
+                if (data.matchId) {
+                    // Refetch matches to update sidebar correctly (simplest way)
+                    loadMatches();
+                }
+                return;
+            }
+
             // 1. Update Messages Area (if chat is open)
             if (selectedMatch && data.matchId === selectedMatch.id) {
                 setMessages(prev => [...prev, data.message]);
@@ -196,6 +209,33 @@ export default function MessagesPage() {
             socket.off('message', handleNewMessage);
         };
     }, [socket, selectedMatch]);
+
+    // Handle delete message
+    const handleDeleteMessage = async (messageId: string) => {
+        // Optimistic update (Remove from UI immediately)
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+
+        try {
+            await deleteMessage(messageId);
+
+            // 1. Refresh Sidebar (in case the last message was deleted)
+            loadMatches();
+
+            // 2. Refresh current chat messages (to ensure sync with backend)
+            if (selectedMatch) {
+                const response = await getMessages(selectedMatch.id, 50);
+                setMessages(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to delete message:', error);
+            if (selectedMatch) {
+                const response = await getMessages(selectedMatch.id, 50);
+                setMessages(response.data);
+            }
+        }
+    };
+
+    // Auto-scroll to bottom
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -792,8 +832,21 @@ export default function MessagesPage() {
                                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         transition={{ duration: 0.3 }}
-                                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group mb-6`} // Added margin bottom for spacing
+                                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group mb-6 relative`}
                                     >
+                                        {/* Actions for Own Messages */}
+                                        {isOwn && !msg.id.startsWith('temp-') && (
+                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center mr-2">
+                                                <button
+                                                    onClick={() => handleDeleteMessage(msg.id)}
+                                                    className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-white/5 rounded-full transition-colors"
+                                                    title="Delete message"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        )}
+
                                         <div className={`max-w-[70%] sm:max-w-[60%] flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                                             <div
                                                 className={`

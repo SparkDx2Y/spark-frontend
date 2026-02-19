@@ -4,4 +4,5 @@ export const MESSAGE_ENDPOINTS = {
     GET_COUNT: '/messages/count',
     GET_MESSAGES: (matchId: string) => `/messages/${matchId}`,
     MARK_AS_READ: (matchId: string) => `/messages/${matchId}/read`,
+    DELETE: (messageId: string) => `/messages/${messageId}`,
 } as const;

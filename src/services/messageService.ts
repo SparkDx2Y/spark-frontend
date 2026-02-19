@@ -30,3 +30,7 @@ export const getMessages = async (matchId: string, limit?: number): Promise<ApiR
 export const markMessagesAsRead = async (matchId: string): Promise<void> => {
     await api.put(MESSAGE_ENDPOINTS.MARK_AS_READ(matchId));
 };
+
+export const deleteMessage = async (messageId: string): Promise<void> => {
+    await api.delete(MESSAGE_ENDPOINTS.DELETE(messageId));
+};
