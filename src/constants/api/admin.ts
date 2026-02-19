@@ -12,5 +12,9 @@ export const ADMIN_ENDPOINTS = {
     CREATE_INTEREST: '/admin/interests',
     UPDATE_INTEREST: '/admin/interests/:id',
     SET_INTEREST_ACTIVE: '/admin/interests/:id/active',
+
+    // Reports
+    GET_REPORTS: '/admin/reports',
+    UPDATE_REPORT_STATUS: '/admin/reports/:reportId/status',
 } as const;
 

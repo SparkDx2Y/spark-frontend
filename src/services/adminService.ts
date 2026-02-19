@@ -16,6 +16,11 @@ import {
     UpdateInterestRequest,
     SetActiveRequest
 } from "@/types/admin/interest";
+import {
+    GetReportsResponse,
+    UpdateReportStatusResponse
+} from "@/types/admin/report";
+import { ReportStatus } from "@/constants/report";
 
 
 // --------------------
@@ -86,5 +91,26 @@ export const updateInterest = async (id: string, data: UpdateInterestRequest): P
 
 export const setInterestActive = async (id: string, data: SetActiveRequest): Promise<SetInterestActiveResponse> => {
     const response = await api.patch<SetInterestActiveResponse>(ADMIN_ENDPOINTS.SET_INTEREST_ACTIVE.replace(":id", id), data);
+    return response.data;
+};
+
+// --------------------
+// Reports
+// --------------------
+
+export const getReports = async (): Promise<GetReportsResponse> => {
+    const response = await api.get<GetReportsResponse>(ADMIN_ENDPOINTS.GET_REPORTS);
+    return response.data;
+};
+
+export const updateReportStatus = async (
+    reportId: string,
+    status: ReportStatus
+): Promise<UpdateReportStatusResponse> => {
+    const response = await api.patch<UpdateReportStatusResponse>(
+        ADMIN_ENDPOINTS.UPDATE_REPORT_STATUS.replace(":reportId", reportId),
+        { status }
+    );
+
     return response.data;
 };
