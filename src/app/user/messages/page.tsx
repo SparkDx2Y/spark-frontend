@@ -10,6 +10,7 @@ import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVerti
 import { AnimatePresence, motion } from 'framer-motion';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { uploadChatMedia } from '@/services/fileService';
+import { useVideoCallContext } from '@/contexts/VideoCallContext';
 
 function AudioMessage({ src, isOwn, isUploading }: { src: string; isOwn: boolean; isUploading?: boolean }) {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -119,6 +120,7 @@ export default function MessagesPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const { socket, emitTyping, onlineUsers, typingUsers, setUnreadMessageCount, joinChat, leaveChat } = useSocketContext();
+    const { startCall } = useVideoCallContext();
 
     const currentUser = useAppSelector((state) => state.auth.user);
 
@@ -168,7 +170,6 @@ export default function MessagesPage() {
         });
     };
 
-    // Listen for real-time messages & Update Sidebar Order
     useEffect(() => {
         if (!socket) return;
 
@@ -716,7 +717,18 @@ export default function MessagesPage() {
                             <button className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-primary hover:bg-primary/10 transition-all duration-300">
                                 <Phone className="w-4 h-4 md:w-5 md:h-5" />
                             </button>
-                            <button className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300">
+                            <button
+                                onClick={() => {
+                                    if (!selectedMatch) return;
+                                    const otherUser = selectedMatch.users.find(u => u.userId !== currentUser?.id) || selectedMatch.users[0];
+                                    startCall({
+                                        id: otherUser.userId,
+                                        name: otherUser.name,
+                                        profilePhoto: otherUser.profilePhoto
+                                    });
+                                }}
+                                className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
+                            >
                                 <Video className="w-4 h-4 md:w-5 md:h-5" />
                             </button>
                             <button className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-300">
@@ -1146,6 +1158,7 @@ export default function MessagesPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
         </div>
     );
 }

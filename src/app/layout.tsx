@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import ReduxProvider from "@/store/providers/ReduxProvider";
 import { SocketProvider } from "@/contexts/SocketContext";
+import { VideoCallProvider } from "@/contexts/VideoCallContext";
 
 export const metadata: Metadata = {
   title: 'Spark',
@@ -19,7 +20,9 @@ export default function RootLayout({
       <body>
         <ReduxProvider>
           <SocketProvider>
-            {children}
+            <VideoCallProvider>
+              {children}
+            </VideoCallProvider>
           </SocketProvider>
         </ReduxProvider>
 
