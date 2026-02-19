@@ -10,6 +10,11 @@ import { ProfileResponse } from "@/types/profile/response";
 import { showError, showSuccess } from "@/utils/toast";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setCredentials } from "@/store/features/auth/authSlice";
+import { getInterests, updateInterests, updateLocation } from "@/services/profileService";
+import { InterestResponse } from "@/types/profile/response";
+import { motion, AnimatePresence } from "framer-motion";
+import { MapPin, Sparkles, X, Check, Edit2 } from "lucide-react";
+
 
 interface ProfileManagerProps {
     initialProfile: ProfileResponse;
@@ -18,11 +23,18 @@ interface ProfileManagerProps {
 export default function ProfileManager({ initialProfile }: ProfileManagerProps) {
     // ✅ Initialize state WITH the server-fetched data
     const [profile, setProfile] = useState<ProfileResponse>(initialProfile);
-    const [saving, setSaving] = useState({ avatar: false, cover: false, gallery: false });
+    const [saving, setSaving] = useState({ avatar: false, cover: false, gallery: false, location: false, interests: false });
+
+    // Interests state
+    const [showInterestModal, setShowInterestModal] = useState(false);
+    const [allInterests, setAllInterests] = useState<InterestResponse[]>([]);
+    const [selectedInterestIds, setSelectedInterestIds] = useState<string[]>([]);
+    const [loadingInterests, setLoadingInterests] = useState(false);
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+
 
     const dispatch = useAppDispatch();
     const authUser = useAppSelector((state) => state.auth.user);
@@ -145,6 +157,112 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
             showError(getErrorMessage(error));
         } finally {
             setSaving((prev) => ({ ...prev, gallery: false }));
+        }
+    };
+
+    // ------------------------------------------
+    // Location Logic
+    // ------------------------------------------
+    const handleUpdateLocation = () => {
+        if (!navigator.geolocation) {
+            showError("Geolocation is not supported by your browser");
+            return;
+        }
+
+        setSaving(prev => ({ ...prev, location: true }));
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords;
+                    await updateLocation(latitude, longitude);
+                    showSuccess("Location updated successfully!");
+                } catch (error: any) {
+                    showError(error.response?.data?.message || "Failed to update location");
+                } finally {
+                    setSaving(prev => ({ ...prev, location: false }));
+                }
+            },
+            (error) => {
+                console.error(error);
+                showError("Please enable location access to continue");
+                setSaving(prev => ({ ...prev, location: false }));
+            }
+        );
+    };
+
+    // ------------------------------------------
+    // Interests Logic
+    // ------------------------------------------
+    const openInterestModal = async () => {
+        setShowInterestModal(true);
+        if (allInterests.length === 0) {
+            setLoadingInterests(true);
+            try {
+                const response = await getInterests();
+                setAllInterests(response.data);
+
+                // Map current profile interest names to IDs
+                const currentInterestNames = profile.interests || [];
+                const currentIds = response.data
+                    .filter(i => currentInterestNames.includes(i.name))
+                    .map(i => i.id);
+
+                setSelectedInterestIds(currentIds);
+            } catch (error) {
+                showError("Failed to load interests");
+            } finally {
+                setLoadingInterests(false);
+            }
+        } else {
+            // Reset selection to current profile state if re-opening without saving
+            const currentInterestNames = profile.interests || [];
+            const currentIds = allInterests
+                .filter(i => currentInterestNames.includes(i.name))
+                .map(i => i.id);
+            setSelectedInterestIds(currentIds);
+        }
+    };
+
+    const toggleInterest = (id: string) => {
+        setSelectedInterestIds(prev =>
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+    };
+
+    const handleSaveInterests = async () => {
+        if (selectedInterestIds.length < 3) {
+            showError('Please select at least 3 interests');
+            return;
+        }
+
+        setSaving(prev => ({ ...prev, interests: true }));
+        try {
+            const response = await updateInterests(selectedInterestIds);
+
+            setProfile(prev => ({
+                ...prev,
+                ...response.data.profile,
+                interests: response.data.profile.interests ?? prev.interests ?? []
+            }));
+
+            // Sync with Redux if needed
+            if (authUser) {
+                dispatch(setCredentials({
+                    user: {
+                        ...authUser,
+                        isInterestsSelected: true,
+                        interests: response.data.profile.interests
+                    }
+                }));
+            }
+
+            showSuccess('Interests updated!');
+            setShowInterestModal(false);
+        } catch (error: any) {
+            showError(getErrorMessage(error));
+        } finally {
+            setSaving(prev => ({ ...prev, interests: false }));
         }
     };
 
@@ -323,6 +441,158 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                     </div>
                 )}
             </div>
+
+            {/* Layout for Interests & Location */}
+            <div className="max-w-5xl mx-auto px-4 md:px-6 relative z-10 pb-20 grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                {/* Interests Section */}
+                <div className="md:col-span-2 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-purple-400" />
+                            Interests
+                        </h2>
+                        <button
+                            onClick={openInterestModal}
+                            className="p-2 hover:bg-white/5 rounded-full transition-colors text-primary"
+                        >
+                            <Edit2 className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                        {profile.interests && profile.interests.length > 0 ? (
+                            profile.interests.map((interest, i) => (
+                                <span
+                                    key={i}
+                                    className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-gray-200"
+                                >
+                                    {interest}
+                                </span>
+                            ))
+                        ) : (
+                            <p className="text-gray-500 italic text-sm">No interests selected yet.</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Location Section */}
+                <div className="space-y-4">
+                    <h2 className="text-xl md:text-2xl font-bold tracking-tight flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-blue-400" />
+                        Location
+                    </h2>
+
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <MapPin className="w-6 h-6 text-blue-400" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-400">
+                                Update your location to find matches near you.
+                            </p>
+                        </div>
+                        <Button
+                            onClick={handleUpdateLocation}
+                            disabled={saving.location}
+                            variant="outline"
+                            className="w-full border-blue-500/30 hover:bg-blue-500/10 text-blue-400"
+                        >
+                            {saving.location ? (
+                                <span className="flex items-center gap-2">
+                                    <Loader2 className="w-4 h-4 animate-spin" /> Updating...
+                                </span>
+                            ) : (
+                                "Update Location"
+                            )}
+                        </Button>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* Interest Selection Modal */}
+            <AnimatePresence>
+                {showInterestModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                            onClick={() => setShowInterestModal(false)}
+                        />
+
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="relative bg-zinc-900 border border-white/10 rounded-3xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-zinc-900 z-10">
+                                <div>
+                                    <h3 className="text-xl font-bold">Edit Interests</h3>
+                                    <p className="text-sm text-gray-400">Select at least 3 interests</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowInterestModal(false)}
+                                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                                {loadingInterests ? (
+                                    <div className="flex justify-center py-10">
+                                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                        {allInterests.map((interest) => (
+                                            <button
+                                                key={interest.id}
+                                                onClick={() => toggleInterest(interest.id)}
+                                                className={`
+                                                    relative px-4 py-3 rounded-xl border transition-all duration-200 text-sm font-medium flex items-center gap-2 text-left
+                                                    ${selectedInterestIds.includes(interest.id)
+                                                        ? 'bg-primary/20 border-primary text-primary'
+                                                        : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-gray-200'
+                                                    }
+                                                `}
+                                            >
+                                                {selectedInterestIds.includes(interest.id) && (
+                                                    <Check className="w-4 h-4 shrink-0" />
+                                                )}
+                                                <span className="truncate">{interest.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-6 border-t border-white/5 bg-zinc-900/50 backdrop-blur-md flex justify-end gap-3 z-10">
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setShowInterestModal(false)}
+                                    className="hover:bg-white/5"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleSaveInterests}
+                                    disabled={saving.interests || selectedInterestIds.length < 3}
+                                    className="min-w-[120px]"
+                                >
+                                    {saving.interests ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Changes"}
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
         </div>
     );
 }
+
