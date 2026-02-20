@@ -10,7 +10,7 @@ import {
 import { NotificationResponse } from '@/types/notification/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 
-import { Heart, MessageCircle, Bell, Check } from 'lucide-react';
+import { Heart, MessageCircle, Bell, Check, ShieldCheck, ShieldAlert, ShieldX, User } from 'lucide-react';
 import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
 
 
@@ -98,6 +98,10 @@ export default function NotificationsPage() {
                 return <Heart className="w-5 h-5 text-purple-500 fill-purple-500" />;
             case 'message':
                 return <MessageCircle className="w-5 h-5 text-blue-500" />;
+            case 'report_resolved':
+                return <ShieldCheck className="w-5 h-5 text-green-500" />;
+            case 'report_dismissed':
+                return <ShieldX className="w-5 h-5 text-stone-500" />;
             default:
                 return <Bell className="w-5 h-5 text-yellow-500" />;
         }
@@ -163,11 +167,17 @@ export default function NotificationsPage() {
                             `}
                         >
                             <div className="relative">
-                                <img
-                                    src={notification.fromUser?.profilePhoto || '/default-avatar.png'}
-                                    alt={notification.fromUser?.name || 'User'}
-                                    className="w-12 h-12 rounded-full object-cover shrink-0"
-                                />
+                                {notification.fromUser?.profilePhoto ? (
+                                    <img
+                                        src={notification.fromUser.profilePhoto}
+                                        alt={notification.fromUser.name || 'User'}
+                                        className="w-12 h-12 rounded-full object-cover shrink-0"
+                                    />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
+                                        <User className="w-6 h-6 text-gray-400" />
+                                    </div>
+                                )}
 
                                 <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-lg">
                                     {getIcon(notification.type)}
@@ -187,6 +197,8 @@ export default function NotificationsPage() {
                                     {notification.type === 'like' && `liked your profile!`}
                                     {notification.type === 'match' && `It's a match! Start a conversation.`}
                                     {notification.type === 'message' && `sent you a message.`}
+                                    {notification.type === 'report_resolved' && `We've reviewed your report and taken action. Thank you for keeping Spark safe.`}
+                                    {notification.type === 'report_dismissed' && `We've reviewed your report and found it doesn't violate our safety guidelines at this time.`}
                                     {/* Handle other types if needed */}
                                 </p>
                             </div>
