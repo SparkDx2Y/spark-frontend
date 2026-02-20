@@ -12,6 +12,7 @@ export interface UserInfo {
     userId: string;
     name: string;
     profilePhoto: string;
+    isBlocked: boolean;
 }
 
 export interface MatchResponse {

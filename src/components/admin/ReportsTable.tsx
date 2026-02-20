@@ -325,10 +325,15 @@ export default function ReportsTable({ initialReports }: ReportsTableProps) {
                         <div className="p-6 bg-white/3 border-t border-white/5 flex items-center justify-between">
                             <button
                                 onClick={() => setShowBlockConfirm(true)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition-all hover:scale-105 active:scale-95 ${viewDetailsReport.reportedUser.isBlocked
-                                    ? "bg-stone-500/10 text-stone-300 border-stone-500/20 hover:bg-stone-500/20"
-                                    : "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20"
+                                disabled={viewDetailsReport.status !== 'pending'}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold border transition-all ${viewDetailsReport.status !== 'pending'
+                                    ? "bg-white/5 text-stone-600 border-white/5 cursor-not-allowed"
+                                    : `hover:scale-105 active:scale-95 ${viewDetailsReport.reportedUser.isBlocked
+                                        ? "bg-stone-500/10 text-stone-300 border-stone-500/20 hover:bg-stone-500/20"
+                                        : "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20"
+                                    }`
                                     }`}
+                                title={viewDetailsReport.status !== 'pending' ? "User action disabled for handled reports" : ""}
                             >
                                 {viewDetailsReport.reportedUser.isBlocked ? (
                                     <>

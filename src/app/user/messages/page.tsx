@@ -654,16 +654,25 @@ export default function MessagesPage() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-3 scrollbar-hide space-y-1 pb-4">
-                    {matches.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-50">
-                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                                <MessageSquare className="w-8 h-8 text-gray-400" />
-                            </div>
-                            <p className="text-gray-400 font-medium">No matches yet</p>
-                            <p className="text-xs text-gray-600 mt-2">Start matching to find your spark!</p>
-                        </div>
-                    ) : (
-                        matches.map((match) => {
+                    {(() => {
+                        const displayMatches = matches.filter(match => {
+                            const otherUser = match.users.find(u => u.userId !== currentUser?.id) || match.users[0];
+                            return !otherUser.isBlocked;
+                        });
+
+                        if (displayMatches.length === 0) {
+                            return (
+                                <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-50">
+                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                                        <MessageSquare className="w-8 h-8 text-gray-400" />
+                                    </div>
+                                    <p className="text-gray-400 font-medium">No active matches</p>
+                                    <p className="text-xs text-gray-600 mt-2">Start matching to find your spark!</p>
+                                </div>
+                            );
+                        }
+
+                        return displayMatches.map((match) => {
                             const otherUser = match.users.find(u => u.userId !== currentUser?.id) || match.users[0];
                             const isSelected = selectedMatch?.id === match.id;
                             const isOnline = onlineUsers.includes(otherUser.userId);
@@ -708,8 +717,8 @@ export default function MessagesPage() {
                                     </div>
                                 </motion.button>
                             );
-                        })
-                    )}
+                        });
+                    })()}
                 </div>
             </div>
 
@@ -1029,88 +1038,105 @@ export default function MessagesPage() {
                             </motion.button>
 
                             {/* Text Input */}
+                            {/* Text Input / Blocked Notice */}
                             <div className="flex-1 bg-white/5 border border-white/10 focus-within:border-primary/50 focus-within:bg-white/10 rounded-[20px] md:rounded-[28px] transition-all duration-300 flex flex-col min-h-[44px] relative">
-                                {uploading && (
-                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-[20px] md:rounded-[28px] flex items-center justify-center z-20">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                                            <span className="text-xs text-white">Sending media...</span>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {isRecording && (
-                                    <div className="absolute inset-0 bg-black rounded-[20px] md:rounded-[28px] flex items-center justify-between px-4 z-40">
-                                        <button
-                                            onClick={deleteRecording}
-                                            className="p-2 hover:bg-white/10 rounded-full text-red-500 transition-colors"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
-
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-2 h-2 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'}`} />
-                                                <span className="text-sm font-mono text-white">{formatTime(recordingTime)}</span>
+                                {(() => {
+                                    const otherUser = selectedMatch?.users.find(u => u.userId !== currentUser?.id) || selectedMatch?.users[0];
+                                    if (otherUser?.isBlocked) {
+                                        return (
+                                            <div className="flex flex-1 items-center justify-center p-3 text-red-400 text-sm font-medium gap-2">
+                                                <AlertTriangle className="w-4 h-4" />
+                                                This account is no longer available
                                             </div>
+                                        );
+                                    }
 
-                                            <button
-                                                onClick={isPaused ? resumeRecording : pauseRecording}
-                                                className="p-2 hover:bg-white/10 rounded-full text-white transition-colors"
-                                            >
-                                                {isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                                {audioBlob && (
-                                    <div className="absolute inset-0 bg-black rounded-[20px] md:rounded-[28px] flex items-center justify-between px-4 z-40">
-                                        <button
-                                            onClick={deleteRecording}
-                                            className="p-2 hover:bg-white/10 rounded-full text-red-500 transition-colors"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-green-500 rounded-full" />
-                                            <span className="text-sm font-mono text-white">Audio Recorded</span>
-                                        </div>
-                                    </div>
-                                )}
+                                    return (
+                                        <>
+                                            {uploading && (
+                                                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-[20px] md:rounded-[28px] flex items-center justify-center z-20">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                                        <span className="text-xs text-white">Sending media...</span>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                <div className="flex items-end pr-2">
-                                    <textarea
-                                        ref={inputRef}
-                                        value={newMessage}
-                                        onChange={handleTyping}
-                                        onFocus={() => {
-                                            setShowAttachments(false);
-                                            setShowEmojiPicker(false);
-                                        }}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                if (newMessage.trim()) {
-                                                    handleSendMessage();
-                                                }
-                                            }
-                                        }}
-                                        placeholder="Message..."
-                                        rows={1}
-                                        className="flex-1 w-full min-w-0 bg-transparent border-none outline-none focus:outline-none focus:ring-0 px-4 py-3 text-sm md:text-base text-white placeholder:text-gray-500 resize-none max-h-32 mb-px scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
-                                        style={{ minHeight: '44px' }}
-                                        disabled={sending || uploading}
-                                    />
-                                    <button
-                                        onClick={() => {
-                                            setShowEmojiPicker(!showEmojiPicker);
-                                            setShowAttachments(false);
-                                        }}
-                                        className={`p-2 mb-1.5 rounded-full transition-colors shrink-0 ${showEmojiPicker ? 'text-yellow-400 bg-white/5' : 'text-gray-400 hover:text-yellow-400 hover:bg-white/5'}`}
-                                    >
-                                        <Smile className="w-5 h-5 md:w-6 md:h-6" />
-                                    </button>
-                                </div>
+                                            {isRecording && (
+                                                <div className="absolute inset-0 bg-black rounded-[20px] md:rounded-[28px] flex items-center justify-between px-4 z-40">
+                                                    <button
+                                                        onClick={deleteRecording}
+                                                        className="p-2 hover:bg-white/10 rounded-full text-red-500 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-2 h-2 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'}`} />
+                                                            <span className="text-sm font-mono text-white">{formatTime(recordingTime)}</span>
+                                                        </div>
+
+                                                        <button
+                                                            onClick={isPaused ? resumeRecording : pauseRecording}
+                                                            className="p-2 hover:bg-white/10 rounded-full text-white transition-colors"
+                                                        >
+                                                            {isPaused ? <Play className="w-5 h-5 fill-current" /> : <Pause className="w-5 h-5 fill-current" />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {audioBlob && (
+                                                <div className="absolute inset-0 bg-black rounded-[20px] md:rounded-[28px] flex items-center justify-between px-4 z-40">
+                                                    <button
+                                                        onClick={deleteRecording}
+                                                        className="p-2 hover:bg-white/10 rounded-full text-red-500 transition-colors"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-2 h-2 bg-green-500 rounded-full" />
+                                                        <span className="text-sm font-mono text-white">Audio Recorded</span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-end pr-2">
+                                                <textarea
+                                                    ref={inputRef}
+                                                    value={newMessage}
+                                                    onChange={handleTyping}
+                                                    onFocus={() => {
+                                                        setShowAttachments(false);
+                                                        setShowEmojiPicker(false);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                                            e.preventDefault();
+                                                            if (newMessage.trim()) {
+                                                                handleSendMessage();
+                                                            }
+                                                        }
+                                                    }}
+                                                    placeholder="Message..."
+                                                    rows={1}
+                                                    className="flex-1 w-full min-w-0 bg-transparent border-none outline-none focus:outline-none focus:ring-0 px-4 py-3 text-sm md:text-base text-white placeholder:text-gray-500 resize-none max-h-32 mb-px scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent"
+                                                    style={{ minHeight: '44px' }}
+                                                    disabled={sending || uploading}
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        setShowEmojiPicker(!showEmojiPicker);
+                                                        setShowAttachments(false);
+                                                    }}
+                                                    className={`p-2 mb-1.5 rounded-full transition-colors shrink-0 ${showEmojiPicker ? 'text-yellow-400 bg-white/5' : 'text-gray-400 hover:text-yellow-400 hover:bg-white/5'}`}
+                                                >
+                                                    <Smile className="w-5 h-5 md:w-6 md:h-6" />
+                                                </button>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
 
                                 {/* Emoji Picker Popup */}
                                 <AnimatePresence>
@@ -1149,14 +1175,14 @@ export default function MessagesPage() {
                                         startRecording();
                                     }
                                 }}
-                                disabled={sending}
+                                disabled={sending || (selectedMatch?.users.find(u => u.userId !== currentUser?.id) || selectedMatch?.users[0])?.isBlocked}
                                 className={`
                                     p-2.5 md:p-3.5 rounded-full shadow-lg shrink-0 flex items-center justify-center transition-all duration-500
                                     ${newMessage.trim() || isRecording || audioBlob
                                         ? 'bg-linear-to-r from-primary to-purple-600 text-white shadow-primary/25 translate-y-0'
                                         : 'bg-white/10 text-white hover:bg-white/20' // Mic style
                                     }
-                                    ${!newMessage.trim() && sending ? 'opacity-50' : ''}
+                                    ${(!newMessage.trim() && sending) || (selectedMatch?.users.find(u => u.userId !== currentUser?.id) || selectedMatch?.users[0])?.isBlocked ? 'opacity-50' : ''}
                                 `}
                             >
                                 <AnimatePresence mode="wait">
