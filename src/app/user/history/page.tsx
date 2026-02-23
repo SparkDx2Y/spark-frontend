@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { getActivity } from '@/services/matchService';
 import { ActivityResponse, MatchAction } from '@/types/match/response';
 import { motion, AnimatePresence } from 'framer-motion';
-import {  X, Search, Sparkles, Clock, CheckCircle2,Timer, UserX } from 'lucide-react';
+import {  Search, Sparkles, Clock, CheckCircle2,Timer, UserX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { showInfo } from '@/utils/toast';
 

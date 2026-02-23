@@ -1,7 +1,7 @@
 'use client';
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {  useEffect, useRef, useState } from "react";
 import { Camera, Loader2, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { updateProfile } from "@/services/profileService";

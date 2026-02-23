@@ -10,7 +10,7 @@ import {
 import { NotificationResponse } from '@/types/notification/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 
-import { Heart, MessageCircle, Bell, Check, ShieldCheck, ShieldAlert, ShieldX, User } from 'lucide-react';
+import { Heart, MessageCircle, Bell, Check, ShieldCheck, ShieldX, User } from 'lucide-react';
 import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
 
 
@@ -27,7 +27,7 @@ export default function NotificationsPage() {
         loadNotifications();
 
         if (socket) {
-            socket.on('notification', (data) => {
+            socket.on('notification', () => {
                 loadNotifications();
             });
 

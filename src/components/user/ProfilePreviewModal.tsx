@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, MapPin, Loader2, Flag } from 'lucide-react';
 import Image from 'next/image';
 import Modal from '@/components/ui/Modal';

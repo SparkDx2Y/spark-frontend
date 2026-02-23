@@ -7,7 +7,7 @@ import SwipeCard from './SwipeCard';
 import { swipeAction, getMatchFeed } from '@/services/matchService';
 import { ProfileResponse } from '@/types/profile/response';
 import Button from '@/components/ui/Button';
-import { showError, showSuccess } from '@/utils/toast';
+import { showError } from '@/utils/toast';
 import { useAppSelector } from '@/store/hooks';
 
 interface SwipeManagerProps {
@@ -50,12 +50,8 @@ export default function SwipeManager({ initialProfiles }: SwipeManagerProps) {
         const action = direction === 'right' ? 'like' : 'pass';
 
         try {
-            const response = await swipeAction({ targetId: activeProfile.userId, action });
+             await swipeAction({ targetId: activeProfile.userId, action });
 
-            // if (response.data.isMatch) {
-            //     showSuccess("It's a Match!");
-            //     // Optionally show a match modal here
-            // }
         } catch (error) {
             console.error("Swipe action failed", error);
             showError("Something went wrong");

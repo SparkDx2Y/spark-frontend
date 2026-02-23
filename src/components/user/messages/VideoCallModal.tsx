@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, PhoneIncoming, Maximize2, Minimize2 } from 'lucide-react';
+import { PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, PhoneIncoming } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVideoCall } from '@/hooks/useVideoCall';
 

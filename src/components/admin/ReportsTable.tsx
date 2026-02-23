@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { getReports, updateReportStatus, updateUserBlockStatus } from "@/services/adminService";
+import {  updateReportStatus, updateUserBlockStatus } from "@/services/adminService";
 import { AdminReportListItem } from "@/types/admin/report";
 import { showError, showSuccess } from "@/utils/toast";
-import { AlertTriangle, Clock, CheckCircle, XCircle, ExternalLink, ImageIcon, X, User, FileText, Maximize2, ShieldAlert, ShieldCheck, Lock, Unlock } from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle, XCircle, ExternalLink, ImageIcon, X, User, FileText, Maximize2, Lock, Unlock } from "lucide-react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ReportStatus } from "@/constants/report";
 

@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { FcGoogle } from "react-icons/fc";
 import { GoogleLogin } from "@react-oauth/google";
 import { loginSchema, LoginSchemaType } from "@/validations/auth/login.schema";
 import { handleFormError } from "@/utils/handleFormError";
