@@ -2,9 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Heart, MapPin, Loader2 } from 'lucide-react';
+import { X, Heart, MapPin, Loader2, Flag } from 'lucide-react';
 import Image from 'next/image';
 import Modal from '@/components/ui/Modal';
+import ReportModal from './ReportModal';
 import { ProfileResponse } from '@/types/profile/response';
 import { getPublicProfile } from '@/services/profileService';
 import { swipeAction } from '@/services/matchService';
@@ -21,6 +22,7 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
     const [profile, setProfile] = useState<ProfileResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [swiping, setSwiping] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const currentUser = useAppSelector((state) => state.auth.user);
     const myInterests = currentUser?.interests || [];
@@ -146,6 +148,15 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                                 <X className="w-5 h-5" />
                             </button>
 
+                            {/* Report Button */}
+                            <button
+                                onClick={() => setShowReportModal(true)}
+                                className="absolute top-4 left-4 p-2 bg-black/40 hover:bg-red-500/60 backdrop-blur-md rounded-full text-white transition-all z-50 border border-white/10 hover:border-red-500/50"
+                                title="Report User"
+                            >
+                                <Flag className="w-5 h-5" />
+                            </button>
+
                             {/* Photo Indicators */}
                             {displayPhotos.length > 1 && (
                                 <div className="absolute top-4 inset-x-4 flex gap-1.5 z-40 px-10">
@@ -229,6 +240,11 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                     </>
                 ) : null}
             </div>
+            <ReportModal
+                isOpen={showReportModal}
+                onClose={() => setShowReportModal(false)}
+                reportedUserId={userId}
+            />
         </Modal>
     );
 }

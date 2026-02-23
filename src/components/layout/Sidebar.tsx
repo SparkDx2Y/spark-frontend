@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Home, Heart, MessageSquare, Bell, Sparkles, Settings, LogOut } from "lucide-react";
+import { Home, Heart, MessageSquare, Bell, Sparkles, Settings, LogOut, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { logout as logoutService } from "@/services/authService";
@@ -26,6 +26,7 @@ const Sidebar = () => {
     const navItems = [
         { icon: Home, label: "Discover", href: "/user/home" },
         { icon: Heart, label: "Matches", href: "/user/matches" },
+        { icon: Clock, label: "Activity", href: "/user/history" },
         { icon: MessageSquare, label: "Messages", href: "/user/messages", badge: unreadMessageCount },
         { icon: Bell, label: "Notifications", href: "/user/notifications", badge: unreadCount },
         { icon: Sparkles, label: "Premium", href: "/user/premium", color: "text-yellow-400" },

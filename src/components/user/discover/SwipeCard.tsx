@@ -32,22 +32,10 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
     ];
 
 
-    // Smart sorting: Shared interests first, then others
-    const sortedInterests = useMemo(() => {
+    // Filter: Only show shared interests
+    const sharedInterests = useMemo(() => {
         if (!profile.interests || profile.interests.length === 0) return [];
-
-        const shared: string[] = [];
-        const others: string[] = [];
-
-        profile.interests.forEach(interest => {
-            if (myInterests.includes(interest)) {
-                shared.push(interest);
-            } else {
-                others.push(interest);
-            }
-        });
-
-        return [...shared, ...others];
+        return profile.interests.filter(interest => myInterests.includes(interest));
     }, [profile.interests, myInterests]);
 
     //? handle drag end for swipe actions 
@@ -156,29 +144,23 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
                             </div>
                         </div>
 
-                        {/* Interest Tags */}
-                        {sortedInterests.length > 0 && (
+                        {/* Shared Interests Only */}
+                        {sharedInterests.length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-3">
-                                {sortedInterests.slice(0, 5).map((interest, index) => {
-                                    const isShared = myInterests.includes(interest);
-                                    return (
-                                        <motion.div
-                                            key={interest}
-                                            initial={{ opacity: 0, scale: 0.8 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: index * 0.05 }}
-                                            className={`px-3 py-1.5 rounded-full backdrop-blur-md border shadow-lg text-sm font-medium ${isShared
-                                                ? 'bg-primary/20 border-primary/40 text-primary shadow-primary/20'
-                                                : 'bg-white/10 border-white/20 text-white'
-                                                }`}
-                                        >
-                                            {interest}
-                                        </motion.div>
-                                    );
-                                })}
-                                {sortedInterests.length > 5 && (
+                                {sharedInterests.slice(0, 5).map((interest, index) => (
+                                    <motion.div
+                                        key={interest}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        className="px-3 py-1.5 rounded-full backdrop-blur-md border shadow-lg text-sm font-medium bg-primary/20 border-primary/40 text-primary shadow-primary/20"
+                                    >
+                                        {interest}
+                                    </motion.div>
+                                ))}
+                                {sharedInterests.length > 5 && (
                                     <div className="px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-medium shadow-lg">
-                                        +{sortedInterests.length - 5}
+                                        +{sharedInterests.length - 5}
                                     </div>
                                 )}
                             </div>

@@ -12,7 +12,8 @@ import {
     Sparkles,
     LogOut,
     User,
-    Compass
+    Compass,
+    Clock
 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { logout as logoutService } from "@/services/authService";
@@ -223,6 +224,18 @@ const MobileNav = () => {
                                     <div className="flex items-center gap-3">
                                         <Settings className="w-5 h-5 text-gray-400 group-hover/opt:text-white" />
                                         <span className="text-sm font-medium">Edit Profile</span>
+                                    </div>
+                                    <div className="w-2 h-2 rounded-full bg-white/10" />
+                                </Link>
+
+                                <Link
+                                    href="/user/history"
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group/opt"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Clock className="w-5 h-5 text-gray-400 group-hover/opt:text-white" />
+                                        <span className="text-sm font-medium">Swipe Activity</span>
                                     </div>
                                     <div className="w-2 h-2 rounded-full bg-white/10" />
                                 </Link>

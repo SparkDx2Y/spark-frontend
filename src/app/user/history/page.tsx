@@ -1,0 +1,250 @@
+'use client';
+
+import { useEffect, useState, useMemo } from 'react';
+import { getActivity } from '@/services/matchService';
+import { ActivityResponse, MatchAction } from '@/types/match/response';
+import { motion, AnimatePresence } from 'framer-motion';
+import {  X, Search, Sparkles, Clock, CheckCircle2,Timer, UserX } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { showInfo } from '@/utils/toast';
+
+type TabType = 'liked' | 'received' | 'passed';
+
+export default function ActivityPage() {
+    const [activity, setActivity] = useState<ActivityResponse | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<TabType>('liked');
+    const router = useRouter();
+
+    useEffect(() => {
+        loadActivity();
+    }, []);
+
+    const loadActivity = async () => {
+        try {
+            const response = await getActivity();
+            setActivity(response.data);
+        } catch (error) {
+            console.error('Failed to load activity:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const currentData = useMemo(() => {
+        if (!activity) return [];
+        switch (activeTab) {
+            case 'liked': return activity.liked;
+            case 'passed': return activity.passed;
+            case 'received': return activity.received;
+            default: return [];
+        }
+    }, [activity, activeTab]);
+
+    // Check for matches (Mutual likes)
+    const getStatus = (item: MatchAction, type: TabType) => {
+        if (type === 'passed') return { label: 'Passed', icon: UserX, color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/20' };
+        if (type === 'received') return { label: 'Likes You', icon: Sparkles, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' };
+
+        // Check if matched
+        const isMatch = activity?.received.some(r => r.fromUserId._id === item.toUserId._id);
+        if (isMatch) {
+            return { label: 'Matched', icon: CheckCircle2, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' };
+        }
+
+        // Check if they passed on you
+        const isPassed = activity?.passedBy?.some(r => r.fromUserId._id === item.toUserId._id);
+        if (isPassed) {
+            return { label: 'Passed', icon: UserX, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' };
+        }
+
+        return { label: 'Pending', icon: Timer, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' };
+    };
+
+    if (loading) return <LoadingSkeleton />;
+
+    return (
+        <div className="min-h-screen text-white pb-24 relative overflow-hidden">
+            <div className="fixed inset-0 z-0">
+                <div className="absolute inset-0 bg-linear-to-b from-black/80 to-black z-10" />
+                <div className="absolute top-[-10%] left-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-primary/20 rounded-full blur-[80px] md:blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-500/10 rounded-full blur-[80px] md:blur-[120px]" />
+            </div>
+
+            <div className="max-w-6xl mx-auto px-6 pt-8 md:pt-12 relative z-10">
+                <header className="mb-10">
+                    <h1 className="text-3xl md:text-4xl font-bold mb-6">Swipe History</h1>
+
+                    {/* Consistent Tab Navigation */}
+                    <div className="flex p-1.5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 w-fit">
+                        <TabButton
+                            active={activeTab === 'liked'}
+                            onClick={() => setActiveTab('liked')}
+                            label="Sent"
+                            count={activity?.liked.length}
+                        />
+                        <TabButton
+                            active={activeTab === 'received'}
+                            onClick={() => setActiveTab('received')}
+                            label="Received"
+                            count={activity?.received.length}
+                        />
+                        <TabButton
+                            active={activeTab === 'passed'}
+                            onClick={() => setActiveTab('passed')}
+                            label="Passed"
+                            count={activity?.passed.length}
+                        />
+                    </div>
+                </header>
+
+                {/* Profile List Grid */}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                    >
+                        {currentData.length > 0 ? (
+                            currentData.map((item, idx) => {
+                                const status = getStatus(item, activeTab);
+                                const targetUser = activeTab === 'received' ? item.fromUserId : item.toUserId;
+
+                                return (
+                                    <ProfileCard
+                                        key={item._id}
+                                        user={targetUser}
+                                        status={status}
+                                        date={item.createdAt}
+                                        index={idx}
+                                        onClick={() => {
+                                            if (activeTab === 'received' && status.label !== 'Matched') {
+                                                showInfo("Match with them to see full profile!");
+                                            }
+                                        }}
+                                    />
+                                );
+                            })
+                        ) : (
+                            <div className="col-span-full py-32 flex flex-col items-center justify-center text-center space-y-4">
+                                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
+                                    <Search className="w-8 h-8 text-gray-600" />
+                                </div>
+                                <p className="text-gray-400">No profiles found in this category.</p>
+                                <button
+                                    onClick={() => router.push('/user/home')}
+                                    className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm font-semibold transition"
+                                >
+                                    Go to Discover
+                                </button>
+                            </div>
+                        )}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
+        </div>
+    );
+}
+
+function TabButton({ active, onClick, label, count }: any) {
+    return (
+        <button
+            onClick={onClick}
+            className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all relative ${active ? 'text-white' : 'text-gray-400 hover:text-white'
+                }`}
+        >
+            {active && (
+                <motion.div
+                    layoutId="tab-bg"
+                    className="absolute inset-0 bg-white/10 rounded-xl"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+            )}
+            <span className="relative z-10 flex items-center gap-2">
+                {label}
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${active ? 'bg-white text-black' : 'bg-white/10 text-gray-400'
+                    }`}>
+                    {count || 0}
+                </span>
+            </span>
+        </button>
+    );
+}
+
+interface ProfileCardProps {
+    user: { name: string; profilePhoto?: string };
+    status: { label: string; icon: any; color: string; bg: string };
+    date: string;
+    index: number;
+    onClick: () => void;
+}
+
+function ProfileCard({ user, status, date, index, onClick }: ProfileCardProps) {
+    const StatusIcon = status.icon;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.05 }}
+            onClick={onClick}
+            className="group relative bg-[#121212]/80 backdrop-blur-sm border border-white/5 hover:border-white/10 rounded-2xl p-4 transition-all duration-300 hover:shadow-xl cursor-pointer"
+        >
+            <div className="flex items-start justify-between mb-4">
+                {/* Avatar */}
+                {user.profilePhoto ? (
+                    <div className="w-16 h-16 rounded-full border border-white/10 overflow-hidden relative">
+                        <img
+                            src={user.profilePhoto}
+                            alt={user.name}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                ) : (
+                    <div className="w-16 h-16 rounded-full bg-linear-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center text-xl font-bold text-white/30 group-hover:text-white/80 transition-colors">
+                        {user.name[0]}
+                    </div>
+                )}
+
+                {/* Status Badge */}
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${status.bg} ${status.color}`}>
+                    <StatusIcon className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wide">{status.label}</span>
+                </div>
+            </div>
+
+            <div className="space-y-1">
+                <h3 className="text-lg font-bold text-white group-hover:text-primary transition-colors">
+                    {user.name}
+                </h3>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Clock className="w-3 h-3" />
+                    <span>{new Date(date).toLocaleDateString()}</span>
+                </div>
+            </div>
+
+            {/* Interactive Shine */}
+            <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-transparent group-hover:ring-white/10 transition-all pointer-events-none" />
+        </motion.div>
+    );
+}
+
+function LoadingSkeleton() {
+    return (
+        <div className="min-h-screen bg-black p-6 md:p-12 max-w-6xl mx-auto space-y-8">
+            <div className="h-10 w-48 bg-white/10 rounded-xl animate-pulse" />
+            <div className="flex gap-2">
+                <div className="h-10 w-32 bg-white/10 rounded-xl animate-pulse" />
+                <div className="h-10 w-32 bg-white/10 rounded-xl animate-pulse" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                    <div key={i} className="h-40 bg-white/5 rounded-2xl animate-pulse" />
+                ))}
+            </div>
+        </div>
+    );
+}

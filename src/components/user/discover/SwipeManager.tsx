@@ -50,7 +50,12 @@ export default function SwipeManager({ initialProfiles }: SwipeManagerProps) {
         const action = direction === 'right' ? 'like' : 'pass';
 
         try {
-            await swipeAction({ targetId: activeProfile.userId, action });
+            const response = await swipeAction({ targetId: activeProfile.userId, action });
+
+            // if (response.data.isMatch) {
+            //     showSuccess("It's a Match!");
+            //     // Optionally show a match modal here
+            // }
         } catch (error) {
             console.error("Swipe action failed", error);
             showError("Something went wrong");
