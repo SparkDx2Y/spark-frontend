@@ -82,12 +82,12 @@ export const useSocket = () => {
             }
         });
 
-        newSocket.on('match', (data) => {
+        newSocket.on('match', () => {
             setUnreadCount(prev => prev + 1);
             showSuccess("It's a Match!");
         });
 
-        newSocket.on('message', (data) => {
+        newSocket.on('message', () => {
 
             // Increment unread count
             setUnreadMessageCount(prev => prev + 1);

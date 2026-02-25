@@ -26,7 +26,7 @@ export default function InterestsSelection() {
             try {
                 const response = await getInterests();
                 setInterests(response.data);
-            } catch (error) {
+            } catch {
                 showError('Failed to load interests');
             } finally {
                 setLoading(false);

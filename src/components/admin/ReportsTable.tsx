@@ -5,7 +5,7 @@ import Image from "next/image";
 import { updateReportStatus, updateUserBlockStatus } from "@/services/adminService";
 import { AdminReportListItem } from "@/types/admin/report";
 import { showSuccess, handleApiError } from "@/utils/toast";
-import { AlertTriangle, Clock, CheckCircle, XCircle, ExternalLink, ImageIcon, X, User, FileText, Maximize2, Lock, Unlock } from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle, XCircle, ExternalLink, ImageIcon, X, FileText, Maximize2, Lock, Unlock } from "lucide-react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ReportStatus } from "@/constants/report";
 
@@ -16,7 +16,6 @@ interface ReportsTableProps {
 
 export default function ReportsTable({ initialReports }: ReportsTableProps) {
     const [reports, setReports] = useState<AdminReportListItem[]>(initialReports);
-    const [loading, setLoading] = useState(false);
     const [selectedReport, setSelectedReport] = useState<AdminReportListItem | null>(null);
     const [showStatusModal, setShowStatusModal] = useState(false);
     const [nextStatus, setNextStatus] = useState<ReportStatus | null>(null);

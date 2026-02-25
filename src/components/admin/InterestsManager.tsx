@@ -8,7 +8,7 @@ import { getAllCategories, getAllInterests, createCategory, createInterest, upda
 
 import { Category, Interest } from "@/types/admin/interest";
 import { createCategorySchema, createInterestSchema, CreateCategoryInput, CreateInterestInput } from "@/validations/adminInterest";
-import { showSuccess, showError, handleApiError } from "@/utils/toast";
+import { showSuccess, handleApiError } from "@/utils/toast";
 import Modal from "@/components/ui/Modal";
 
 interface InterestsManagerProps {
@@ -26,7 +26,6 @@ export default function InterestsManager({ initialCategories, initialInterests }
 
     const [categories, setCategories] = useState<Category[]>(initialCategories);
     const [interests, setInterests] = useState<Interest[]>(initialInterests);
-    const [isLoading, setIsLoading] = useState(false);
 
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
@@ -338,7 +337,7 @@ export default function InterestsManager({ initialCategories, initialInterests }
                                 {confirmState.item?.isActive ? 'Deactivate' : 'Activate'} {confirmState.type === 'category' ? 'Category' : 'Interest'}?
                             </h3>
                             <p className="text-stone-500 text-sm mt-1 max-w-[280px]">
-                                Are you sure you want to {confirmState.item?.isActive ? 'deactivate' : 'activate'} <span className="text-white font-bold">"{confirmState.item?.name}"</span>?
+                                Are you sure you want to {confirmState.item?.isActive ? 'deactivate' : 'activate'} <span className="text-white font-bold">&quot;{confirmState.item?.name}&quot;</span>?
                             </p>
                         </div>
                     </div>
