@@ -11,4 +11,5 @@ export const AUTH_ENDPOINTS = {
     RESET_PASSWORD: "/auth/reset-password",
     ME: "/auth/me",
     GOOGLE_LOGIN: "/auth/google-login",
+    REFRESH_TOKEN: "/auth/refresh-token",
 } as const;
