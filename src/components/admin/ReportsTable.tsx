@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import {  updateReportStatus, updateUserBlockStatus } from "@/services/adminService";
+import { updateReportStatus, updateUserBlockStatus } from "@/services/adminService";
 import { AdminReportListItem } from "@/types/admin/report";
-import { showError, showSuccess } from "@/utils/toast";
+import { showSuccess, handleApiError } from "@/utils/toast";
 import { AlertTriangle, Clock, CheckCircle, XCircle, ExternalLink, ImageIcon, X, User, FileText, Maximize2, Lock, Unlock } from "lucide-react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ReportStatus } from "@/constants/report";
@@ -46,9 +46,9 @@ export default function ReportsTable({ initialReports }: ReportsTableProps) {
             setShowStatusModal(false);
             setSelectedReport(null);
             setNextStatus(null);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Failed to update report status:", error);
-            showError("Failed to update report status.");
+            handleApiError(error, "Failed to update report status");
         } finally {
             setIsProcessing(false);
         }
@@ -66,7 +66,7 @@ export default function ReportsTable({ initialReports }: ReportsTableProps) {
 
             // Update all reports in the list that involve this user (as reported user or reporter)
             setReports(prev => prev.map(r => {
-                let updated = { ...r };
+                const updated = { ...r };
                 let changed = false;
 
                 if (r.reportedUser._id === targetUserId) {
@@ -89,9 +89,9 @@ export default function ReportsTable({ initialReports }: ReportsTableProps) {
 
             showSuccess(`User ${newBlockStatus ? 'blocked' : 'unblocked'} successfully`);
             setShowBlockConfirm(false);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Failed to update user block status:", error);
-            showError("Failed to update user status.");
+            handleApiError(error, "Failed to update user status");
         } finally {
             setIsProcessing(false);
         }
