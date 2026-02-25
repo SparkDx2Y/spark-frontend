@@ -8,7 +8,7 @@ import { showSuccess, handleApiError } from "@/utils/toast";
 import { AlertTriangle, Clock, CheckCircle, XCircle, ExternalLink, ImageIcon, X, FileText, Maximize2, Lock, Unlock } from "lucide-react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import { ReportStatus } from "@/constants/report";
-
+import Table, { Column } from "@/components/ui/Table";
 
 interface ReportsTableProps {
     initialReports: AdminReportListItem[];
@@ -63,7 +63,6 @@ export default function ReportsTable({ initialReports }: ReportsTableProps) {
 
             await updateUserBlockStatus(targetUserId, newBlockStatus);
 
-            // Update all reports in the list that involve this user (as reported user or reporter)
             setReports(prev => prev.map(r => {
                 const updated = { ...r };
                 let changed = false;
@@ -80,7 +79,6 @@ export default function ReportsTable({ initialReports }: ReportsTableProps) {
                 return changed ? updated : r;
             }));
 
-            // Also update the current viewing report detail
             setViewDetailsReport(prev => prev ? ({
                 ...prev,
                 reportedUser: { ...prev.reportedUser, isBlocked: newBlockStatus }
@@ -130,82 +128,99 @@ export default function ReportsTable({ initialReports }: ReportsTableProps) {
         }
     };
 
+    // Define table columns
+    const columns: Column<AdminReportListItem>[] = [
+        {
+            header: "Reported By",
+            render: (report) => (
+                <div>
+                    <div className="text-white font-medium text-sm">{report.reportedBy.name}</div>
+                    <div className="text-stone-500 text-xs">{report.reportedBy.email}</div>
+                </div>
+            )
+        },
+        {
+            header: "Reported User",
+            render: (report) => (
+                <div>
+                    <div className="text-white font-medium text-sm">{report.reportedUser.name}</div>
+                    <div className="text-stone-500 text-xs">{report.reportedUser.email}</div>
+                </div>
+            )
+        },
+        {
+            header: "Reason",
+            render: (report) => (
+                <span className="text-stone-300 text-sm font-medium">{report.reason}</span>
+            )
+        },
+        {
+            header: "Details",
+            render: (report) => (
+                <button
+                    onClick={() => setViewDetailsReport(report)}
+                    className="flex items-center gap-1.5 text-amber-500 hover:text-amber-400 transition-colors text-xs font-bold bg-amber-500/5 px-3 py-1.5 rounded-lg border border-amber-500/10 hover:border-amber-500/20"
+                >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    View Details
+                </button>
+            )
+        },
+        {
+            header: "Status",
+            render: (report) => (
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${getStatusStyle(report.status)}`}>
+                    {getStatusIcon(report.status)}
+                    {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                </span>
+            )
+        },
+        {
+            header: "Date",
+            render: (report) => (
+                <div className="text-stone-400 text-xs">
+                    {formatDate(report.createdAt)}
+                </div>
+            )
+        },
+        {
+            header: "Actions",
+            render: (report) => (
+                <div className="flex items-center gap-2">
+                    {report.status === 'pending' ? (
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => handleUpdateStatus(report, 'resolved')}
+                                className="p-1.5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-all"
+                                title="Resolve"
+                            >
+                                <CheckCircle className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => handleUpdateStatus(report, 'dismissed')}
+                                className="p-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                                title="Dismiss"
+                            >
+                                <XCircle className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ) : (
+                        <span className="text-stone-600 text-xs font-medium italic">Handled</span>
+                    )}
+                </div>
+            )
+        }
+    ];
+
     return (
         <>
-            <div className="bg-linear-to-b from-white/5 to-transparent border border-white/5 rounded-2xl overflow-hidden mt-6">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-white/3 border-b border-white/5">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-wider">Reported By</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-wider">Reported User</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-wider">Reason</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-wider">Details</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-4 text-left text-xs font-bold text-stone-400 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {reports.map((report) => (
-                                <tr key={report._id} className="hover:bg-white/3 transition-colors group">
-                                    <td className="px-6 py-4">
-                                        <div className="text-white font-medium text-sm">{report.reportedBy.name}</div>
-                                        <div className="text-stone-500 text-xs">{report.reportedBy.email}</div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="text-white font-medium text-sm">{report.reportedUser.name}</div>
-                                        <div className="text-stone-500 text-xs">{report.reportedUser.email}</div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-stone-300 text-sm font-medium">{report.reason}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <button
-                                            onClick={() => setViewDetailsReport(report)}
-                                            className="flex items-center gap-1.5 text-amber-500 hover:text-amber-400 transition-colors text-xs font-bold bg-amber-500/5 px-3 py-1.5 rounded-lg border border-amber-500/10 hover:border-amber-500/20"
-                                        >
-                                            <ExternalLink className="w-3.5 h-3.5" />
-                                            View Details
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${getStatusStyle(report.status)}`}>
-                                            {getStatusIcon(report.status)}
-                                            {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-stone-400 text-xs">
-                                        {formatDate(report.createdAt)}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {report.status === 'pending' && (
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => handleUpdateStatus(report, 'resolved')}
-                                                    className="p-1.5 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20 transition-all"
-                                                    title="Resolve"
-                                                >
-                                                    <CheckCircle className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleUpdateStatus(report, 'dismissed')}
-                                                    className="p-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
-                                                    title="Dismiss"
-                                                >
-                                                    <XCircle className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        )}
-                                        {report.status !== 'pending' && (
-                                            <span className="text-stone-600 text-xs font-medium italic">Handled</span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+            <div className="mt-6">
+                <Table
+                    data={reports}
+                    columns={columns}
+                    emptyMessage="No reports have been filed yet."
+                    emptyIcon={<AlertTriangle className="w-12 h-12" />}
+                />
             </div>
 
             {/* Confirmation Modal */}
