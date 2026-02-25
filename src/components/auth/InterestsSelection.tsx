@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Sparkles, Heart } from 'lucide-react';
+import { Check, Heart } from 'lucide-react';
 import { getInterests, updateInterests } from '@/services/profileService';
 import { InterestResponse } from '@/types/profile/response';
 import { showSuccess, showError, handleApiError } from '@/utils/toast';

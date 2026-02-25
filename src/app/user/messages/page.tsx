@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMessageCount, deleteMessage } from '@/services/messageService';
 import { MatchResponse, MessageResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
@@ -696,11 +697,13 @@ export default function MessagesPage() {
                                     className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all duration-200 group ${isSelected ? 'bg-white/10 border border-white/5 shadow-lg' : 'hover:bg-white/5 border border-transparent'}`}
                                 >
                                     <div className="relative shrink-0">
-                                        <div className={`w-14 h-14 rounded-full p-[2px] ${isSelected ? 'bg-linear-to-tr from-primary to-purple-500' : 'bg-white/10 group-hover:bg-white/20'}`}>
-                                            <img
+                                        <div className={`relative w-14 h-14 rounded-full p-[2px] ${isSelected ? 'bg-linear-to-tr from-primary to-purple-500' : 'bg-white/10 group-hover:bg-white/20'}`}>
+                                            <Image
                                                 src={otherUser.profilePhoto || '/default-avatar.png'}
                                                 alt={otherUser.name}
-                                                className="w-full h-full rounded-full object-cover border-2 border-black"
+                                                fill
+                                                className="rounded-full object-cover border-2 border-black"
+                                                unoptimized
                                             />
                                         </div>
                                         {isOnline && (
@@ -752,11 +755,15 @@ export default function MessagesPage() {
                                     <div className="flex items-center gap-3 md:gap-4">
                                         <div className="relative group cursor-pointer">
                                             <div className="absolute -inset-0.5 bg-linear-to-r from-primary to-purple-600 rounded-full opacity-0 group-hover:opacity-70 blur-sm transition duration-300"></div>
-                                            <img
-                                                src={otherUser.profilePhoto || '/default-avatar.png'}
-                                                alt={otherUser.name}
-                                                className="relative w-10 h-10 md:w-11 md:h-11 rounded-full object-cover border-2 border-black"
-                                            />
+                                            <div className="relative w-10 h-10 md:w-11 md:h-11 overflow-hidden">
+                                                <Image
+                                                    src={otherUser.profilePhoto || '/default-avatar.png'}
+                                                    alt={otherUser.name}
+                                                    fill
+                                                    className="rounded-full object-cover border-2 border-black"
+                                                    unoptimized
+                                                />
+                                            </div>
                                             {isOnline && (
                                                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 border-2 border-black rounded-full" />
                                             )}
@@ -924,12 +931,16 @@ export default function MessagesPage() {
                                                 )}
                                                 {msg.type === 'image' && (
                                                     <div className="relative group">
-                                                        <img
-                                                            src={msg.content}
-                                                            alt="Message attachment"
-                                                            className={`max-w-xs md:max-w-sm max-h-60 md:max-h-80 object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity ${msg.id.startsWith('temp-') ? 'opacity-50' : ''}`}
-                                                            onClick={() => !msg.id.startsWith('temp-') && setLightboxImage(msg.content)}
-                                                        />
+                                                        <div className="relative max-w-xs md:max-w-sm h-60 md:h-80 group">
+                                                            <Image
+                                                                src={msg.content}
+                                                                alt="Message attachment"
+                                                                fill
+                                                                className={`object-cover rounded-xl cursor-pointer hover:opacity-90 transition-opacity ${msg.id.startsWith('temp-') ? 'opacity-50' : ''}`}
+                                                                onClick={() => !msg.id.startsWith('temp-') && setLightboxImage(msg.content)}
+                                                                unoptimized
+                                                            />
+                                                        </div>
                                                         {msg.id.startsWith('temp-') && (
                                                             <div className="absolute inset-0 flex items-center justify-center">
                                                                 <Loader2 className="w-8 h-8 text-white animate-spin" />

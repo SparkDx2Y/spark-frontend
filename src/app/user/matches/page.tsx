@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { getMatches } from '@/services/messageService';
 import { MatchResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
@@ -100,10 +101,12 @@ export default function MatchesPage() {
                         >
                             {/* Profile Photo */}
                             <div className="relative aspect-square overflow-hidden bg-gray-900">
-                                <img
+                                <Image
                                     src={otherUser.profilePhoto || '/default-avatar.png'}
                                     alt={otherUser.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    fill
+                                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                                    unoptimized
                                 />
                                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
 

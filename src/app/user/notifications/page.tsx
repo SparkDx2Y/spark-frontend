@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
     getNotifications,
     markAllNotificationsAsRead,
@@ -168,11 +169,15 @@ export default function NotificationsPage() {
                         >
                             <div className="relative">
                                 {notification.fromUser?.profilePhoto ? (
-                                    <img
-                                        src={notification.fromUser.profilePhoto}
-                                        alt={notification.fromUser.name || 'User'}
-                                        className="w-12 h-12 rounded-full object-cover shrink-0"
-                                    />
+                                    <div className="relative w-12 h-12 overflow-hidden shrink-0">
+                                        <Image
+                                            src={notification.fromUser.profilePhoto}
+                                            alt={notification.fromUser.name || 'User'}
+                                            fill
+                                            className="rounded-full object-cover"
+                                            unoptimized
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
                                         <User className="w-6 h-6 text-gray-400" />

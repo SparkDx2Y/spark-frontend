@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, PhoneIncoming } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVideoCall } from '@/hooks/useVideoCall';
@@ -82,10 +83,12 @@ export default function VideoCallModal({ isOpen, onClose, socket, currentUser, o
 
                                         {/* Avatar Image (Masks the center) */}
                                         <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-black z-10 bg-black">
-                                            <img
+                                            <Image
                                                 src={otherUser.profilePhoto || '/default-avatar.png'}
                                                 alt={otherUser.name}
-                                                className="w-full h-full object-cover"
+                                                fill
+                                                className="object-cover"
+                                                unoptimized
                                             />
                                         </div>
                                     </div>
