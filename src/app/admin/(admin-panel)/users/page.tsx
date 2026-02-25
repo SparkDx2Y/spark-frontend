@@ -47,7 +47,7 @@ async function UsersListContent({ search, page }: { search: string; page: number
     const response = await getServerUsers({
         search: search || undefined,
         page,
-        limit: 10
+        limit: 5
     });
 
     const { users, pagination } = response;

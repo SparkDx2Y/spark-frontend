@@ -40,7 +40,7 @@ export default function UsersTable({ initialUsers, initialPagination }: UsersTab
             const response = await getAllUsers({
                 search: search || undefined,
                 page,
-                limit: 10
+                limit: 5
             });
             setUsers(response.data.users);
             setPagination(response.data.pagination);
