@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Sparkles, Heart } from 'lucide-react';
 import { getInterests, updateInterests } from '@/services/profileService';
 import { InterestResponse } from '@/types/profile/response';
-import { showSuccess, showError } from '@/utils/toast';
+import { showSuccess, showError, handleApiError } from '@/utils/toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setCredentials } from '@/store/features/auth/authSlice';
 import Button from '@/components/ui/Button';
@@ -62,8 +62,8 @@ export default function InterestsSelection() {
 
             showSuccess('Preferences saved!');
             router.push('/location');
-        } catch (error: any) {
-            showError(error.response?.data?.message || 'Failed to save interests');
+        } catch (error: unknown) {
+            handleApiError(error, 'Failed to save interests');
         } finally {
             setSaving(false);
         }

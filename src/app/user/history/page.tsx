@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { getActivity } from '@/services/matchService';
 import { ActivityResponse, MatchAction } from '@/types/match/response';
 import { motion, AnimatePresence } from 'framer-motion';
-import {  Search, Sparkles, Clock, CheckCircle2,Timer, UserX } from 'lucide-react';
+import { Search, Sparkles, Clock, CheckCircle2, Timer, UserX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { showInfo } from '@/utils/toast';
 
@@ -149,7 +149,14 @@ export default function ActivityPage() {
     );
 }
 
-function TabButton({ active, onClick, label, count }: any) {
+interface TabButtonProps {
+    active: boolean;
+    onClick: () => void;
+    label: string;
+    count?: number;
+}
+
+function TabButton({ active, onClick, label, count }: TabButtonProps) {
     return (
         <button
             onClick={onClick}
@@ -176,7 +183,7 @@ function TabButton({ active, onClick, label, count }: any) {
 
 interface ProfileCardProps {
     user: { name: string; profilePhoto?: string };
-    status: { label: string; icon: any; color: string; bg: string };
+    status: { label: string; icon: React.ElementType; color: string; bg: string };
     date: string;
     index: number;
     onClick: () => void;

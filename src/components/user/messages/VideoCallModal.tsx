@@ -2,15 +2,17 @@ import { useRef, useEffect } from 'react';
 import { PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, PhoneIncoming } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVideoCall } from '@/hooks/useVideoCall';
+import { Socket } from 'socket.io-client';
+import { User } from '@/store/features/auth/authSlice';
 
 interface VideoCallModalProps {
     isOpen: boolean;
     onClose: () => void;
-    socket: any;
-    currentUser: any;
+    socket: Socket;
+    currentUser: User;
     otherUser: { id: string; name: string; profilePhoto?: string };
     isIncomingInitial?: boolean;
-    callerSignalInitial?: any;
+    callerSignalInitial?: RTCSessionDescriptionInit | null;
 }
 
 export default function VideoCallModal({ isOpen, onClose, socket, currentUser, otherUser, isIncomingInitial = false, callerSignalInitial = null }: VideoCallModalProps) {
@@ -154,8 +156,8 @@ export default function VideoCallModal({ isOpen, onClose, socket, currentUser, o
                                 <button
                                     onClick={toggleAudio}
                                     className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all duration-300 ${isMuted
-                                            ? 'bg-white text-black'
-                                            : 'bg-white/10 text-white hover:bg-white/20'
+                                        ? 'bg-white text-black'
+                                        : 'bg-white/10 text-white hover:bg-white/20'
                                         }`}
                                 >
                                     {isMuted ? <MicOff className="w-5 h-5 md:w-6 md:h-6" /> : <Mic className="w-5 h-5 md:w-6 md:h-6" />}
@@ -171,8 +173,8 @@ export default function VideoCallModal({ isOpen, onClose, socket, currentUser, o
                                 <button
                                     onClick={toggleVideo}
                                     className={`w-12 h-12 md:w-14 md:h-14 flex items-center justify-center rounded-full transition-all duration-300 ${isVideoOff
-                                            ? 'bg-white text-black'
-                                            : 'bg-white/10 text-white hover:bg-white/20'
+                                        ? 'bg-white text-black'
+                                        : 'bg-white/10 text-white hover:bg-white/20'
                                         }`}
                                 >
                                     {isVideoOff ? <VideoOff className="w-5 h-5 md:w-6 md:h-6" /> : <VideoIcon className="w-5 h-5 md:w-6 md:h-6" />}

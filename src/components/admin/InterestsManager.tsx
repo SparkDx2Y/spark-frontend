@@ -1,6 +1,6 @@
 "use client";
 
-import {  useState} from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Sparkles, Layers, Search, FolderPlus, AlertCircle, Edit2, CheckCircle2, XCircle } from "lucide-react";
@@ -8,7 +8,7 @@ import { getAllCategories, getAllInterests, createCategory, createInterest, upda
 
 import { Category, Interest } from "@/types/admin/interest";
 import { createCategorySchema, createInterestSchema, CreateCategoryInput, CreateInterestInput } from "@/validations/adminInterest";
-import { showSuccess, showError } from "@/utils/toast";
+import { showSuccess, showError, handleApiError } from "@/utils/toast";
 import Modal from "@/components/ui/Modal";
 
 interface InterestsManagerProps {
@@ -66,7 +66,7 @@ export default function InterestsManager({ initialCategories, initialInterests }
             ]);
             setCategories(catsRes.data);
             setInterests(intsRes.data || []);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Failed to fetch fresh data", error);
         }
     };
@@ -89,8 +89,8 @@ export default function InterestsManager({ initialCategories, initialInterests }
             showSuccess(`${confirmState.type === 'category' ? 'Category' : 'Interest'} ${newStatus ? 'activated' : 'deactivated'}`);
             refreshData(); // Refresh list after update
             setConfirmState({ isOpen: false, type: "category", item: null });
-        } catch (error: any) {
-            showError(error.response?.data?.message || "Operation failed");
+        } catch (error: unknown) {
+            handleApiError(error, "Operation failed");
         } finally {
             setIsSubmitting(false);
         }
@@ -109,9 +109,8 @@ export default function InterestsManager({ initialCategories, initialInterests }
             }
             closeCategoryModal();
             refreshData();
-        } catch (error: any) {
-            const message = error.response?.data?.message || "Operation failed";
-            showError(message);
+        } catch (error: unknown) {
+            handleApiError(error, "Operation failed");
         } finally {
             setIsSubmitting(false);
         }
@@ -150,9 +149,8 @@ export default function InterestsManager({ initialCategories, initialInterests }
             }
             closeInterestModal();
             refreshData();
-        } catch (error: any) {
-            const message = error.response?.data?.message || "Operation failed";
-            showError(message);
+        } catch (error: unknown) {
+            handleApiError(error, "Operation failed");
         } finally {
             setIsSubmitting(false);
         }

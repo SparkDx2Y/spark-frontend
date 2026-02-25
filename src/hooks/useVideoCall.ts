@@ -1,4 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
+import { Socket } from "socket.io-client";
+import { User } from "@/store/features/auth/authSlice";
 
 const ICE_SERVERS = {
     iceServers: [
@@ -8,11 +10,11 @@ const ICE_SERVERS = {
 };
 
 export const useVideoCall = (
-    socket: any,
-    currentUser: any,
+    socket: Socket | null,
+    currentUser: User | null,
     otherUserId: string,
     isIncomingInitial: boolean = false,
-    callerSignalInitial: any = null,
+    callerSignalInitial: RTCSessionDescriptionInit | null = null,
     onEndCall?: () => void
 ) => {
     // Media and Connection State
@@ -28,7 +30,7 @@ export const useVideoCall = (
 
     // Refs for internal state
     const peerRef = useRef<RTCPeerConnection | null>(null);
-    const signalRef = useRef<any>(callerSignalInitial);
+    const signalRef = useRef<RTCSessionDescriptionInit | null>(callerSignalInitial);
     const streamRef = useRef<MediaStream | null>(null);
     const iceCandidatesQueue = useRef<RTCIceCandidate[]>([]); // Queue for early ICE candidates
 
@@ -50,7 +52,7 @@ export const useVideoCall = (
     }, []);
 
     const endCall = useCallback(() => {
-        if (otherUserId) {
+        if (otherUserId && socket) {
             socket.emit("end_call", { to: otherUserId });
         }
         cleanup();
@@ -69,7 +71,7 @@ export const useVideoCall = (
         };
 
         peer.onicecandidate = (event) => {
-            if (event.candidate) {
+            if (event.candidate && socket) {
                 socket.emit("ice_candidate", {
                     to: otherUserId,
                     candidate: event.candidate
@@ -94,11 +96,13 @@ export const useVideoCall = (
             const offer = await peer.createOffer();
             await peer.setLocalDescription(offer);
 
-            socket.emit("call_user", {
-                userToCall: otherUserId,
-                signalData: offer,
-                from: currentUser
-            });
+            if (socket) {
+                socket.emit("call_user", {
+                    userToCall: otherUserId,
+                    signalData: offer,
+                    from: currentUser
+                });
+            }
         } catch (err) {
             console.error("Error initiating call:", err);
             setError("Failed to start call");
@@ -134,10 +138,12 @@ export const useVideoCall = (
             const answer = await peer.createAnswer();
             await peer.setLocalDescription(answer);
 
-            socket.emit("answer_call", {
-                signal: answer,
-                to: otherUserId
-            });
+            if (socket) {
+                socket.emit("answer_call", {
+                    signal: answer,
+                    to: otherUserId
+                });
+            }
         } catch (err) {
             console.error("Error answering call:", err);
             setError("Failed to answer call");
@@ -170,7 +176,7 @@ export const useVideoCall = (
     useEffect(() => {
         if (!socket) return;
 
-        const handleCallAccepted = async (signal: any) => {
+        const handleCallAccepted = async (signal: RTCSessionDescriptionInit) => {
             setCallAccepted(true);
             if (peerRef.current) {
                 try {
@@ -189,7 +195,7 @@ export const useVideoCall = (
             }
         };
 
-        const handleIceCandidate = async (candidate: any) => {
+        const handleIceCandidate = async (candidate: RTCIceCandidateInit) => {
             const peer = peerRef.current;
             const iceCandidate = new RTCIceCandidate(candidate);
 

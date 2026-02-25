@@ -13,6 +13,13 @@ import { uploadChatMedia } from '@/services/fileService';
 import { useVideoCallContext } from '@/contexts/VideoCallContext';
 import ReportModal from '@/components/user/ReportModal';
 
+interface SocketMessageUpdate {
+    type: 'message' | 'message_deleted';
+    matchId: string;
+    message?: MessageResponse;
+    messageId?: string;
+}
+
 function AudioMessage({ src, isOwn, isUploading }: { src: string; isOwn: boolean; isUploading?: boolean }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -176,7 +183,7 @@ export default function MessagesPage() {
     useEffect(() => {
         if (!socket) return;
 
-        const handleNewMessage = (data: any) => {
+        const handleNewMessage = (data: SocketMessageUpdate) => {
             // Handle Message Deletion
             if (data.type === 'message_deleted') {
                 if (selectedMatch && data.matchId === selectedMatch.id) {
@@ -191,8 +198,9 @@ export default function MessagesPage() {
             }
 
             // 1. Update Messages Area (if chat is open)
-            if (selectedMatch && data.matchId === selectedMatch.id) {
-                setMessages(prev => [...prev, data.message]);
+            if (selectedMatch && data.matchId === selectedMatch.id && data.message) {
+                const newMessage = data.message;
+                setMessages(prev => [...prev, newMessage]);
                 scrollToBottom();
 
                 // Mark as read
@@ -203,7 +211,9 @@ export default function MessagesPage() {
             }
 
             // 2. Update Sidebar (Move chat to top)
-            updateMatchList(data.matchId, data.message.content, data.message.createdAt, data.message.type);
+            if (data.message) {
+                updateMatchList(data.matchId, data.message.content, data.message.createdAt, data.message.type);
+            }
         };
 
         socket.on('message', handleNewMessage);

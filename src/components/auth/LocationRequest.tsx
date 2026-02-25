@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { MapPin, Navigation } from 'lucide-react';
 import { updateLocation } from '@/services/profileService';
-import { showSuccess, showError } from '@/utils/toast';
+import { showSuccess, showError, handleApiError } from '@/utils/toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setCredentials } from '@/store/features/auth/authSlice';
 import Button from '@/components/ui/Button';
@@ -41,8 +41,8 @@ export default function LocationRequest() {
 
                     showSuccess("Location enabled successfully!");
                     router.push('/user/home');
-                } catch (error: any) {
-                    showError(error.response?.data?.message || "Failed to update location");
+                } catch (error: unknown) {
+                    handleApiError(error, "Failed to update location");
                 } finally {
                     setLoading(false);
                 }

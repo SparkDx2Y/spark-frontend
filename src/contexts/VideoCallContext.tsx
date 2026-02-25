@@ -4,11 +4,27 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useSocketContext } from './SocketContext';
 import { useAppSelector } from '@/store/hooks';
 import VideoCallModal from '@/components/user/messages/VideoCallModal';
+import { User } from '@/store/features/auth/authSlice';
 
 interface CallDetails {
     otherUser: { id: string; name: string; profilePhoto?: string };
     isIncoming: boolean;
-    signal?: any;
+    signal?: RTCSessionDescriptionInit;
+}
+
+interface IncomingCallPayload {
+    from: {
+        id?: string;
+        userId?: string;
+        _id?: string;
+        name?: string;
+        username?: string;
+        profilePhoto?: string | null;
+        image?: string;
+        avatar?: string;
+    };
+    signalData: RTCSessionDescriptionInit;
+    signal?: RTCSessionDescriptionInit; // Backend might send either
 }
 
 interface VideoCallContextType {
@@ -42,17 +58,17 @@ export const VideoCallProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         if (!socket) return;
 
-        const handleIncomingCall = (data: any) => {
+        const handleIncomingCall = (data: IncomingCallPayload) => {
             // data.from should contain user details (id, name, photo)
             const caller = data.from;
             setCallDetails({
                 otherUser: {
-                    id: caller.id || caller.userId || caller._id,
-                    name: caller.name || caller.username || 'Unknown Caller',
-                    profilePhoto: caller.profilePhoto || caller.image || caller.avatar
+                    id: caller.id || caller.userId || caller._id || 'unknown',
+                    name: (caller.name || caller.username || 'Unknown Caller') as string,
+                    profilePhoto: (caller.profilePhoto || caller.image || caller.avatar || undefined) as string | undefined
                 },
                 isIncoming: true,
-                signal: data.signal
+                signal: data.signalData || data.signal
             });
             setIsOpen(true);
         };
