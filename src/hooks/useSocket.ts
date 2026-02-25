@@ -19,12 +19,9 @@ export const useSocket = () => {
     // useEffect to handle socket connection
     useEffect(() => {
         if (!isAuthenticated || !user) {
-            // Disconnect if user logs out
-            if (socket) {
-                socket.disconnect();
-                setSocket(null);
-                setIsConnected(false);
-            }
+            // State will be cleared; cleanup function below will handle disconnection
+            setSocket(null);
+            setIsConnected(false);
             return;
         }
 

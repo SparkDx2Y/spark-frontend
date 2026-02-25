@@ -265,7 +265,7 @@ export const useVideoCall = (
             mounted = false;
             cleanup();
         };
-    }, []);
+    }, [cleanup, initiateCall, isIncomingInitial, callerSignalInitial]);
 
     return {
         localStream,

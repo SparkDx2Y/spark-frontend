@@ -4,7 +4,6 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useSocketContext } from './SocketContext';
 import { useAppSelector } from '@/store/hooks';
 import VideoCallModal from '@/components/user/messages/VideoCallModal';
-import { User } from '@/store/features/auth/authSlice';
 
 interface CallDetails {
     otherUser: { id: string; name: string; profilePhoto?: string };
