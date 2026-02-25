@@ -195,7 +195,7 @@ export default function NotificationsPage() {
                                 </div>
                                 <p className={`text-sm ${notification.isRead ? 'text-gray-500' : 'text-gray-300'}`}>
                                     {notification.type === 'like' && `liked your profile!`}
-                                    {notification.type === 'match' && `It's a match! Start a conversation.`}
+                                    {notification.type === 'match' && `It&apos;s a match! Start a conversation.`}
                                     {notification.type === 'message' && `sent you a message.`}
                                     {notification.type === 'report_resolved' && `We've reviewed your report and taken action. Thank you for keeping Spark safe.`}
                                     {notification.type === 'report_dismissed' && `We've reviewed your report and found it doesn't violate our safety guidelines at this time.`}

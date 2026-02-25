@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Users, Search } from "lucide-react";
+import { Users } from "lucide-react";
 import { getServerUsers } from "@/lib/data/admin/users.data";
 import UsersTable from "@/components/admin/UsersTable";
 

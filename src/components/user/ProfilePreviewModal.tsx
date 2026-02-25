@@ -9,7 +9,7 @@ import { ProfileResponse, InterestResponse } from '@/types/profile/response';
 import { getPublicProfile } from '@/services/profileService';
 import { swipeAction } from '@/services/matchService';
 import { useAppSelector } from '@/store/hooks';
-import { showSuccess, showError, handleApiError } from '@/utils/toast';
+import { showSuccess, handleApiError } from '@/utils/toast';
 
 interface ProfilePreviewModalProps {
     userId: string | null;

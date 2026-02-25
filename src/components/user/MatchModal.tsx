@@ -71,7 +71,7 @@ export default function MatchModal() {
 
                     {/* Title */}
                     <h1 className="text-4xl font-bold mb-2 bg-linear-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent animate-shimmer">
-                        It's a Match!
+                        It&apos;s a Match!
                     </h1>
 
                     {/* Message */}

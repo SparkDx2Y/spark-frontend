@@ -6,6 +6,7 @@ import { ActivityResponse, MatchAction } from '@/types/match/response';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Sparkles, Clock, CheckCircle2, Timer, UserX } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { showInfo } from '@/utils/toast';
 
 type TabType = 'liked' | 'received' | 'passed';
@@ -204,10 +205,12 @@ function ProfileCard({ user, status, date, index, onClick }: ProfileCardProps) {
                 {/* Avatar */}
                 {user.profilePhoto ? (
                     <div className="w-16 h-16 rounded-full border border-white/10 overflow-hidden relative">
-                        <img
+                        <Image
                             src={user.profilePhoto}
                             alt={user.name}
+                            fill
                             className="w-full h-full object-cover"
+                            unoptimized
                         />
                     </div>
                 ) : (
