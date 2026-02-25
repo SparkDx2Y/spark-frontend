@@ -39,7 +39,7 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
     }, [profile.interests, myInterests]);
 
     //? handle drag end for swipe actions 
-    const handleDragEnd = (_: any, info: PanInfo) => {
+    const handleDragEnd = (_: unknown, info: PanInfo) => {
         if (info.offset.x > 100) {
             onSwipe("right");
         } else if (info.offset.x < -100) {

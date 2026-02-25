@@ -9,7 +9,7 @@ interface MatchData {
     type: string;
     message: string;
     matchId: string;
-    data?: any;
+    data?: unknown;
 }
 
 export default function MatchModal() {

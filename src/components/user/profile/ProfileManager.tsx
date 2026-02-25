@@ -1,13 +1,13 @@
 'use client';
 
 import Image from "next/image";
-import {  useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { updateProfile } from "@/services/profileService";
 import { uploadFile, uploadMultipleFiles } from "@/services/fileService";
 import { ProfileResponse } from "@/types/profile/response";
-import { showError, showSuccess } from "@/utils/toast";
+import { showError, showSuccess, handleApiError } from "@/utils/toast";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setCredentials } from "@/store/features/auth/authSlice";
 import { getInterests, updateInterests, updateLocation } from "@/services/profileService";
@@ -21,7 +21,7 @@ interface ProfileManagerProps {
 }
 
 export default function ProfileManager({ initialProfile }: ProfileManagerProps) {
-    // ✅ Initialize state WITH the server-fetched data
+    //  Initialize state WITH the server-fetched data
     const [profile, setProfile] = useState<ProfileResponse>(initialProfile);
     const [saving, setSaving] = useState({ avatar: false, cover: false, gallery: false, location: false, interests: false });
 
@@ -50,19 +50,6 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
         }
     }, []);
 
-    const getErrorMessage = (error: unknown) => {
-        if (typeof error === "object" && error !== null) {
-            const maybeResponse = error as { response?: { data?: { message?: string } } };
-            if (maybeResponse.response?.data?.message) {
-                return maybeResponse.response.data.message;
-            }
-        }
-        if (error instanceof Error) {
-            return error.message;
-        }
-        return "Unexpected error occurred";
-    };
-
     const updateAuthPhoto = (photoUrl: string | null) => {
         if (!authUser) return;
         dispatch(setCredentials({ user: { ...authUser, profilePhoto: photoUrl } }));
@@ -83,7 +70,7 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
             updateAuthPhoto(url);
             showSuccess("Profile photo updated");
         } catch (error: unknown) {
-            showError(getErrorMessage(error));
+            handleApiError(error, "Failed to update profile photo");
         } finally {
             setSaving((prev) => ({ ...prev, avatar: false }));
         }
@@ -101,7 +88,7 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
             }));
             showSuccess("Cover photo updated");
         } catch (error: unknown) {
-            showError(getErrorMessage(error));
+            handleApiError(error, "Failed to update cover photo");
         } finally {
             setSaving((prev) => ({ ...prev, cover: false }));
         }
@@ -133,7 +120,7 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
             }));
             showSuccess("Gallery updated");
         } catch (error: unknown) {
-            showError(getErrorMessage(error));
+            handleApiError(error, "Failed to update gallery");
         } finally {
             setSaving((prev) => ({ ...prev, gallery: false }));
         }
@@ -154,7 +141,7 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
 
             showSuccess("Photo removed");
         } catch (error: unknown) {
-            showError(getErrorMessage(error));
+            handleApiError(error, "Failed to remove photo");
         } finally {
             setSaving((prev) => ({ ...prev, gallery: false }));
         }
@@ -177,8 +164,8 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                     const { latitude, longitude } = position.coords;
                     await updateLocation(latitude, longitude);
                     showSuccess("Location updated successfully!");
-                } catch (error: any) {
-                    showError(error.response?.data?.message || "Failed to update location");
+                } catch (error: unknown) {
+                    handleApiError(error, "Failed to update location");
                 } finally {
                     setSaving(prev => ({ ...prev, location: false }));
                 }
@@ -209,8 +196,8 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                     .map(i => i.id);
 
                 setSelectedInterestIds(currentIds);
-            } catch (error) {
-                showError("Failed to load interests");
+            } catch (error: unknown) {
+                handleApiError(error, "Failed to load interests");
             } finally {
                 setLoadingInterests(false);
             }
@@ -259,8 +246,8 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
 
             showSuccess('Interests updated!');
             setShowInterestModal(false);
-        } catch (error: any) {
-            showError(getErrorMessage(error));
+        } catch (error: unknown) {
+            handleApiError(error, "Failed to update interests");
         } finally {
             setSaving(prev => ({ ...prev, interests: false }));
         }

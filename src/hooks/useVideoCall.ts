@@ -250,9 +250,12 @@ export const useVideoCall = (
                 if (!isIncomingInitial && !callerSignalInitial) {
                     initiateCall(currentStream);
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error("Error accessing media devices:", err);
-                if (mounted) setError(err.message || "Failed to access camera/microphone");
+                if (mounted) {
+                    const errorMessage = err instanceof Error ? err.message : "Failed to access camera/microphone";
+                    setError(errorMessage);
+                }
             }
         };
 
