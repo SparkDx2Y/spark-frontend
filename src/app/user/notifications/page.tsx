@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
     getNotifications,
     markAllNotificationsAsRead,
@@ -10,7 +11,7 @@ import {
 import { NotificationResponse } from '@/types/notification/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 
-import { Heart, MessageCircle, Bell, Check, ShieldCheck, ShieldAlert, ShieldX, User } from 'lucide-react';
+import { Heart, MessageCircle, Bell, Check, ShieldCheck, ShieldX, User } from 'lucide-react';
 import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
 
 
@@ -27,7 +28,7 @@ export default function NotificationsPage() {
         loadNotifications();
 
         if (socket) {
-            socket.on('notification', (data) => {
+            socket.on('notification', () => {
                 loadNotifications();
             });
 
@@ -168,11 +169,15 @@ export default function NotificationsPage() {
                         >
                             <div className="relative">
                                 {notification.fromUser?.profilePhoto ? (
-                                    <img
-                                        src={notification.fromUser.profilePhoto}
-                                        alt={notification.fromUser.name || 'User'}
-                                        className="w-12 h-12 rounded-full object-cover shrink-0"
-                                    />
+                                    <div className="relative w-12 h-12 overflow-hidden shrink-0">
+                                        <Image
+                                            src={notification.fromUser.profilePhoto}
+                                            alt={notification.fromUser.name || 'User'}
+                                            fill
+                                            className="rounded-full object-cover"
+                                            unoptimized
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/5">
                                         <User className="w-6 h-6 text-gray-400" />
@@ -195,7 +200,7 @@ export default function NotificationsPage() {
                                 </div>
                                 <p className={`text-sm ${notification.isRead ? 'text-gray-500' : 'text-gray-300'}`}>
                                     {notification.type === 'like' && `liked your profile!`}
-                                    {notification.type === 'match' && `It's a match! Start a conversation.`}
+                                    {notification.type === 'match' && `It&apos;s a match! Start a conversation.`}
                                     {notification.type === 'message' && `sent you a message.`}
                                     {notification.type === 'report_resolved' && `We've reviewed your report and taken action. Thank you for keeping Spark safe.`}
                                     {notification.type === 'report_dismissed' && `We've reviewed your report and found it doesn't violate our safety guidelines at this time.`}

@@ -1,9 +1,8 @@
-
-
 import { Users, Sparkles, IndianRupee, LineChart, BarChart, TrendingUp } from "lucide-react";
+import Image from "next/image";
 
 export default function AdminDashboard() {
-    
+
     return (
         <div className="space-y-8 pb-12">
             {/* Header */}
@@ -78,8 +77,14 @@ export default function AdminDashboard() {
                     <div className="space-y-6 flex-1">
                         {[1, 2, 3, 4].map((i) => (
                             <div key={i} className="flex items-center gap-4 group cursor-pointer">
-                                <div className="w-12 h-12 rounded-full border border-white/5 bg-stone-900 flex items-center justify-center text-xs font-bold text-stone-500 overflow-hidden ring-2 ring-transparent group-hover:ring-amber-500/20 transition-all">
-                                    <img src={`https://i.pravatar.cc/150?u=${i + 15}`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-all" />
+                                <div className="w-12 h-12 rounded-full border border-white/5 bg-stone-900 flex items-center justify-center text-xs font-bold text-stone-500 overflow-hidden ring-2 ring-transparent group-hover:ring-amber-500/20 transition-all relative">
+                                    <Image
+                                        src={`https://i.pravatar.cc/150?u=${i + 15}`}
+                                        alt=""
+                                        fill
+                                        className="object-cover group-hover:scale-110 transition-all"
+                                        unoptimized
+                                    />
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm font-bold text-white group-hover:text-amber-500 transition-colors">User #{i * 123}</p>

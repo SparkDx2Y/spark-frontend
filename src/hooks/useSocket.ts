@@ -19,12 +19,9 @@ export const useSocket = () => {
     // useEffect to handle socket connection
     useEffect(() => {
         if (!isAuthenticated || !user) {
-            // Disconnect if user logs out
-            if (socket) {
-                socket.disconnect();
-                setSocket(null);
-                setIsConnected(false);
-            }
+            // State will be cleared; cleanup function below will handle disconnection
+            setSocket(null);
+            setIsConnected(false);
             return;
         }
 
@@ -85,12 +82,12 @@ export const useSocket = () => {
             }
         });
 
-        newSocket.on('match', (data) => {
+        newSocket.on('match', () => {
             setUnreadCount(prev => prev + 1);
             showSuccess("It's a Match!");
         });
 
-        newSocket.on('message', (data) => {
+        newSocket.on('message', () => {
 
             // Increment unread count
             setUnreadMessageCount(prev => prev + 1);

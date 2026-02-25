@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, MapPin, Loader2, Flag } from 'lucide-react';
 import Image from 'next/image';
 import Modal from '@/components/ui/Modal';
 import ReportModal from './ReportModal';
-import { ProfileResponse } from '@/types/profile/response';
+import { ProfileResponse, InterestResponse } from '@/types/profile/response';
 import { getPublicProfile } from '@/services/profileService';
 import { swipeAction } from '@/services/matchService';
 import { useAppSelector } from '@/store/hooks';
-import { showSuccess, showError } from '@/utils/toast';
+import { showSuccess, handleApiError } from '@/utils/toast';
 
 interface ProfilePreviewModalProps {
     userId: string | null;
@@ -34,9 +33,9 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                     setLoading(true);
                     const response = await getPublicProfile(userId);
                     setProfile(response.data);
-                } catch (error) {
+                } catch (error: unknown) {
                     console.error("Failed to fetch profile", error);
-                    showError("Failed to load profile details");
+                    handleApiError(error, "Failed to load profile details");
                     onClose();
                 } finally {
                     setLoading(false);
@@ -68,7 +67,7 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                 else others.push(interest);
             } else if (interest && typeof interest === 'object' && 'name' in interest) {
                 // If it's the interest object from backend
-                const name = (interest as any).name;
+                const name = (interest as unknown as InterestResponse).name;
                 if (myInterests.includes(name)) shared.push(name);
                 else others.push(name);
             }
@@ -94,9 +93,9 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                 showSuccess("Passed");
             }
             onClose();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Swipe action failed", error);
-            showError("Something went wrong");
+            handleApiError(error, "Something went wrong");
         } finally {
             setSwiping(false);
         }

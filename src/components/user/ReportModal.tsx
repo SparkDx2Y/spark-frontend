@@ -4,9 +4,9 @@ import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import { createReport } from '@/services/reportService';
 import { uploadFile } from '@/services/fileService';
-import { showSuccess, showError } from '@/utils/toast';
+import { showSuccess, showError, handleApiError } from '@/utils/toast';
 import { Loader2, AlertTriangle, Upload, X } from 'lucide-react';
-import { REPORT_REASONS } from '@/constants/report';
+import { REPORT_REASONS, ReportReason } from '@/constants/report';
 
 interface ReportModalProps {
     isOpen: boolean;
@@ -15,7 +15,7 @@ interface ReportModalProps {
 }
 
 export default function ReportModal({ isOpen, onClose, reportedUserId }: ReportModalProps) {
-    const [reason, setReason] = useState(REPORT_REASONS[0]);
+    const [reason, setReason] = useState<ReportReason>(REPORT_REASONS[0]);
     const [description, setDescription] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
@@ -54,10 +54,9 @@ export default function ReportModal({ isOpen, onClose, reportedUserId }: ReportM
             setDescription('');
             setReason(REPORT_REASONS[0]);
             setSelectedFile(null);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Failed to submit report', error);
-            const errorMessage = error.response?.data?.message || 'Failed to submit report. Please try again.';
-            showError(errorMessage);
+            handleApiError(error, 'Failed to submit report. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -81,7 +80,7 @@ export default function ReportModal({ isOpen, onClose, reportedUserId }: ReportM
                         <label className="block text-sm font-medium text-gray-300 mb-2">Reason</label>
                         <select
                             value={reason}
-                            onChange={(e) => setReason(e.target.value as any)}
+                            onChange={(e) => setReason(e.target.value as ReportReason)}
                             className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                         >
                             {REPORT_REASONS.map((r) => (

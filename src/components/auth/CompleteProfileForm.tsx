@@ -10,7 +10,7 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { completeProfile } from "@/services/profileService";
 import { handleFormError } from "@/utils/handleFormError";
-import { showSuccess, showError } from "@/utils/toast";
+import { showSuccess, handleApiError } from "@/utils/toast";
 import { useRef, useState } from "react";
 import { uploadFile } from "@/services/fileService";
 
@@ -22,7 +22,7 @@ export default function CompleteProfileForm() {
     const router = useRouter();
     const dispatch = useDispatch();
 
-    const { register, handleSubmit, setValue, watch, setError, formState: { errors, isSubmitting } } = useForm({
+    const { register, handleSubmit, setValue, watch, setError, formState: { errors, isSubmitting } } = useForm<CompleteProfileSchemaType>({
         resolver: zodResolver(completeProfileSchema),
         defaultValues: {
             profilePhoto: ""
@@ -73,8 +73,8 @@ export default function CompleteProfileForm() {
             setIsUploading(true);
             const url = await uploadFile(file);
             setValue("profilePhoto", url, { shouldValidate: true });
-        } catch (error: any) {
-            showError(error.response?.data?.message || "Failed to upload photo");
+        } catch (error: unknown) {
+            handleApiError(error, "Failed to upload photo");
         } finally {
             setIsUploading(false);
         }

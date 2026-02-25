@@ -8,12 +8,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { FcGoogle } from "react-icons/fc";
-import { GoogleLogin } from "@react-oauth/google";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { loginSchema, LoginSchemaType } from "@/validations/auth/login.schema";
 import { handleFormError } from "@/utils/handleFormError";
 import { login, googleLogin } from "@/services/authService";
-import { showSuccess, showError } from "@/utils/toast";
+import { showSuccess, showError, handleApiError } from "@/utils/toast";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/store/features/auth/authSlice";
 
@@ -28,7 +27,7 @@ export default function LoginForm() {
     }
   })
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       if (!credentialResponse.credential) {
         showError("Google Login failed: No credential received");
@@ -50,8 +49,8 @@ export default function LoginForm() {
         showSuccess(response.message)
         router.push('/user/home')
       }
-    } catch (error: any) {
-      showError(error.response?.data?.message || "Google Login failed")
+    } catch (error: unknown) {
+      handleApiError(error, "Google Login failed");
     }
   }
 

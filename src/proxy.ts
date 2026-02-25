@@ -21,16 +21,16 @@ const JWT_SECRET = new TextEncoder().encode(secret);
    - run middleware for each request to protected routes
    - Redirects users to appropriate pages
 ===================================================== */
-
 export default async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    // 1. Get the tokens from cookies
-    const token = request.cookies.get('accessToken')?.value;
+    const accessToken = request.cookies.get('accessToken')?.value;
+    const refreshToken = request.cookies.get('refreshToken')?.value;
 
-    // 2.  Route Categories 
+    // Route Categories
     const isLandingPage = pathname === '/';
-    const isAuthRoute = pathname.startsWith('/login') ||
+    const isAuthRoute =
+        pathname.startsWith('/login') ||
         pathname.startsWith('/signup') ||
         pathname.startsWith('/forgot-password') ||
         pathname.startsWith('/verify-otp') ||
@@ -43,95 +43,93 @@ export default async function middleware(request: NextRequest) {
     const isInterestsRoute = pathname.startsWith('/interests');
     const isLocationRoute = pathname.startsWith('/location');
 
-    // 3.  Guest Users (No Token)
-    if (!token) {
+    /* =====================================================
+        TRUE GUEST (No tokens at all)
+    ===================================================== */
+    if (!accessToken && !refreshToken) {
         if (isAdminRoute) {
             return NextResponse.redirect(new URL('/admin/login', request.url));
         }
+
         if (isUserRoute || isProfileCompleteRoute) {
             return NextResponse.redirect(new URL('/login', request.url));
         }
+
         return NextResponse.next();
     }
 
-    try {
+    /* =====================================================
+        ACCESS TOKEN EXISTS → TRY VERIFY
+    ===================================================== */
+    if (accessToken) {
+        try {
+            const { payload } = await jwtVerify(accessToken, JWT_SECRET);
 
-        // token verification && extract payload
-        const { payload } = await jwtVerify(token, JWT_SECRET);
-        const role = payload.role as string;
-        const isProfileCompleted = payload.isProfileCompleted as boolean;
-        const isInterestsSelected = payload.isInterestsSelected as boolean;
-        const isLocationCompleted = payload.isLocationCompleted as boolean;
+            const role = payload.role as string;
+            const isProfileCompleted = payload.isProfileCompleted as boolean;
+            const isInterestsSelected = payload.isInterestsSelected as boolean;
+            const isLocationCompleted = payload.isLocationCompleted as boolean;
 
-        // 4. Incomplete Profile Handler (The Jail)
-        if (!isProfileCompleted) {
-            // Allow access to profile completion route and public routes
-            if (isProfileCompleteRoute || isLandingPage || isAuthRoute) {
-                return NextResponse.next();
+            /* ---------------- Profile Jail Logic ---------------- */
+
+            if (!isProfileCompleted) {
+                if (isProfileCompleteRoute || isLandingPage || isAuthRoute) {
+                    return NextResponse.next();
+                }
+                return NextResponse.redirect(new URL('/complete-profile', request.url));
             }
-            // Redirect to complete profile if not completed
-            return NextResponse.redirect(new URL('/complete-profile', request.url));
-        }
 
-        // 5. Profile completed but trying to access profile completion route
-        if (isProfileCompleteRoute && isProfileCompleted) {
-            return NextResponse.redirect(new URL('/interests', request.url));
-        }
-
-        // 6. Interests Selection Handler
-        if (!isInterestsSelected) {
-            // Allow access to interests route and public routes
-            if (isInterestsRoute || isLandingPage || isAuthRoute) {
-                return NextResponse.next();
+            if (isProfileCompleteRoute && isProfileCompleted) {
+                return NextResponse.redirect(new URL('/interests', request.url));
             }
-            // Redirect to interests if not selected
-            return NextResponse.redirect(new URL('/interests', request.url));
-        }
 
-        // 7. Interests selected but trying to access interests route
-        if (isInterestsRoute && isInterestsSelected) {
-            return NextResponse.redirect(new URL('/location', request.url));
-        }
-
-        // 8. Location Selection Handler
-        if (!isLocationCompleted) {
-            // Allow access to location route and public routes
-            if (isLocationRoute || isLandingPage || isAuthRoute) {
-                return NextResponse.next();
+            if (!isInterestsSelected) {
+                if (isInterestsRoute || isLandingPage || isAuthRoute) {
+                    return NextResponse.next();
+                }
+                return NextResponse.redirect(new URL('/interests', request.url));
             }
-            // Redirect to location if not selected
-            return NextResponse.redirect(new URL('/location', request.url));
-        }
 
-        // 9. Location selected but trying to access location route
-        if (isLocationRoute && isLocationCompleted) {
-            return NextResponse.redirect(new URL('/user/home', request.url));
-        }
-
-        // 10. Authenticated users trying to access landing/auth pages
-        if (isLandingPage || isAuthRoute) {
-            if (role === 'admin') {
-                return NextResponse.redirect(new URL('/admin', request.url));
+            if (isInterestsRoute && isInterestsSelected) {
+                return NextResponse.redirect(new URL('/location', request.url));
             }
-            return NextResponse.redirect(new URL('/user/home', request.url));
+
+            if (!isLocationCompleted) {
+                if (isLocationRoute || isLandingPage || isAuthRoute) {
+                    return NextResponse.next();
+                }
+                return NextResponse.redirect(new URL('/location', request.url));
+            }
+
+            if (isLocationRoute && isLocationCompleted) {
+                return NextResponse.redirect(new URL('/user/home', request.url));
+            }
+
+            /* ---------------- Authenticated Restrictions ---------------- */
+
+            if (isLandingPage || isAuthRoute) {
+                if (role === 'admin') {
+                    return NextResponse.redirect(new URL('/admin', request.url));
+                }
+                return NextResponse.redirect(new URL('/user/home', request.url));
+            }
+
+            if (isAdminRoute && role !== 'admin') {
+                return NextResponse.redirect(new URL('/user/home', request.url));
+            }
+
+            return NextResponse.next();
+
+        } catch {
+            return NextResponse.next();
         }
-
-        if (isAdminRoute && role !== 'admin') {
-            return NextResponse.redirect(new URL('/user/home', request.url));
-        }
-
-        return NextResponse.next();
-
-    } catch (error) {
-        console.error('Middleware JWT Error:', error);
-
-        // Clear cookies and redirect to login if token is corrupt
-        const redirectUrl = isAdminRoute ? '/admin/login' : '/login';
-        const response = NextResponse.redirect(new URL(redirectUrl, request.url));
-        response.cookies.delete('accessToken');
-        response.cookies.delete('refreshToken');
-        return response;
     }
+
+    /* =====================================================
+       3️⃣ No access token but refresh exists
+       Allow request so Axios can refresh
+    ===================================================== */
+    return NextResponse.next();
 }
 
 /* =====================================================

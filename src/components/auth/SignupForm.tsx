@@ -1,6 +1,4 @@
 'use client';
-
-import { FcGoogle } from "react-icons/fc";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +12,7 @@ import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { signupSchema, SignupSchemaType } from "@/validations/auth/signup.schema";
 import { signup, googleLogin } from "@/services/authService";
 import { handleFormError } from "@/utils/handleFormError";
-import { showSuccess, showError } from "@/utils/toast";
+import { showSuccess, showError, handleApiError } from "@/utils/toast";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/store/features/auth/authSlice";
 
@@ -47,8 +45,8 @@ export default function SignupForm() {
             } else {
                 router.push('/complete-profile')
             }
-        } catch (error: any) {
-            showError(error.response?.data?.message || "Google Signup failed")
+        } catch (error: unknown) {
+            handleApiError(error, "Google Signup failed");
         }
     }
 
