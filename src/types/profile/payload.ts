@@ -5,6 +5,7 @@ export interface CompleteProfilePayload {
     profilePhoto?: string | null;
     coverPhoto?: string | null;
     photos?: string[];
+    bio?: string;
 }
 
 export interface UpdateProfilePayload {
@@ -14,4 +15,5 @@ export interface UpdateProfilePayload {
     profilePhoto?: string | null;
     coverPhoto?: string | null;
     photos?: string[];
+    bio?: string;
 }

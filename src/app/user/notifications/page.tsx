@@ -84,7 +84,7 @@ export default function NotificationsPage() {
             router.push(`/user/messages?matchId=${notification.matchId}`);
         } else if (notification.type === 'message' && notification.matchId) {
             router.push(`/user/messages?matchId=${notification.matchId}`);
-        } else if (notification.type === 'like' && notification.fromUser?.userId) {
+        } else if ((notification.type === 'like' || notification.type === 'profile_view') && notification.fromUser?.userId) {
             setPreviewUser(notification.fromUser.userId);
         }
     };
@@ -103,6 +103,8 @@ export default function NotificationsPage() {
                 return <ShieldCheck className="w-5 h-5 text-green-500" />;
             case 'report_dismissed':
                 return <ShieldX className="w-5 h-5 text-stone-500" />;
+            case 'profile_view':
+                return <User className="w-5 h-5 text-cyan-500" />;
             default:
                 return <Bell className="w-5 h-5 text-yellow-500" />;
         }
@@ -204,6 +206,7 @@ export default function NotificationsPage() {
                                     {notification.type === 'message' && `sent you a message.`}
                                     {notification.type === 'report_resolved' && `We've reviewed your report and taken action. Thank you for keeping Spark safe.`}
                                     {notification.type === 'report_dismissed' && `We've reviewed your report and found it doesn't violate our safety guidelines at this time.`}
+                                    {notification.type === 'profile_view' && `viewed your profile.`}
                                     {/* Handle other types if needed */}
                                 </p>
                             </div>

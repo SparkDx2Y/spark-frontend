@@ -79,6 +79,8 @@ export const useSocket = () => {
                 showInfo('Someone liked you!');
             } else if (data.type === 'message') {
                 showInfo(data.message || 'New message received');
+            } else if (data.type === 'profile_view') {
+                showInfo(data.message || 'Someone viewed your profile');
             }
         });
 

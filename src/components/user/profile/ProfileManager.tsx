@@ -23,7 +23,9 @@ interface ProfileManagerProps {
 export default function ProfileManager({ initialProfile }: ProfileManagerProps) {
     //  Initialize state WITH the server-fetched data
     const [profile, setProfile] = useState<ProfileResponse>(initialProfile);
-    const [saving, setSaving] = useState({ avatar: false, cover: false, gallery: false, location: false, interests: false });
+    const [saving, setSaving] = useState({ avatar: false, cover: false, gallery: false, location: false, interests: false, bio: false });
+    const [isEditingBio, setIsEditingBio] = useState(false);
+    const [tempBio, setTempBio] = useState(initialProfile.bio || "");
 
     // Interests state
     const [showInterestModal, setShowInterestModal] = useState(false);
@@ -253,6 +255,30 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
         }
     };
 
+    const handleSaveBio = async () => {
+        if (tempBio === profile.bio) {
+            setIsEditingBio(false);
+            return;
+        }
+
+        try {
+            setSaving(prev => ({ ...prev, bio: true }));
+            const response = await updateProfile({ bio: tempBio });
+
+            setProfile(prev => ({
+                ...prev,
+                bio: response.data.profile.bio
+            }));
+
+            setIsEditingBio(false);
+            showSuccess("Bio updated!");
+        } catch (error) {
+            handleApiError(error, "Failed to update bio");
+        } finally {
+            setSaving(prev => ({ ...prev, bio: false }));
+        }
+    };
+
     return (
         <div className="relative min-h-screen bg-black text-white">
             <div className="absolute inset-0 bg-linear-to-b from-primary/10 via-transparent to-black pointer-events-none" />
@@ -345,7 +371,61 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                                     Interested in {profile.interestedIn || "—"}
                                 </span>
                             </div>
-                            <p className="text-gray-400 flex items-center justify-center md:justify-start gap-2 text-sm">
+
+                            {/* Bio Section */}
+                            <div className="relative pt-2">
+                                <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                                    <h3 className="text-sm font-bold uppercase tracking-widest text-white/50">About Me</h3>
+                                    {!isEditingBio && (
+                                        <button
+                                            onClick={() => setIsEditingBio(true)}
+                                            className="p-1 hover:bg-white/10 rounded-full text-primary transition-colors"
+                                        >
+                                            <Edit2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {isEditingBio ? (
+                                    <div className="space-y-3 max-w-lg mx-auto md:mx-0">
+                                        <textarea
+                                            value={tempBio}
+                                            onChange={(e) => setTempBio(e.target.value)}
+                                            placeholder="Write something interesting about yourself..."
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-all resize-none min-h-[100px]"
+                                            maxLength={500}
+                                        />
+                                        <div className="flex justify-center md:justify-start gap-2 text-xs text-gray-400 mb-1">
+                                            {tempBio.length}/500 characters
+                                        </div>
+                                        <div className="flex justify-center md:justify-start gap-3">
+                                            <Button
+                                                variant="ghost"
+                                                onClick={() => {
+                                                    setIsEditingBio(false);
+                                                    setTempBio(profile.bio || "");
+                                                }}
+                                                className="text-xs py-1.5 px-4 h-auto"
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                onClick={handleSaveBio}
+                                                disabled={saving.bio}
+                                                className="text-xs py-1.5 px-6 h-auto min-w-[100px]"
+                                            >
+                                                {saving.bio ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save Bio"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-300 text-sm leading-relaxed max-w-lg mx-auto md:mx-0 italic">
+                                        {profile.bio ? `"${profile.bio}"` : "Click the edit icon to add a bio and tell others about yourself!"}
+                                    </p>
+                                )}
+                            </div>
+
+                            <p className="text-gray-400 flex items-center justify-center md:justify-start gap-2 text-sm pt-2">
                                 <ShieldCheck className="w-4 h-4 text-green-400 shrink-0" />
                                 Keep your photos updated for better visibility.
                             </p>
