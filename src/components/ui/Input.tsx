@@ -18,16 +18,16 @@ export default function Input({ label, error, className, type, ...props }: Input
 
   //^ Handle the input type by checking if the input is a password and if the password is visible
   const inputType = isPassword && showPassword ? 'text' : type;
-  
+
   return (
     <div className="relative w-full group">
       <input
         {...props}
         type={inputType}
-        placeholder=" " 
+        placeholder=" "
         className={`peer w-full px-4 pt-6 pb-2 pr-12 border border-white/10 rounded-xl text-gray-100 placeholder-transparent outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all duration-200 ${className}`}
       />
-      
+
       {label && (
         <label
           className="
@@ -44,12 +44,12 @@ export default function Input({ label, error, className, type, ...props }: Input
         </label>
       )}
 
-      { isPassword && (
+      {isPassword && (
         <button type='button' onClick={() => setShowPassword(prev => !prev)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-all duration-200 focus:outline-none">
           <span className={`block transition-all duration-300 ${showPassword ? "opacity-100 rotate-0 scale-100" : "opacity-80 rotate-[-20deg] scale-95"}`}>
-            { showPassword ? (
+            {showPassword ? (
               <EyeOff size={20} />
-            ) : ( <Eye size={20} /> )}
+            ) : (<Eye size={20} />)}
           </span>
         </button>
       )}

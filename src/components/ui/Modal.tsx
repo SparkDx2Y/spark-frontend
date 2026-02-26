@@ -9,14 +9,16 @@ interface ModalProps {
     children: React.ReactNode;
     title?: string;
     showCloseButton?: boolean;
+    className?: string;
 }
 
-export default function Modal({ 
-    isOpen, 
-    onClose, 
-    children, 
+export default function Modal({
+    isOpen,
+    onClose,
+    children,
     title,
-    showCloseButton = true 
+    showCloseButton = true,
+    className = "max-w-md"
 }: ModalProps) {
     // Close on Escape key
     useEffect(() => {
@@ -43,23 +45,23 @@ export default function Modal({
     return (
         <div className="fixed inset-0 z-100 flex items-center justify-center">
             {/* Backdrop with blur  and click to close*/}
-            <div 
+            <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in"
                 onClick={onClose}
             />
 
             {/* Modal Container */}
-            <div className="relative z-101 w-full max-w-md mx-4 animate-scale-in">
+            <div className={`relative z-101 w-full mx-4 animate-scale-in transition-all duration-300 ${className}`}>
                 {/* Glow effect */}
                 <div className="absolute -inset-1 bg-amber-500/20 blur-2xl rounded-3xl opacity-50" />
-                
+
                 {/* Modal Content */}
                 <div className="relative bg-[#0d0d0f] border border-amber-500/20 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] overflow-hidden">
                     {/* Luxury Background Pattern */}
                     <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
-                        style={{ 
-                            backgroundImage: 'radial-gradient(#ffffff 0.5px, transparent 0.5px)', 
-                            backgroundSize: '24px 24px' 
+                        style={{
+                            backgroundImage: 'radial-gradient(#ffffff 0.5px, transparent 0.5px)',
+                            backgroundSize: '24px 24px'
                         }}
                     />
 
@@ -85,7 +87,7 @@ export default function Modal({
                     )}
 
                     {/* Body */}
-                    <div className="relative px-8 py-6">
+                    <div className="relative px-8 py-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                         {children}
                     </div>
                 </div>
@@ -118,6 +120,26 @@ export default function Modal({
 
                 .animate-scale-in {
                     animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.02);
+                    border-radius: 10px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(245, 158, 11, 0.1);
+                    border-radius: 10px;
+                    border: 2px solid transparent;
+                    background-clip: content-box;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(245, 158, 11, 0.3);
                 }
             `}</style>
         </div>
