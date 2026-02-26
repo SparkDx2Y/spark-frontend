@@ -927,7 +927,7 @@ export default function MessagesPage() {
                                                 `}
                                             >
                                                 {msg.type === 'text' && (
-                                                    <p className={`leading-relaxed whitespace-pre-wrap break-words break-all ${isEmoji ? 'leading-normal' : ''}`}>{msg.content}</p>
+                                                    <p className={`leading-relaxed whitespace-pre-wrap wrap-break-word break-all ${isEmoji ? 'leading-normal' : ''}`}>{msg.content}</p>
                                                 )}
                                                 {msg.type === 'image' && (
                                                     <div className="relative group">
