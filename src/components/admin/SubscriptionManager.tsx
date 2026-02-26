@@ -148,7 +148,7 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
             } else {
                 await createSubscription(subData);
                 toast.success("New plan created successfully!");
-            
+
                 fetchPlans(currentPage);
             }
             setIsModalOpen(false);
@@ -237,7 +237,7 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                                             </div>
                                         ) : (
                                             <>
-                                                <span className="text-5xl font-black text-white tracking-tighter">${plan.price}</span>
+                                                <span className="text-5xl font-black text-white tracking-tighter">₹{plan.price}</span>
                                                 <span className="text-stone-500 font-black text-[10px] uppercase tracking-widest italic opacity-60">/ {plan.durationValue} {plan.durationUnit}{plan.durationValue > 1 ? 's' : ''}</span>
                                             </>
                                         )}
@@ -321,7 +321,7 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-stone-500 uppercase tracking-[0.2em] ml-1">Price ($)</label>
+                            <label className="text-[10px] font-black text-stone-500 uppercase tracking-[0.2em] ml-1">Price (₹)</label>
                             <input
                                 type="number"
                                 {...register("price")}
