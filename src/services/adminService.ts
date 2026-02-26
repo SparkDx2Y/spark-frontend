@@ -21,6 +21,7 @@ import {
     UpdateReportStatusResponse
 } from "@/types/admin/report";
 import { ReportStatus } from "@/constants/report";
+import type { SubscriptionPlan, GetSubscriptionsResponse } from "@/types/subscription";
 
 
 // --------------------
@@ -114,3 +115,28 @@ export const updateReportStatus = async (
 
     return response.data;
 };
+
+// --------------------
+// Subscriptions
+// --------------------
+
+export const getAllSubscriptions = async (params?: { page?: number; limit?: number }): Promise<GetSubscriptionsResponse | SubscriptionPlan[]> => {
+    const response = await api.get<{ data: GetSubscriptionsResponse | SubscriptionPlan[] }>(ADMIN_ENDPOINTS.GET_SUBSCRIPTIONS, { params });
+    return response.data.data;
+};
+
+export const createSubscription = async (data: any): Promise<SubscriptionPlan> => {
+    const response = await api.post<{ data: SubscriptionPlan }>(ADMIN_ENDPOINTS.CREATE_SUBSCRIPTION, data);
+    return response.data.data;
+};
+
+export const updateSubscription = async (id: string, data: any): Promise<SubscriptionPlan> => {
+    const response = await api.put<{ data: SubscriptionPlan }>(ADMIN_ENDPOINTS.UPDATE_SUBSCRIPTION.replace(":id", id), data);
+    return response.data.data;
+};
+
+export const toggleSubscriptionStatus = async (id: string): Promise<SubscriptionPlan> => {
+    const response = await api.patch<{ data: SubscriptionPlan }>(ADMIN_ENDPOINTS.TOGGLE_SUBSCRIPTION_STATUS.replace(":id", id));
+    return response.data.data;
+};
+
