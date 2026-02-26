@@ -927,11 +927,11 @@ export default function MessagesPage() {
                                                 `}
                                             >
                                                 {msg.type === 'text' && (
-                                                    <p className={`leading-relaxed whitespace-pre-wrap wrap-break-wordbreak-word break-all ${isEmoji ? 'leading-normal' : ''}`}>{msg.content}</p>
+                                                    <p className={`leading-relaxed whitespace-pre-wrap break-words break-all ${isEmoji ? 'leading-normal' : ''}`}>{msg.content}</p>
                                                 )}
                                                 {msg.type === 'image' && (
                                                     <div className="relative group">
-                                                        <div className="relative max-w-xs md:max-w-sm h-60 md:h-80 group">
+                                                        <div className="relative w-64 md:w-80 h-60 md:h-80 group overflow-hidden rounded-xl bg-white/5 border border-white/10">
                                                             <Image
                                                                 src={msg.content}
                                                                 alt="Message attachment"
