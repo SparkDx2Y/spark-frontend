@@ -8,6 +8,7 @@ import { Search, Sparkles, Clock, CheckCircle2, Timer, UserX } from 'lucide-reac
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { showInfo } from '@/utils/toast';
+import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
 
 type TabType = 'liked' | 'received' | 'passed';
 
@@ -15,6 +16,7 @@ export default function ActivityPage() {
     const [activity, setActivity] = useState<ActivityResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabType>('liked');
+    const [previewUser, setPreviewUser] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -121,11 +123,7 @@ export default function ActivityPage() {
                                         status={status}
                                         date={item.createdAt}
                                         index={idx}
-                                        onClick={() => {
-                                            if (activeTab === 'received' && status.label !== 'Matched') {
-                                                showInfo("Match with them to see full profile!");
-                                            }
-                                        }}
+                                        onClick={() => setPreviewUser(targetUser._id)}
                                     />
                                 );
                             })
@@ -146,6 +144,12 @@ export default function ActivityPage() {
                     </motion.div>
                 </AnimatePresence>
             </div>
+
+            <ProfilePreviewModal
+                isOpen={!!previewUser}
+                userId={previewUser}
+                onClose={() => setPreviewUser(null)}
+            />
         </div>
     );
 }
