@@ -190,9 +190,8 @@ export default function MessagesPage() {
                 if (selectedMatch && data.matchId === selectedMatch.id) {
                     setMessages(prev => prev.filter(m => m.id !== data.messageId));
                 }
-                // Optionally update sidebar if last message was deleted
+                
                 if (data.matchId) {
-                    // Refetch matches to update sidebar correctly (simplest way)
                     loadMatches();
                 }
                 return;
@@ -278,9 +277,9 @@ export default function MessagesPage() {
     const handleSelectMatch = async (match: MatchResponse) => {
         setSelectedMatch(match);
         setMessages([]);
-        setShowAttachments(false); // Close attachments when switching chats
-        setNewMessage(''); // Clear input when switching chats
-        deleteRecording(); // Reset audio recording state
+        setShowAttachments(false); 
+        setNewMessage(''); 
+        deleteRecording(); 
 
         try {
             const response = await getMessages(match.id, 50);
@@ -341,7 +340,7 @@ export default function MessagesPage() {
         } catch (error) {
             console.error('Failed to send message:', error);
             if (tempId) {
-                // Remove optimistic message
+               
                 setMessages(prev => prev.filter(m => m.id !== tempId));
                 setNewMessage(content); // Restore content?
             }
@@ -353,7 +352,7 @@ export default function MessagesPage() {
     // Handle typing for messages page
     const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNewMessage(e.target.value);
-        setShowAttachments(false); // Hide attachments when typing
+        setShowAttachments(false); 
 
         // Auto-resize textarea
         if (inputRef.current) {
@@ -403,7 +402,7 @@ export default function MessagesPage() {
         } catch (error) {
             console.error('Failed to upload image:', error);
             setMessages(prev => prev.filter(m => m.id !== tempId));
-            // alert('Failed to upload image');
+            
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
@@ -446,7 +445,7 @@ export default function MessagesPage() {
         } catch (error) {
             console.error('Failed to upload audio:', error);
             setMessages(prev => prev.filter(m => m.id !== tempId));
-            // alert('Failed to upload audio');
+            
         } finally {
             if (audioInputRef.current) audioInputRef.current.value = '';
         }
@@ -492,13 +491,13 @@ export default function MessagesPage() {
             setRecordingTime(0);
 
             timerRef.current = setInterval(() => {
-                if (!shouldSendAfterStopRef.current) { // Don't increment if about to stop
+                if (!shouldSendAfterStopRef.current) { 
                     setRecordingTime(prev => prev + 1);
                 }
             }, 1000);
         } catch (error) {
             console.error('Error starting recording:', error);
-            // alert('Could not access microphone');
+           
         }
     };
 
@@ -540,7 +539,7 @@ export default function MessagesPage() {
 
     const deleteRecording = () => {
         if (isRecording && mediaRecorderRef.current) {
-            mediaRecorderRef.current.onstop = null; // Prevent onstop from firing
+            mediaRecorderRef.current.onstop = null; 
             mediaRecorderRef.current.stop();
             setIsRecording(false);
             setIsPaused(false);
@@ -570,9 +569,6 @@ export default function MessagesPage() {
         setMessages(prev => [...prev, optimisticMessage]);
         setAudioBlob(null);
         setRecordingTime(0);
-        // Don't set sending=true to block UI for audio, let it happen in background?
-        // But we usually block to prevent double sends? 
-        // For optimistic, we usually don't block. 
 
         try {
             const url = await uploadChatMedia(blob, 'audio');
@@ -583,18 +579,17 @@ export default function MessagesPage() {
             });
             const message = response.data;
 
-            // Replace optimistic message
+            
             setMessages(prev => prev.map(m => m.id === tempId ? message : m));
 
             // Reorder Sidebar (Real update)
             updateMatchList(selectedMatch.id, message.content, message.createdAt, 'audio');
 
-            URL.revokeObjectURL(localUrl); // Cleanup
+            URL.revokeObjectURL(localUrl); 
         } catch (error) {
             console.error('Failed to send audio:', error);
             // Remove optimistic message on failure
             setMessages(prev => prev.filter(m => m.id !== tempId));
-            // alert('Failed to send audio message');
         }
     };
 
