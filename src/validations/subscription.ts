@@ -6,12 +6,12 @@ export const planSchema = z.object({
         .regex(/^[a-zA-Z\s]+$/, "Only letters and spaces are allowed")
         .toUpperCase(),
 
-    price: z.coerce.number().min(0, "Price must be at least 0"),
+    price: z.coerce.number().min(0, "Price must be at least 0").max(20000, "Price cannot exceed 20,000"),
 
     durationValue: z.coerce.number().min(1, "Duration must be at least 1"),
 
     durationUnit: z.enum(['month', 'year']),
-    
+
     features: z.object({
         seeWhoLikedYou: z.boolean(),
         seeWhoViewedProfile: z.boolean(),
