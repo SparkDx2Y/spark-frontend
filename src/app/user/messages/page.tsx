@@ -7,12 +7,17 @@ import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMess
 import { MatchResponse, MessageResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
-import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle, Lock } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { uploadChatMedia } from '@/services/fileService';
 import { useVideoCallContext } from '@/contexts/VideoCallContext';
 import ReportModal from '@/components/user/ReportModal';
+import { handleApiError, showError } from '@/utils/toast';
+import { getErrorMessage } from '@/utils/errors';
+import { getCurrentPlan } from '@/services/subscriptionService';
+import type { SubscriptionPlan } from '@/types/subscription';
+import PremiumUpsellModal from '@/components/user/PremiumUpsellModal';
 
 interface SocketMessageUpdate {
     type: 'message' | 'message_deleted';
@@ -105,6 +110,7 @@ export default function MessagesPage() {
     const [selectedMatch, setSelectedMatch] = useState<MatchResponse | null>(null);
     const [messages, setMessages] = useState<MessageResponse[]>([]);
     const [newMessage, setNewMessage] = useState('');
+    const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [showAttachments, setShowAttachments] = useState(false);
@@ -123,6 +129,7 @@ export default function MessagesPage() {
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const [showMenu, setShowMenu] = useState(false);
     const [reportModalOpen, setReportModalOpen] = useState(false);
+    const [upsellModal, setUpsellModal] = useState<{ isOpen: boolean, title: string, desc: string }>({ isOpen: false, title: '', desc: '' });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const audioInputRef = useRef<HTMLInputElement>(null);
@@ -190,7 +197,7 @@ export default function MessagesPage() {
                 if (selectedMatch && data.matchId === selectedMatch.id) {
                     setMessages(prev => prev.filter(m => m.id !== data.messageId));
                 }
-                
+
                 if (data.matchId) {
                     loadMatches();
                 }
@@ -258,7 +265,11 @@ export default function MessagesPage() {
     // Load matches
     const loadMatches = async () => {
         try {
-            const response = await getMatches();
+            const [response, planRes] = await Promise.all([
+                getMatches(),
+                getCurrentPlan()
+            ]);
+            setCurrentPlan(planRes);
             // Sort by lastMessageAt descending (newest first)
             const sortedData = response.data.sort((a, b) => {
                 const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
@@ -277,9 +288,9 @@ export default function MessagesPage() {
     const handleSelectMatch = async (match: MatchResponse) => {
         setSelectedMatch(match);
         setMessages([]);
-        setShowAttachments(false); 
-        setNewMessage(''); 
-        deleteRecording(); 
+        setShowAttachments(false);
+        setNewMessage('');
+        deleteRecording();
 
         try {
             const response = await getMessages(match.id, 50);
@@ -339,8 +350,20 @@ export default function MessagesPage() {
 
         } catch (error) {
             console.error('Failed to send message:', error);
+
+            const msg = getErrorMessage(error);
+            if (msg.toLowerCase().includes('limit') || msg.toLowerCase().includes('upgrade') || msg.toLowerCase().includes('premium')) {
+                setUpsellModal({
+                    isOpen: true,
+                    title: 'Limit Reached ',
+                    desc: msg
+                });
+            } else {
+                handleApiError(error, 'Failed to send message');
+            }
+
             if (tempId) {
-               
+
                 setMessages(prev => prev.filter(m => m.id !== tempId));
                 setNewMessage(content); // Restore content?
             }
@@ -352,7 +375,7 @@ export default function MessagesPage() {
     // Handle typing for messages page
     const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNewMessage(e.target.value);
-        setShowAttachments(false); 
+        setShowAttachments(false);
 
         // Auto-resize textarea
         if (inputRef.current) {
@@ -401,8 +424,14 @@ export default function MessagesPage() {
             URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error('Failed to upload image:', error);
+            const msg = getErrorMessage(error);
+            if (msg.toLowerCase().includes('limit') || msg.toLowerCase().includes('upgrade') || msg.toLowerCase().includes('premium')) {
+                setUpsellModal({ isOpen: true, title: 'Limit Reached ', desc: msg });
+            } else {
+                handleApiError(error, 'Failed to send image');
+            }
             setMessages(prev => prev.filter(m => m.id !== tempId));
-            
+
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
@@ -444,8 +473,14 @@ export default function MessagesPage() {
             URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error('Failed to upload audio:', error);
+            const msg = getErrorMessage(error);
+            if (msg.toLowerCase().includes('limit') || msg.toLowerCase().includes('upgrade') || msg.toLowerCase().includes('premium')) {
+                setUpsellModal({ isOpen: true, title: 'Limit Reached ', desc: msg });
+            } else {
+                handleApiError(error, 'Failed to send audio');
+            }
             setMessages(prev => prev.filter(m => m.id !== tempId));
-            
+
         } finally {
             if (audioInputRef.current) audioInputRef.current.value = '';
         }
@@ -491,13 +526,13 @@ export default function MessagesPage() {
             setRecordingTime(0);
 
             timerRef.current = setInterval(() => {
-                if (!shouldSendAfterStopRef.current) { 
+                if (!shouldSendAfterStopRef.current) {
                     setRecordingTime(prev => prev + 1);
                 }
             }, 1000);
         } catch (error) {
             console.error('Error starting recording:', error);
-           
+
         }
     };
 
@@ -539,7 +574,7 @@ export default function MessagesPage() {
 
     const deleteRecording = () => {
         if (isRecording && mediaRecorderRef.current) {
-            mediaRecorderRef.current.onstop = null; 
+            mediaRecorderRef.current.onstop = null;
             mediaRecorderRef.current.stop();
             setIsRecording(false);
             setIsPaused(false);
@@ -579,15 +614,16 @@ export default function MessagesPage() {
             });
             const message = response.data;
 
-            
+
             setMessages(prev => prev.map(m => m.id === tempId ? message : m));
 
             // Reorder Sidebar (Real update)
             updateMatchList(selectedMatch.id, message.content, message.createdAt, 'audio');
 
-            URL.revokeObjectURL(localUrl); 
+            URL.revokeObjectURL(localUrl);
         } catch (error) {
             console.error('Failed to send audio:', error);
+            handleApiError(error, 'Failed to send audio');
             // Remove optimistic message on failure
             setMessages(prev => prev.filter(m => m.id !== tempId));
         }
@@ -778,12 +814,33 @@ export default function MessagesPage() {
 
                         {/* Header Actions */}
                         <div className="flex items-center gap-1 md:gap-3">
-                            <button className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-primary hover:bg-primary/10 transition-all duration-300">
-                                <Phone className="w-4 h-4 md:w-5 md:h-5" />
+                            <button
+                                onClick={() => {
+                                    setUpsellModal({
+                                        isOpen: true,
+                                        title: 'Voice Calls Locked ',
+                                        desc: 'Voice calls are not enabled in your current plan.\nUpgrade to Premium to use this feature!'
+                                    });
+                                }}
+                                className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-primary hover:bg-primary/10 transition-all duration-300"
+                            >
+                                {currentPlan && !currentPlan.features.audioEnabled ? (
+                                    <Lock className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
+                                ) : (
+                                    <Phone className="w-4 h-4 md:w-5 md:h-5" />
+                                )}
                             </button>
                             <button
                                 onClick={() => {
                                     if (!selectedMatch) return;
+                                    if (currentPlan && !currentPlan.features.videoCallEnabled) {
+                                        setUpsellModal({
+                                            isOpen: true,
+                                            title: 'Video Calls Locked ',
+                                            desc: 'Video calling is not enabled in your current plan.\nUpgrade to unlock face-to-face dates!'
+                                        });
+                                        return;
+                                    }
                                     const otherUser = selectedMatch.users.find(u => u.userId !== currentUser?.id) || selectedMatch.users[0];
                                     startCall({
                                         id: otherUser.userId,
@@ -793,7 +850,11 @@ export default function MessagesPage() {
                                 }}
                                 className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
                             >
-                                <Video className="w-4 h-4 md:w-5 md:h-5" />
+                                {currentPlan && !currentPlan.features.videoCallEnabled ? (
+                                    <Lock className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
+                                ) : (
+                                    <Video className="w-4 h-4 md:w-5 md:h-5" />
+                                )}
                             </button>
                             <div className="relative">
                                 <button
@@ -1007,9 +1068,35 @@ export default function MessagesPage() {
                                         className="absolute bottom-full left-0 mb-2 p-1.5 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl flex items-center gap-1 z-50 origin-bottom-left"
                                     >
                                         {[
-                                            { icon: ImageIcon, color: "text-blue-400", label: "Media", bg: "hover:bg-blue-400/20", onClick: () => fileInputRef.current?.click() },
+                                            {
+                                                icon: currentPlan && !currentPlan.features.mediaSharingEnabled ? Lock : ImageIcon, color: "text-blue-400", label: "Media", bg: "hover:bg-blue-400/20",
+                                                onClick: () => {
+                                                    if (currentPlan && !currentPlan.features.mediaSharingEnabled) {
+                                                        setUpsellModal({
+                                                            isOpen: true,
+                                                            title: 'Media Sharing Locked 📸',
+                                                            desc: 'Media sharing is not enabled in your current plan.\nUpgrade to Premium to share photos and express yourself!'
+                                                        });
+                                                    } else {
+                                                        fileInputRef.current?.click();
+                                                    }
+                                                }
+                                            },
                                             { icon: Camera, color: "text-purple-400", label: "Camera", bg: "hover:bg-purple-400/20" },
-                                            { icon: Mic, color: "text-red-400", label: "Audio", bg: "hover:bg-red-400/20", onClick: () => audioInputRef.current?.click() },
+                                            {
+                                                icon: currentPlan && !currentPlan.features.audioEnabled ? Lock : Mic, color: "text-red-400", label: "Audio", bg: "hover:bg-red-400/20",
+                                                onClick: () => {
+                                                    if (currentPlan && !currentPlan.features.audioEnabled) {
+                                                        setUpsellModal({
+                                                            isOpen: true,
+                                                            title: 'Audio Notes Locked 🎤',
+                                                            desc: 'Audio messaging is not enabled in your current plan.\nUpgrade to Premium to send voice notes!'
+                                                        });
+                                                    } else {
+                                                        audioInputRef.current?.click();
+                                                    }
+                                                }
+                                            },
                                         ].map((item, idx) => (
                                             <motion.button
                                                 key={idx}
@@ -1188,7 +1275,15 @@ export default function MessagesPage() {
                                     } else if (newMessage.trim()) {
                                         handleSendMessage();
                                     } else {
-                                        startRecording();
+                                        if (currentPlan && !currentPlan.features.audioEnabled) {
+                                            setUpsellModal({
+                                                isOpen: true,
+                                                title: 'Audio Notes Locked ',
+                                                desc: 'Audio messaging is not enabled in your current plan.\nUpgrade to Premium to send voice notes!'
+                                            });
+                                        } else {
+                                            startRecording();
+                                        }
                                     }
                                 }}
                                 disabled={sending || (selectedMatch?.users.find(u => u.userId !== currentUser?.id) || selectedMatch?.users[0])?.isBlocked}
@@ -1220,7 +1315,11 @@ export default function MessagesPage() {
                                             exit={{ scale: 0 }}
                                             transition={{ duration: 0.2 }}
                                         >
-                                            <Mic className="w-5 h-5 md:w-6 md:h-6" />
+                                            {currentPlan && !currentPlan.features.audioEnabled ? (
+                                                <Lock className="w-5 h-5 md:w-6 md:h-6" />
+                                            ) : (
+                                                <Mic className="w-5 h-5 md:w-6 md:h-6" />
+                                            )}
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -1292,6 +1391,12 @@ export default function MessagesPage() {
                 reportedUserId={selectedMatch ? (selectedMatch.users.find(u => u.userId !== currentUser?.id)?.userId || selectedMatch.users[0]?.userId) : null}
             />
 
+            <PremiumUpsellModal
+                isOpen={upsellModal.isOpen}
+                onClose={() => setUpsellModal({ ...upsellModal, isOpen: false })}
+                title={upsellModal.title}
+                description={upsellModal.desc}
+            />
         </div>
     );
 }
