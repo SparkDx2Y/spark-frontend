@@ -29,6 +29,7 @@ export const planSchema = z.object({
         message: "Please select at least one feature or provide a limit"
     }),
     isActive: z.boolean(),
+    isDefaultBasePlan: z.boolean(),
 }).refine((data) => {
     if (data.price === 0) return true;
     if (data.durationUnit === 'month') return data.durationValue <= 12;
