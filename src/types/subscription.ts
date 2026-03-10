@@ -17,6 +17,7 @@ export interface SubscriptionPlan {
     durationUnit: "month" | "year";
     features: SubscriptionFeatures;
     isActive: boolean;
+    isDefaultBasePlan?: boolean;
     createdAt: string;
     updatedAt: string;
 }

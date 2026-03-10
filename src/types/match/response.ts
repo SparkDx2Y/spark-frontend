@@ -13,7 +13,7 @@ export interface MatchAction {
   _id: string;
   fromUserId: MatchUser;
   toUserId: MatchUser;
-  action: 'like' | 'pass';
+  action: 'like' | 'pass' | 'view';
   createdAt: string;
 }
 
@@ -22,4 +22,5 @@ export interface ActivityResponse {
   passed: MatchAction[];
   received: MatchAction[];
   passedBy: MatchAction[];
+  viewedYou: MatchAction[];
 }

@@ -10,6 +10,7 @@ export interface NotificationResponse {
     messageId?: string;
     isRead: boolean;
     createdAt: string;
+    isPremiumLocked?: boolean;
 }
 
 export interface NotificationCountResponse {
