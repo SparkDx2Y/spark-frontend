@@ -7,4 +7,9 @@ export const getActivePlans = async (): Promise<SubscriptionPlan[]> => {
     return response.data.data;
 };
 
+export const getCurrentPlan = async (): Promise<SubscriptionPlan> => {
+    const response = await api.get(SUBSCRIPTION_ENDPOINTS.GET_CURRENT);
+    return response.data.data;
+};
+
 
