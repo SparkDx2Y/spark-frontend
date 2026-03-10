@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getActivePlansData } from "@/lib/data/user/subscription.data";
+import { getActivePlansData, getCurrentPlanData } from "@/lib/data/user/subscription.data";
 import PremiumPlans from "@/components/user/premium/PremiumPlans";
 import { Shield } from "lucide-react";
 
@@ -29,6 +29,7 @@ export default async function PremiumPage() {
 
 async function PremiumContent() {
     const plans = await getActivePlansData();
+    const currentPlan = await getCurrentPlanData();
 
     if (!plans || plans.length === 0) {
         return (
@@ -44,7 +45,7 @@ async function PremiumContent() {
         );
     }
 
-    return <PremiumPlans plans={plans} />;
+    return <PremiumPlans plans={plans} currentPlanId={currentPlan?._id} />;
 }
 
 function PremiumSkeleton() {

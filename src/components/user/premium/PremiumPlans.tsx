@@ -6,9 +6,10 @@ import type { SubscriptionPlan } from "@/types/subscription";
 
 interface PremiumPlansProps {
     plans: SubscriptionPlan[];
+    currentPlanId?: string;
 }
 
-export default function PremiumPlans({ plans }: PremiumPlansProps) {
+export default function PremiumPlans({ plans, currentPlanId }: PremiumPlansProps) {
     const sortedPlans = [...plans].sort((a, b) => a.price - b.price);
 
     const handleSubscribe = (planId: string) => {
@@ -41,6 +42,7 @@ export default function PremiumPlans({ plans }: PremiumPlansProps) {
                         key={plan._id}
                         plan={plan}
                         index={index}
+                        isCurrentPlan={plan._id === currentPlanId}
                         onSubscribe={() => handleSubscribe(plan._id)}
                     />
                 ))}
@@ -49,9 +51,10 @@ export default function PremiumPlans({ plans }: PremiumPlansProps) {
     );
 }
 
-function PlanCard({ plan, index, onSubscribe }: {
+function PlanCard({ plan, index, isCurrentPlan, onSubscribe }: {
     plan: SubscriptionPlan,
     index: number,
+    isCurrentPlan: boolean,
     onSubscribe: () => void,
 }) {
     return (
@@ -60,8 +63,14 @@ function PlanCard({ plan, index, onSubscribe }: {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}
-            className="relative flex flex-col p-8 rounded-[3rem] border border-white/5 bg-[#0d0d0f]/60 hover:border-white/20 transition-all duration-500 overflow-hidden group shadow-2xl"
+            className={`relative flex flex-col p-8 rounded-[3rem] border transition-all duration-500 overflow-hidden group shadow-2xl ${isCurrentPlan
+                ? 'border-amber-500/50 bg-[#0d0d0f]'
+                : 'border-white/5 bg-[#0d0d0f]/60 hover:border-white/20'
+                }`}
         >
+            {isCurrentPlan && (
+                <div className="absolute inset-0 bg-linear-to-b from-amber-500/5 to-transparent pointer-events-none" />
+            )}
 
             <div className="mb-10">
                 <h3 className="text-xl font-black text-white uppercase tracking-wider mb-2">{plan.name}</h3>
@@ -90,10 +99,14 @@ function PlanCard({ plan, index, onSubscribe }: {
 
             <button
                 onClick={onSubscribe}
-                className="w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center group/btn active:scale-95 bg-white/5 text-white border border-white/10 hover:bg-white/10 mt-auto"
+                disabled={isCurrentPlan}
+                className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center mt-auto ${isCurrentPlan
+                    ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 cursor-default'
+                    : 'group/btn active:scale-95 bg-white/5 text-white border border-white/10 hover:bg-white/10'
+                    }`}
             >
-                Get Started
-                <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                {isCurrentPlan ? 'Your Current Plan' : 'Get Started'}
+                {!isCurrentPlan && <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/btn:translate-x-1" />}
             </button>
         </motion.div>
     );
