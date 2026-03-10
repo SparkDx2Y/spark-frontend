@@ -72,6 +72,7 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
             durationUnit: "month",
             features: defaultFeatures,
             isActive: true,
+            isDefaultBasePlan: false,
         }
     });
 
@@ -88,6 +89,7 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                 durationUnit: plan.durationUnit,
                 features: { ...plan.features },
                 isActive: plan.isActive,
+                isDefaultBasePlan: plan.isDefaultBasePlan || false,
             });
         } else {
             setEditingPlan(null);
@@ -98,6 +100,7 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                 durationUnit: "month",
                 features: defaultFeatures,
                 isActive: true,
+                isDefaultBasePlan: false,
             });
         }
         setIsModalOpen(true);
@@ -197,7 +200,12 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                                         }`}>
                                         {plan.isActive ? "Active" : "Deactivated"}
                                     </span>
-                                    <div className="flex gap-2">
+                                    {plan.isDefaultBasePlan && (
+                                        <span className="px-4 py-1.5 ml-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm transition-all duration-500 bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                                            Base Free Plan
+                                        </span>
+                                    )}
+                                    <div className="flex gap-2 ml-auto">
                                         <button
                                             type="button"
                                             onClick={(e) => {
@@ -358,6 +366,24 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                                 <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">Unlimited Lifetime Access</span>
                             </div>
                         )}
+
+                        <div className="md:col-span-2 pt-4 border-t border-white/5">
+                            <Controller
+                                name="isDefaultBasePlan"
+                                control={control}
+                                render={({ field }) => (
+                                    <FeatureToggle
+                                        icon={<Shield className="w-4 h-4" />}
+                                        label="Set as Default Base (Free) Plan"
+                                        active={field.value}
+                                        onClick={() => field.onChange(!field.value)}
+                                    />
+                                )}
+                            />
+                            <p className="text-[10px] text-stone-500 font-medium ml-2 mt-2">
+                                If active, this plan will be the default assigned to all free users. Replaces any existing default.
+                            </p>
+                        </div>
                     </div>
 
                     <div className="space-y-4">
