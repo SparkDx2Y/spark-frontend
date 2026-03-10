@@ -4,16 +4,18 @@ import { useEffect, useState, useMemo } from 'react';
 import { getActivity } from '@/services/matchService';
 import { ActivityResponse, MatchAction } from '@/types/match/response';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Sparkles, Clock, CheckCircle2, Timer, UserX } from 'lucide-react';
+import { Search, Sparkles, Clock, CheckCircle2, Timer, UserX, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { showInfo } from '@/utils/toast';
 import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
+import { getCurrentPlan } from '@/services/subscriptionService';
+import type { SubscriptionPlan } from '@/types/subscription';
 
-type TabType = 'liked' | 'received' | 'passed';
+type TabType = 'liked' | 'received' | 'passed' | 'viewedYou';
 
 export default function ActivityPage() {
     const [activity, setActivity] = useState<ActivityResponse | null>(null);
+    const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabType>('liked');
     const [previewUser, setPreviewUser] = useState<string | null>(null);
@@ -25,8 +27,12 @@ export default function ActivityPage() {
 
     const loadActivity = async () => {
         try {
-            const response = await getActivity();
-            setActivity(response.data);
+            const [activityRes, planRes] = await Promise.all([
+                getActivity(),
+                getCurrentPlan()
+            ]);
+            setActivity(activityRes.data);
+            setCurrentPlan(planRes);
         } catch (error) {
             console.error('Failed to load activity:', error);
         } finally {
@@ -40,6 +46,7 @@ export default function ActivityPage() {
             case 'liked': return activity.liked;
             case 'passed': return activity.passed;
             case 'received': return activity.received;
+            case 'viewedYou': return activity.viewedYou;
             default: return [];
         }
     }, [activity, activeTab]);
@@ -48,14 +55,13 @@ export default function ActivityPage() {
     const getStatus = (item: MatchAction, type: TabType) => {
         if (type === 'passed') return { label: 'Passed', icon: UserX, color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/20' };
         if (type === 'received') return { label: 'Likes You', icon: Sparkles, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' };
+        if (type === 'viewedYou') return { label: 'Viewed', icon: Sparkles, color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20' };
 
-        // Check if matched
         const isMatch = activity?.received.some(r => r.fromUserId._id === item.toUserId._id);
         if (isMatch) {
             return { label: 'Matched', icon: CheckCircle2, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' };
         }
 
-        // Check if they passed on you
         const isPassed = activity?.passedBy?.some(r => r.fromUserId._id === item.toUserId._id);
         if (isPassed) {
             return { label: 'Passed', icon: UserX, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' };
@@ -98,6 +104,12 @@ export default function ActivityPage() {
                             label="Passed"
                             count={activity?.passed.length}
                         />
+                        <TabButton
+                            active={activeTab === 'viewedYou'}
+                            onClick={() => setActiveTab('viewedYou')}
+                            label="Viewed You"
+                            count={activity?.viewedYou.length}
+                        />
                     </div>
                 </header>
 
@@ -114,7 +126,7 @@ export default function ActivityPage() {
                         {currentData.length > 0 ? (
                             currentData.map((item, idx) => {
                                 const status = getStatus(item, activeTab);
-                                const targetUser = activeTab === 'received' ? item.fromUserId : item.toUserId;
+                                const targetUser = (activeTab === 'received' || activeTab === 'viewedYou') ? item.fromUserId : item.toUserId;
 
                                 return (
                                     <ProfileCard
@@ -128,18 +140,45 @@ export default function ActivityPage() {
                                 );
                             })
                         ) : (
-                            <div className="col-span-full py-32 flex flex-col items-center justify-center text-center space-y-4">
-                                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
-                                    <Search className="w-8 h-8 text-gray-600" />
+                            (activeTab === 'received' && currentPlan && !currentPlan.features.seeWhoLikedYou) || (activeTab === 'viewedYou' && currentPlan && !currentPlan.features.seeWhoViewedProfile) ? (
+                                <div className="col-span-full py-24 flex flex-col items-center justify-center text-center max-w-md mx-auto relative group">
+                                    {/* Locked Glow Effect */}
+                                    <div className="absolute inset-0 bg-amber-500/20 blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+
+                                    <div className="relative z-10 space-y-6">
+                                        <div className="w-20 h-20 bg-linear-to-b from-amber-500/10 to-amber-500/5 rounded-4xl flex items-center justify-center mx-auto border border-amber-500/20 group-hover:border-amber-500/40 transition-colors shadow-[0_0_30px_rgba(245,158,11,0.1)]">
+                                            <Lock className="w-8 h-8 text-amber-500" />
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <h3 className="text-2xl font-black text-white tracking-tight">{activeTab === 'received' ? 'Unlock Your Likes!' : 'Unlock Your Stalkers!'}</h3>
+                                            <p className="text-stone-400 font-medium whitespace-pre-line">
+                                                {activeTab === 'received' ? 'You have hidden likes.\nUpgrade to Premium to see who is interested in you and match instantly.' : 'You have hidden viewers.\nUpgrade to Premium to see exactly who is checking out your profile.'}
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            onClick={() => router.push('/user/premium')}
+                                            className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-black rounded-2xl font-black uppercase tracking-widest transition-all duration-300 transform active:scale-95 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]"
+                                        >
+                                            Upgrade to Premium
+                                        </button>
+                                    </div>
                                 </div>
-                                <p className="text-gray-400">No profiles found in this category.</p>
-                                <button
-                                    onClick={() => router.push('/user/home')}
-                                    className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm font-semibold transition"
-                                >
-                                    Go to Discover
-                                </button>
-                            </div>
+                            ) : (
+                                <div className="col-span-full py-32 flex flex-col items-center justify-center text-center space-y-4">
+                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
+                                        <Search className="w-8 h-8 text-gray-600" />
+                                    </div>
+                                    <p className="text-gray-400">No profiles found in this category.</p>
+                                    <button
+                                        onClick={() => router.push('/user/home')}
+                                        className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm font-semibold transition"
+                                    >
+                                        Go to Discover
+                                    </button>
+                                </div>
+                            )
                         )}
                     </motion.div>
                 </AnimatePresence>
