@@ -1,6 +1,7 @@
 export const ADMIN_ENDPOINTS = {
     GET_ALL_USERS: '/admin/users',
     UPDATE_USER_BLOCK_STATUS: '/admin/users/:userId/block-status',
+    DASHBOARD_STATS: '/admin/dashboard/stats',
 
     // Interests & Categories
     GET_CATEGORIES: '/admin/categories',
