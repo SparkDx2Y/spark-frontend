@@ -1,8 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Heart, Eye, MessageSquare, Video, Mic, Image as ImageIcon, Infinity, Star, ArrowRight } from "lucide-react";
+import { Check, Heart, Eye, MessageSquare, Video, Mic, Image as ImageIcon, Infinity, Star, ArrowRight, Loader2 } from "lucide-react";
 import type { SubscriptionPlan } from "@/types/subscription";
+import { createCheckoutSession } from "@/services/paymentService";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 interface PremiumPlansProps {
     plans: SubscriptionPlan[];
@@ -11,9 +14,23 @@ interface PremiumPlansProps {
 
 export default function PremiumPlans({ plans, currentPlanId }: PremiumPlansProps) {
     const sortedPlans = [...plans].sort((a, b) => a.price - b.price);
+    const currentPlanPrice = plans.find(p => p._id === currentPlanId)?.price ?? -1;
 
-    const handleSubscribe = (planId: string) => {
+    const [isRedirecting, setIsRedirecting] = useState<string | null>(null);
 
+    const handleSubscribe = async (planId: string) => {
+        try {
+            setIsRedirecting(planId);
+            const data = await createCheckoutSession(planId);
+            if (data.url) {
+                window.location.href = data.url;
+            }
+        } catch (error: any) {
+            console.error("Failed to start checkout", error);
+            toast.error(error?.response?.data?.message || "Failed to start checkout. Please try again.");
+        } finally {
+            setIsRedirecting(null);
+        }
     };
 
     return (
@@ -43,6 +60,8 @@ export default function PremiumPlans({ plans, currentPlanId }: PremiumPlansProps
                         plan={plan}
                         index={index}
                         isCurrentPlan={plan._id === currentPlanId}
+                        isDowngrade={currentPlanPrice !== -1 && plan._id !== currentPlanId && plan.price <= currentPlanPrice}
+                        isRedirecting={isRedirecting === plan._id}
                         onSubscribe={() => handleSubscribe(plan._id)}
                     />
                 ))}
@@ -51,10 +70,12 @@ export default function PremiumPlans({ plans, currentPlanId }: PremiumPlansProps
     );
 }
 
-function PlanCard({ plan, index, isCurrentPlan, onSubscribe }: {
+function PlanCard({ plan, index, isCurrentPlan, isDowngrade, isRedirecting, onSubscribe }: {
     plan: SubscriptionPlan,
     index: number,
     isCurrentPlan: boolean,
+    isDowngrade: boolean,
+    isRedirecting: boolean,
     onSubscribe: () => void,
 }) {
     return (
@@ -99,14 +120,17 @@ function PlanCard({ plan, index, isCurrentPlan, onSubscribe }: {
 
             <button
                 onClick={onSubscribe}
-                disabled={isCurrentPlan}
+                disabled={isCurrentPlan || isDowngrade || isRedirecting}
                 className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center mt-auto ${isCurrentPlan
                     ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 cursor-default'
-                    : 'group/btn active:scale-95 bg-white/5 text-white border border-white/10 hover:bg-white/10'
+                    : isDowngrade
+                        ? 'bg-stone-500/5 text-stone-500 border border-stone-500/10 cursor-not-allowed text-xs'
+                        : 'group/btn active:scale-95 bg-white/5 text-white border border-white/10 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
             >
-                {isCurrentPlan ? 'Your Current Plan' : 'Get Started'}
-                {!isCurrentPlan && <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/btn:translate-x-1" />}
+                {isCurrentPlan ? 'Your Current Plan' : isDowngrade ? 'Unavailable on current tier' : isRedirecting ? 'Redirecting...' : 'Get Started'}
+                {!isCurrentPlan && !isDowngrade && !isRedirecting && <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/btn:translate-x-1" />}
+                {isRedirecting && <Loader2 className="ml-2 w-4 h-4 animate-spin" />}
             </button>
         </motion.div>
     );
