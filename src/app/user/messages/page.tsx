@@ -170,7 +170,7 @@ export default function MessagesPage() {
     }, [selectedMatch, joinChat, leaveChat, emitTyping]);
 
     // Helper to move active chat to top
-    const updateMatchList = (matchId: string, content: string, createdAt: string, type: 'text' | 'image' | 'audio' = 'text') => {
+    const updateMatchList = (matchId: string, content: string, createdAt: string, type: 'text' | 'image' | 'audio' | 'video_call' = 'text') => {
         setMatches(prev => {
             const index = prev.findIndex(m => m.id === matchId);
             if (index === -1) return prev;
@@ -217,7 +217,6 @@ export default function MessagesPage() {
                 });
             }
 
-            // 2. Update Sidebar (Move chat to top)
             if (data.message) {
                 updateMatchList(data.matchId, data.message.content, data.message.createdAt, data.message.type);
             }
@@ -232,16 +231,13 @@ export default function MessagesPage() {
 
     // Handle delete message
     const handleDeleteMessage = async (messageId: string) => {
-        // Optimistic update (Remove from UI immediately)
         setMessages(prev => prev.filter(m => m.id !== messageId));
 
         try {
             await deleteMessage(messageId);
 
-            // 1. Refresh Sidebar (in case the last message was deleted)
             loadMatches();
 
-            // 2. Refresh current chat messages (to ensure sync with backend)
             if (selectedMatch) {
                 const response = await getMessages(selectedMatch.id, 50);
                 setMessages(response.data);
@@ -254,8 +250,6 @@ export default function MessagesPage() {
             }
         }
     };
-
-    // Auto-scroll to bottom
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -310,7 +304,6 @@ export default function MessagesPage() {
 
         let tempId: string | null = null;
 
-        // Optimistic Text Update
         if (type === 'text') {
             setNewMessage('');
             if (inputRef.current) inputRef.current.style.height = '44px';
@@ -339,13 +332,11 @@ export default function MessagesPage() {
             const message = response.data;
 
             if (tempId) {
-                // Replace optimistic message
                 setMessages(prev => prev.map(m => m.id === tempId ? message : m));
             } else {
                 setMessages(prev => [...prev, message]);
             }
 
-            // Reorder Sidebar
             updateMatchList(selectedMatch.id, message.content, message.createdAt, message.type);
 
         } catch (error) {
@@ -394,7 +385,6 @@ export default function MessagesPage() {
 
         setShowAttachments(false);
 
-        // Optimistic Update
         const tempId = `temp-${Date.now()}`;
         const blobUrl = URL.createObjectURL(file);
 
@@ -443,7 +433,6 @@ export default function MessagesPage() {
 
         setShowAttachments(false);
 
-        // Optimistic Update
         const tempId = `temp-${Date.now()}`;
         const blobUrl = URL.createObjectURL(file);
 
@@ -617,14 +606,12 @@ export default function MessagesPage() {
 
             setMessages(prev => prev.map(m => m.id === tempId ? message : m));
 
-            // Reorder Sidebar (Real update)
             updateMatchList(selectedMatch.id, message.content, message.createdAt, 'audio');
 
             URL.revokeObjectURL(localUrl);
         } catch (error) {
             console.error('Failed to send audio:', error);
             handleApiError(error, 'Failed to send audio');
-            // Remove optimistic message on failure
             setMessages(prev => prev.filter(m => m.id !== tempId));
         }
     };
@@ -756,7 +743,8 @@ export default function MessagesPage() {
                                             {match.lastMessageType === 'text' ? match.lastMessage :
                                                 match.lastMessageType === 'image' ? 'Sent an image' :
                                                     match.lastMessageType === 'audio' ? 'Sent an audio' :
-                                                        match.lastMessage || 'Start a conversation'}
+                                                        match.lastMessageType === 'video_call' ? match.lastMessage :
+                                                            match.lastMessage || 'Start a conversation'}
                                         </p>
                                     </div>
                                 </motion.button>
@@ -904,15 +892,12 @@ export default function MessagesPage() {
                             const isOwn = msg.senderId === currentUser?.id;
                             const isConsecutive = index > 0 && messages[index - 1].senderId === msg.senderId;
 
-                            // --- SIMPLIFIED DATE LOGIC ---
+                           
                             const date = new Date(msg.createdAt);
                             const prevDate = index > 0 ? new Date(messages[index - 1].createdAt) : null;
 
-                            // 1. Check if the day has changed compared to the previous message
-                            // .toDateString() gives us "Fri Nov 15 2024", perfect for comparing days!
                             const showDateSeparator = !prevDate || date.toDateString() !== prevDate.toDateString();
 
-                            // 2. Determine what to write (Today, Yesterday, or Date)
                             let dateLabel = '';
                             if (showDateSeparator) {
                                 const today = new Date();
@@ -928,8 +913,6 @@ export default function MessagesPage() {
                                 }
                             }
 
-                            // Helper to detect if message is ONLY emojis (using a broad emoji regex pattern)
-                            // This regex matches Extended Pictographic characters, Emoji Presentation characters, and whitespace.
                             const isEmoji = msg.type === 'text' && /^[\p{Extended_Pictographic}\p{Emoji_Presentation}\s]+$/u.test(msg.content);
                             const isImage = msg.type === 'image';
 
@@ -1010,6 +993,12 @@ export default function MessagesPage() {
                                                         isOwn={isOwn}
                                                         isUploading={msg.id.startsWith('temp-')}
                                                     />
+                                                )}
+                                                {msg.type === 'video_call' && (
+                                                    <div className={`flex items-center gap-2 py-1 px-1 ${isOwn ? 'text-white' : 'text-primary'}`}>
+                                                        <Video className="w-4 h-4" />
+                                                        <span className="text-sm font-medium">{msg.content}</span>
+                                                    </div>
                                                 )}
                                             </div>
                                             {!isEmoji && !msg.id.startsWith('temp-') && (

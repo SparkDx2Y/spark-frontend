@@ -3,7 +3,7 @@ export interface MessageResponse {
     matchId: string;
     senderId: string;
     content: string;
-    type: 'text' | 'image' | 'audio';
+    type: 'text' | 'image' | 'audio' | 'video_call';
     isRead: boolean;
     createdAt: string;
 }
@@ -20,6 +20,6 @@ export interface MatchResponse {
     users: UserInfo[];
     lastMessageAt?: string;
     lastMessage?: string;
-    lastMessageType?: 'text' | 'image' | 'audio';
+    lastMessageType?: 'text' | 'image' | 'audio' | 'video_call';
     createdAt: string;
 }
