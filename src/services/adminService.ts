@@ -1,5 +1,6 @@
 import { api } from "@/lib/axios";
 import { ADMIN_ENDPOINTS } from "@/constants/api";
+import { DashboardStatsResponse } from "@/types/admin/dashboard";
 import { BlockUnblockResponse, GetAllUsersResponse } from "@/types/admin/userList/response";
 import {
     GetAllCategoriesResponse,
@@ -138,5 +139,17 @@ export const updateSubscription = async (id: string, data: any): Promise<Subscri
 export const toggleSubscriptionStatus = async (id: string): Promise<SubscriptionPlan> => {
     const response = await api.patch<{ data: SubscriptionPlan }>(ADMIN_ENDPOINTS.TOGGLE_SUBSCRIPTION_STATUS.replace(":id", id));
     return response.data.data;
+};
+
+// --------------------
+// Dashboard
+// --------------------
+
+export const getDashboardStats = async (params: { from: string; to: string }): Promise<DashboardStatsResponse> => {
+    const response = await api.get<DashboardStatsResponse>(
+        ADMIN_ENDPOINTS.DASHBOARD_STATS,
+        { params }
+    );
+    return response.data;
 };
 
