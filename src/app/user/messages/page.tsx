@@ -269,7 +269,7 @@ export default function MessagesPage() {
                 getMatches(),
                 getCurrentPlan()
             ]);
-            setCurrentPlan(planRes);
+            setCurrentPlan(planRes.plan);
             // Sort by lastMessageAt descending (newest first)
             const sortedData = response.data.sort((a, b) => {
                 const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;

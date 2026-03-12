@@ -29,7 +29,9 @@ export default async function PremiumPage() {
 
 async function PremiumContent() {
     const plans = await getActivePlansData();
-    const currentPlan = await getCurrentPlanData();
+    const currentPlanResponse = await getCurrentPlanData();
+    const currentPlan = currentPlanResponse?.plan;
+    const subscriptionDetails = currentPlanResponse?.subscription;
 
     if (!plans || plans.length === 0) {
         return (
@@ -45,7 +47,13 @@ async function PremiumContent() {
         );
     }
 
-    return <PremiumPlans plans={plans} currentPlanId={currentPlan?._id} />;
+    return (
+        <PremiumPlans 
+            plans={plans} 
+            currentPlanId={currentPlan?._id} 
+            expiryDate={subscriptionDetails?.endDate}
+        />
+    );
 }
 
 function PremiumSkeleton() {

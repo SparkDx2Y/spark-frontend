@@ -32,3 +32,10 @@ export interface GetSubscriptionsResponse {
     };
 }
 
+export interface CurrentPlanResponse {
+    plan: SubscriptionPlan | null;
+    subscription?: {
+        endDate: string;
+        status: string;
+    };
+}

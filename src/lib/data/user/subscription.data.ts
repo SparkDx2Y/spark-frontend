@@ -1,6 +1,6 @@
 import { SUBSCRIPTION_ENDPOINTS } from '@/constants/api';
 import { getServerConfig } from '../base';
-import type { SubscriptionPlan } from "@/types/subscription";
+import type { SubscriptionPlan, CurrentPlanResponse } from "@/types/subscription";
 
 export async function getActivePlansData(): Promise<SubscriptionPlan[]> {
     try {
@@ -22,7 +22,7 @@ export async function getActivePlansData(): Promise<SubscriptionPlan[]> {
     }
 }
 
-export async function getCurrentPlanData(): Promise<SubscriptionPlan | null> {
+export async function getCurrentPlanData(): Promise<CurrentPlanResponse | null> {
     try {
         const { token, apiUrl } = await getServerConfig();
         const response = await fetch(`${apiUrl}${SUBSCRIPTION_ENDPOINTS.GET_CURRENT}`, {

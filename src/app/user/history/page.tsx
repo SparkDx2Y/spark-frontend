@@ -32,7 +32,7 @@ export default function ActivityPage() {
                 getCurrentPlan()
             ]);
             setActivity(activityRes.data);
-            setCurrentPlan(planRes);
+            setCurrentPlan(planRes.plan);
         } catch (error) {
             console.error('Failed to load activity:', error);
         } finally {

@@ -10,9 +10,10 @@ import toast from "react-hot-toast";
 interface PremiumPlansProps {
     plans: SubscriptionPlan[];
     currentPlanId?: string;
+    expiryDate?: string;
 }
 
-export default function PremiumPlans({ plans, currentPlanId }: PremiumPlansProps) {
+export default function PremiumPlans({ plans, currentPlanId, expiryDate }: PremiumPlansProps) {
     const sortedPlans = [...plans].sort((a, b) => a.price - b.price);
     const currentPlanPrice = plans.find(p => p._id === currentPlanId)?.price ?? -1;
 
@@ -63,6 +64,7 @@ export default function PremiumPlans({ plans, currentPlanId }: PremiumPlansProps
                         isDowngrade={currentPlanPrice !== -1 && plan._id !== currentPlanId && plan.price <= currentPlanPrice}
                         isRedirecting={isRedirecting === plan._id}
                         onSubscribe={() => handleSubscribe(plan._id)}
+                        expiryDate={plan._id === currentPlanId ? expiryDate : undefined}
                     />
                 ))}
             </div>
@@ -70,14 +72,20 @@ export default function PremiumPlans({ plans, currentPlanId }: PremiumPlansProps
     );
 }
 
-function PlanCard({ plan, index, isCurrentPlan, isDowngrade, isRedirecting, onSubscribe }: {
+function PlanCard({ plan, index, isCurrentPlan, isDowngrade, isRedirecting, onSubscribe, expiryDate }: {
     plan: SubscriptionPlan,
     index: number,
     isCurrentPlan: boolean,
     isDowngrade: boolean,
     isRedirecting: boolean,
     onSubscribe: () => void,
+    expiryDate?: string,
 }) {
+    const formattedDate = expiryDate ? new Date(expiryDate).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    }) : null;
     return (
         <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -121,16 +129,23 @@ function PlanCard({ plan, index, isCurrentPlan, isDowngrade, isRedirecting, onSu
             <button
                 onClick={onSubscribe}
                 disabled={isCurrentPlan || isDowngrade || isRedirecting}
-                className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center mt-auto ${isCurrentPlan
+                className={`w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] transition-all duration-300 flex flex-col items-center justify-center mt-auto ${isCurrentPlan
                     ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 cursor-default'
                     : isDowngrade
                         ? 'bg-stone-500/5 text-stone-500 border border-stone-500/10 cursor-not-allowed text-xs'
                         : 'group/btn active:scale-95 bg-white/5 text-white border border-white/10 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed'
                     }`}
             >
-                {isCurrentPlan ? 'Your Current Plan' : isDowngrade ? 'Unavailable on current tier' : isRedirecting ? 'Redirecting...' : 'Get Started'}
-                {!isCurrentPlan && !isDowngrade && !isRedirecting && <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/btn:translate-x-1" />}
-                {isRedirecting && <Loader2 className="ml-2 w-4 h-4 animate-spin" />}
+                <div className="flex items-center justify-center">
+                    {isCurrentPlan ? 'Your Current Plan' : isDowngrade ? 'Unavailable on current tier' : isRedirecting ? 'Redirecting...' : 'Get Started'}
+                    {!isCurrentPlan && !isDowngrade && !isRedirecting && <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/btn:translate-x-1" />}
+                    {isRedirecting && <Loader2 className="ml-2 w-4 h-4 animate-spin" />}
+                </div>
+                {isCurrentPlan && formattedDate && (
+                    <span className="text-[10px] mt-1 opacity-70 tracking-normal font-bold">
+                        Expires on {formattedDate}
+                    </span>
+                )}
             </button>
         </motion.div>
     );
