@@ -22,12 +22,6 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import { showSuccess, showError } from "@/utils/toast";
 
 const AdminSidebar = () => {
-    /**
-   * usePathname()
-   * --------------------------------------------------
-   * Returns the current route path (e.g. "/admin/users").
-   * Used to determine which sidebar item is active.
-   */
 
     const pathname = usePathname();
     const router = useRouter();
@@ -44,8 +38,6 @@ const AdminSidebar = () => {
         { icon: Users, label: "Users", href: "/admin/users" },
         { icon: Sparkles, label: "Interests", href: "/admin/interests" },
         { icon: Ticket, label: "Subscriptions", href: "/admin/subscriptions" },
-        { icon: Coins, label: "Points Management", href: "/admin/points" },
-        { icon: Bell, label: "Push Notifications", href: "/admin/notifications" },
         { icon: AlertTriangle, label: "Reported Users", href: "/admin/reports" },
     ];
 
@@ -53,15 +45,6 @@ const AdminSidebar = () => {
         setShowLogoutModal(true);
     };
 
-    /**
-   * handleLogoutConfirm()
-   * --------------------------------------------------
-   * Handles the logout confirmation process.
-   * Sets the logging out state to true.
-   * Attempts to logout the user.
-   * If successful, shows a success message and redirects to the login page.
-   * If there is an error, shows an error message and resets the logging out state.
-   */
 
     const handleLogoutConfirm = async () => {
         setIsLoggingOut(true);
