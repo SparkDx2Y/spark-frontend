@@ -5,7 +5,7 @@ import type { SubscriptionPlan, GetSubscriptionsResponse } from "@/types/subscri
 /**
  * SERVER-SIDE ONLY: Fetch Subscription Plans
  */
-export async function getSubscriptionsData(page: number = 1, limit: number = 6): Promise<GetSubscriptionsResponse> {
+export async function getSubscriptionsData(page: number = 1, limit: number = 3): Promise<GetSubscriptionsResponse> {
     try {
         const { token, apiUrl } = await getServerConfig();
         const response = await fetch(`${apiUrl}${ADMIN_ENDPOINTS.GET_SUBSCRIPTIONS}?page=${page}&limit=${limit}`, {
@@ -21,6 +21,6 @@ export async function getSubscriptionsData(page: number = 1, limit: number = 6):
         return result.data;
     } catch (error) {
         console.error("Error fetching subscriptions:", error);
-        return { plans: [], pagination: { page: 1, limit: 6, total: 0, totalPages: 0 } };
+        return { plans: [], pagination: { page: 1, limit: 3, total: 0, totalPages: 0 } };
     }
 }
