@@ -9,8 +9,10 @@ export const sendMessage = async (payload: SendMessagePayload): Promise<ApiRespo
     return response.data;
 };
 
-export const getMatches = async (): Promise<ApiResponse<MatchResponse[]>> => {
-    const response = await api.get<ApiResponse<MatchResponse[]>>(MESSAGE_ENDPOINTS.GET_MATCHES);
+export const getMatches = async (page?: number, limit?: number): Promise<ApiResponse<MatchResponse[]>> => {
+    const response = await api.get<ApiResponse<MatchResponse[]>>(MESSAGE_ENDPOINTS.GET_MATCHES, {
+        params: { page, limit }
+    });
     return response.data;
 };
 

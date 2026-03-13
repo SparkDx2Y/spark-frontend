@@ -14,18 +14,21 @@ export default function MatchesPage() {
     const [matches, setMatches] = useState<MatchResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [previewUserId, setPreviewUserId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+
     const router = useRouter();
     const { socket } = useSocketContext();
     const currentUser = useAppSelector((state) => state.auth.user);
-
+    const LIMIT = 3;
 
     useEffect(() => {
-        loadMatches();
+        loadMatches(1, true);
 
-        // Listen for new matches in real-time
         if (socket) {
             socket.on('match', () => {
-                loadMatches(); // Reload matches when new match occurs
+                loadMatches(1, true);
             });
 
             return () => {
@@ -34,14 +37,33 @@ export default function MatchesPage() {
         }
     }, [socket]);
 
-    const loadMatches = async () => {
+    const loadMatches = async (pageNumber: number, replace: boolean = false) => {
+        if (pageNumber > 1) setLoadingMore(true);
+        else setLoading(true);
+
         try {
-            const response = await getMatches();
-            setMatches(response.data);
+            const response = await getMatches(pageNumber, LIMIT);
+            const newData = response.data;
+
+            if (replace) {
+                setMatches(newData);
+            } else {
+                setMatches((prev: MatchResponse[]) => [...prev, ...newData]);
+            }
+
+            setHasMore(newData.length === LIMIT);
+            setPage(pageNumber);
         } catch (error) {
             console.error('Failed to load matches:', error);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
+        }
+    };
+
+    const handleLoadMore = () => {
+        if (!loadingMore && hasMore) {
+            loadMatches(page + 1);
         }
     };
 
@@ -145,6 +167,18 @@ export default function MatchesPage() {
                     );
                 })}
             </div>
+
+            {hasMore && (
+                <div className="flex justify-center mt-12 mb-8">
+                    <button
+                        onClick={handleLoadMore}
+                        disabled={loadingMore}
+                        className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-semibold transition disabled:opacity-50"
+                    >
+                        {loadingMore ? 'Loading...' : 'Load More Matches'}
+                    </button>
+                </div>
+            )}
 
             <ProfilePreviewModal
                 isOpen={!!previewUserId}
