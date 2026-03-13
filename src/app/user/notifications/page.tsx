@@ -15,16 +15,20 @@ export default function NotificationsPage() {
     const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [previewUser, setPreviewUser] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    
     const router = useRouter();
     const { socket, unreadCount, setUnreadCount } = useSocketContext();
-
+    const LIMIT = 5;
 
     useEffect(() => {
-        loadNotifications();
+        loadNotifications(1, true);
 
         if (socket) {
             socket.on('notification', () => {
-                loadNotifications();
+                loadNotifications(1, true);
             });
 
             return () => {
@@ -34,14 +38,33 @@ export default function NotificationsPage() {
     }, [socket]);
 
     // Load notifications from the database
-    const loadNotifications = async () => {
+    const loadNotifications = async (pageNumber: number, replace: boolean = false) => {
+        if (pageNumber > 1) setLoadingMore(true);
+        else setLoading(true);
+
         try {
-            const response = await getNotifications();
-            setNotifications(response.data);
+            const response = await getNotifications(pageNumber, LIMIT);
+            const newData = response.data;
+
+            if (replace) {
+                setNotifications(newData);
+            } else {
+                setNotifications((prev: NotificationResponse[]) => [...prev, ...newData]);
+            }
+
+            setHasMore(newData.length === LIMIT);
+            setPage(pageNumber);
         } catch (error) {
             console.error('Failed to load notifications:', error);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
+        }
+    };
+
+    const handleLoadMore = () => {
+        if (!loadingMore && hasMore) {
+            loadNotifications(page + 1);
         }
     };
 
@@ -51,10 +74,10 @@ export default function NotificationsPage() {
 
         try {
             await markNotificationAsRead(notificationId);
-            setNotifications(prev =>
-                prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
+            setNotifications((prev: NotificationResponse[]) =>
+                prev.map((n: NotificationResponse) => n.id === notificationId ? { ...n, isRead: true } : n)
             );
-            setUnreadCount(prev => Math.max(0, prev - 1));
+            setUnreadCount((prev: number) => Math.max(0, prev - 1));
         } catch (error) {
             console.error('Failed to mark read:', error);
         }
@@ -64,7 +87,7 @@ export default function NotificationsPage() {
     const handleReadAll = async () => {
         try {
             await markAllNotificationsAsRead();
-            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+            setNotifications((prev: NotificationResponse[]) => prev.map((n: NotificationResponse) => ({ ...n, isRead: true })));
             setUnreadCount(0);
         } catch (error) {
             console.error('Failed to mark all read:', error);
@@ -243,6 +266,17 @@ export default function NotificationsPage() {
                             )}
                         </div>
                     ))}
+                    {hasMore && (
+                        <div className="flex justify-center mt-8 pb-8">
+                            <button
+                                onClick={handleLoadMore}
+                                disabled={loadingMore}
+                                className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-medium transition disabled:opacity-50"
+                            >
+                                {loadingMore ? 'Loading...' : 'Load More'}
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 

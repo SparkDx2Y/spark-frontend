@@ -3,9 +3,9 @@ import { NOTIFICATION_ENDPOINTS } from "@/constants/api";
 import { NotificationResponse, NotificationCountResponse } from "@/types/notification/response";
 import { ApiResponse } from "@/types/api";
 
-export const getNotifications = async (limit?: number): Promise<ApiResponse<NotificationResponse[]>> => {
+export const getNotifications = async (page?: number, limit?: number): Promise<ApiResponse<NotificationResponse[]>> => {
     const response = await api.get<ApiResponse<NotificationResponse[]>>(NOTIFICATION_ENDPOINTS.GET_ALL, {
-        params: limit ? { limit } : undefined
+        params: { page, limit }
     });
     return response.data;
 };
