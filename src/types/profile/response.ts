@@ -5,6 +5,7 @@ export interface ProfileResponse {
     userId: string;
     name: string;
     age?: number;
+    bio?: string;
     gender?: 'male' | 'female';
     interestedIn?: 'male' | 'female';
     profilePhoto?: string | null;

@@ -3,15 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import {
-    getNotifications,
-    markAllNotificationsAsRead,
-    markNotificationAsRead
-} from '@/services/notificationService';
+import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '@/services/notificationService';
 import { NotificationResponse } from '@/types/notification/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 
-import { Heart, MessageCircle, Bell, Check, ShieldCheck, ShieldX, User } from 'lucide-react';
+import { Heart, MessageCircle, Bell, Check, ShieldCheck, ShieldX, User, Lock, Crown } from 'lucide-react';
 import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
 
 
@@ -23,7 +19,6 @@ export default function NotificationsPage() {
     const { socket, unreadCount, setUnreadCount } = useSocketContext();
 
 
-    // Load notifications from the database on mount and when socket receives a notification
     useEffect(() => {
         loadNotifications();
 
@@ -80,12 +75,19 @@ export default function NotificationsPage() {
     const handleNotificationClick = async (notification: NotificationResponse) => {
         await handleRead(notification.id, notification.isRead);
 
+        if (notification.isPremiumLocked) {
+            router.push('/user/premium');
+            return;
+        }
+
         if (notification.type === 'match' && notification.matchId) {
             router.push(`/user/messages?matchId=${notification.matchId}`);
         } else if (notification.type === 'message' && notification.matchId) {
             router.push(`/user/messages?matchId=${notification.matchId}`);
-        } else if (notification.type === 'like' && notification.fromUser?.userId) {
+        } else if ((notification.type === 'like' || notification.type === 'profile_view') && notification.fromUser?.userId) {
             setPreviewUser(notification.fromUser.userId);
+        } else if (notification.type === 'subscription_expired' || notification.type === 'subscription_expiring_soon') {
+            router.push('/user/premium');
         }
     };
 
@@ -103,6 +105,12 @@ export default function NotificationsPage() {
                 return <ShieldCheck className="w-5 h-5 text-green-500" />;
             case 'report_dismissed':
                 return <ShieldX className="w-5 h-5 text-stone-500" />;
+            case 'profile_view':
+                return <User className="w-5 h-5 text-cyan-500" />;
+            case 'subscription_expired':
+                return <Crown className="w-5 h-5 text-red-400" />;
+            case 'subscription_expiring_soon':
+                return <Crown className="w-5 h-5 text-amber-400" />;
             default:
                 return <Bell className="w-5 h-5 text-yellow-500" />;
         }
@@ -168,7 +176,19 @@ export default function NotificationsPage() {
                             `}
                         >
                             <div className="relative">
-                                {notification.fromUser?.profilePhoto ? (
+                                {notification.isPremiumLocked ? (
+                                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-yellow-500/20 to-yellow-600/40 flex items-center justify-center shrink-0 border border-yellow-500/50 backdrop-blur-md">
+                                        <Lock className="w-5 h-5 text-yellow-500" />
+                                    </div>
+                                ) : notification.type === 'subscription_expired' ? (
+                                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-red-500/20 to-red-600/40 flex items-center justify-center shrink-0 border border-red-500/50">
+                                        <Crown className="w-6 h-6 text-red-400" />
+                                    </div>
+                                ) : notification.type === 'subscription_expiring_soon' ? (
+                                    <div className="w-12 h-12 rounded-full bg-linear-to-br from-amber-500/20 to-amber-600/40 flex items-center justify-center shrink-0 border border-amber-500/50">
+                                        <Crown className="w-6 h-6 text-amber-400" />
+                                    </div>
+                                ) : notification.fromUser?.profilePhoto ? (
                                     <div className="relative w-12 h-12 overflow-hidden shrink-0">
                                         <Image
                                             src={notification.fromUser.profilePhoto}
@@ -191,20 +211,30 @@ export default function NotificationsPage() {
 
                             <div className="flex-1">
                                 <div className="flex justify-between items-start mb-1">
-                                    <h3 className={`font-semibold ${notification.isRead ? 'text-gray-300' : 'text-white'}`}>
-                                        {notification.fromUser?.name || 'Someone'}
-                                    </h3>
+                                    <h3 className={`font-semibold ${notification.isPremiumLocked ? 'text-yellow-500' : notification.isRead ? 'text-gray-300' : 'text-white'}`}>
+                                    {notification.type === 'subscription_expired' ? 'Subscription Expired' :
+                                     notification.type === 'subscription_expiring_soon' ? 'Subscription Expiring Soon' :
+                                     notification.fromUser?.name || 'Someone'}
+                                </h3>
                                     <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
                                         {formatTime(notification.createdAt)}
                                     </span>
                                 </div>
-                                <p className={`text-sm ${notification.isRead ? 'text-gray-500' : 'text-gray-300'}`}>
-                                    {notification.type === 'like' && `liked your profile!`}
-                                    {notification.type === 'match' && `It&apos;s a match! Start a conversation.`}
-                                    {notification.type === 'message' && `sent you a message.`}
-                                    {notification.type === 'report_resolved' && `We've reviewed your report and taken action. Thank you for keeping Spark safe.`}
-                                    {notification.type === 'report_dismissed' && `We've reviewed your report and found it doesn't violate our safety guidelines at this time.`}
-                                    {/* Handle other types if needed */}
+                                <p className={`text-sm ${notification.isPremiumLocked ? 'text-yellow-500/80 font-medium' : notification.isRead ? 'text-gray-500' : 'text-gray-300'}`}>
+                                    {notification.isPremiumLocked ? (
+                                        <>Upgrade to Premium to see who it is!</>
+                                    ) : (
+                                        <>
+                                            {notification.type === 'like' && `liked your profile!`}
+                                            {notification.type === 'match' && `It's a match! Start a conversation.`}
+                                            {notification.type === 'message' && `sent you a message.`}
+                                            {notification.type === 'report_resolved' && `We've reviewed your report and taken action. Thank you for keeping Spark safe.`}
+                                            {notification.type === 'report_dismissed' && `We've reviewed your report and found it doesn't violate our safety guidelines at this time.`}
+                                            {notification.type === 'profile_view' && `viewed your profile.`}
+                                            {notification.type === 'subscription_expired' && `Your Premium subscription has expired. Upgrade to continue enjoying Premium features!`}
+                                            {notification.type === 'subscription_expiring_soon' && `Your Premium subscription is expiring in 3 days. Renew now to avoid losing access!`}
+                                        </>
+                                    )}
                                 </p>
                             </div>
 

@@ -29,13 +29,13 @@ api.interceptors.response.use(
 
                 await api.post(AUTH_ENDPOINTS.REFRESH_TOKEN);
 
-                
+
                 return api(originalRequest);
             } catch (refreshError) {
                 store.dispatch(logout());
 
                 // Prevent infinite redirect loops on public pages
-                const publicPaths = ['/login', '/signup', '/'];
+                const publicPaths = ['/login', '/signup', '/', '/admin/login'];
                 const isPublicPath = publicPaths.includes(window.location.pathname);
 
                 if (!isPublicPath) {

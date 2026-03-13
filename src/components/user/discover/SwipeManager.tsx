@@ -9,6 +9,8 @@ import { ProfileResponse } from '@/types/profile/response';
 import Button from '@/components/ui/Button';
 import { showError } from '@/utils/toast';
 import { useAppSelector } from '@/store/hooks';
+import PremiumUpsellModal from '@/components/user/PremiumUpsellModal';
+import { getErrorMessage } from '@/utils/errors';
 
 interface SwipeManagerProps {
     initialProfiles: ProfileResponse[];
@@ -18,6 +20,7 @@ export default function SwipeManager({ initialProfiles }: SwipeManagerProps) {
     const [profiles, setProfiles] = useState<ProfileResponse[]>(initialProfiles);
     const [isLoading, setIsLoading] = useState(false);
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+    const [upsellModal, setUpsellModal] = useState<{ isOpen: boolean, title: string, desc: string }>({ isOpen: false, title: '', desc: '' });
 
     // Refresh feed
     const refreshFeed = async () => {
@@ -33,14 +36,13 @@ export default function SwipeManager({ initialProfiles }: SwipeManagerProps) {
         }
     };
 
-    // Handle swipe action
     const handleSwipe = async (direction: 'left' | 'right') => {
         if (!isAuthenticated) return;
 
         const activeProfile = profiles[profiles.length - 1];
         if (!activeProfile) return;
 
-        // Remove card immediately
+        // Remove card immediately (Optimistic Update)
         setProfiles(prev => {
             const newProfiles = [...prev];
             newProfiles.pop();
@@ -50,11 +52,23 @@ export default function SwipeManager({ initialProfiles }: SwipeManagerProps) {
         const action = direction === 'right' ? 'like' : 'pass';
 
         try {
-             await swipeAction({ targetId: activeProfile.userId, action });
+            await swipeAction({ targetId: activeProfile.userId, action });
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Swipe action failed", error);
-            showError("Something went wrong");
+
+            const message = getErrorMessage(error) || "Something went wrong";
+
+            if (message.toLowerCase().includes('limit') || message.toLowerCase().includes('upgrade')) {
+                setUpsellModal({
+                    isOpen: true,
+                    title: 'Out of Swipes!',
+                    desc: message
+                });
+            } else {
+                showError(message);
+            }
+            setProfiles(prev => [...prev, activeProfile]);
         }
     };
 
@@ -95,6 +109,13 @@ export default function SwipeManager({ initialProfiles }: SwipeManagerProps) {
                     </p>
                 </div>
             )}
+
+            <PremiumUpsellModal
+                isOpen={upsellModal.isOpen}
+                onClose={() => setUpsellModal({ ...upsellModal, isOpen: false })}
+                title={upsellModal.title}
+                description={upsellModal.desc}
+            />
         </div>
     );
 }

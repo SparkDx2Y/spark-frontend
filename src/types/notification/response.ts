@@ -1,7 +1,7 @@
 export interface NotificationResponse {
     id: string;
-    type: 'like' | 'match' | 'message' | 'report_resolved' | 'report_dismissed';
-    fromUser: {
+    type: 'like' | 'match' | 'message' | 'report_resolved' | 'report_dismissed' | 'profile_view' | 'subscription_expired' | 'subscription_expiring_soon';
+    fromUser?: {
         userId: string;
         name: string;
         profilePhoto?: string;
@@ -10,6 +10,7 @@ export interface NotificationResponse {
     messageId?: string;
     isRead: boolean;
     createdAt: string;
+    isPremiumLocked?: boolean;
 }
 
 export interface NotificationCountResponse {

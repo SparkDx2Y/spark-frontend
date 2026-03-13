@@ -7,12 +7,17 @@ import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMess
 import { MatchResponse, MessageResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
-import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle, Lock } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { uploadChatMedia } from '@/services/fileService';
 import { useVideoCallContext } from '@/contexts/VideoCallContext';
 import ReportModal from '@/components/user/ReportModal';
+import { handleApiError, showError } from '@/utils/toast';
+import { getErrorMessage } from '@/utils/errors';
+import { getCurrentPlan } from '@/services/subscriptionService';
+import type { SubscriptionPlan } from '@/types/subscription';
+import PremiumUpsellModal from '@/components/user/PremiumUpsellModal';
 
 interface SocketMessageUpdate {
     type: 'message' | 'message_deleted';
@@ -105,6 +110,7 @@ export default function MessagesPage() {
     const [selectedMatch, setSelectedMatch] = useState<MatchResponse | null>(null);
     const [messages, setMessages] = useState<MessageResponse[]>([]);
     const [newMessage, setNewMessage] = useState('');
+    const [currentPlan, setCurrentPlan] = useState<SubscriptionPlan | null>(null);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [showAttachments, setShowAttachments] = useState(false);
@@ -123,6 +129,7 @@ export default function MessagesPage() {
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const [showMenu, setShowMenu] = useState(false);
     const [reportModalOpen, setReportModalOpen] = useState(false);
+    const [upsellModal, setUpsellModal] = useState<{ isOpen: boolean, title: string, desc: string }>({ isOpen: false, title: '', desc: '' });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const audioInputRef = useRef<HTMLInputElement>(null);
@@ -163,7 +170,7 @@ export default function MessagesPage() {
     }, [selectedMatch, joinChat, leaveChat, emitTyping]);
 
     // Helper to move active chat to top
-    const updateMatchList = (matchId: string, content: string, createdAt: string, type: 'text' | 'image' | 'audio' = 'text') => {
+    const updateMatchList = (matchId: string, content: string, createdAt: string, type: 'text' | 'image' | 'audio' | 'video_call' = 'text') => {
         setMatches(prev => {
             const index = prev.findIndex(m => m.id === matchId);
             if (index === -1) return prev;
@@ -190,9 +197,8 @@ export default function MessagesPage() {
                 if (selectedMatch && data.matchId === selectedMatch.id) {
                     setMessages(prev => prev.filter(m => m.id !== data.messageId));
                 }
-                // Optionally update sidebar if last message was deleted
+
                 if (data.matchId) {
-                    // Refetch matches to update sidebar correctly (simplest way)
                     loadMatches();
                 }
                 return;
@@ -211,7 +217,6 @@ export default function MessagesPage() {
                 });
             }
 
-            // 2. Update Sidebar (Move chat to top)
             if (data.message) {
                 updateMatchList(data.matchId, data.message.content, data.message.createdAt, data.message.type);
             }
@@ -226,16 +231,13 @@ export default function MessagesPage() {
 
     // Handle delete message
     const handleDeleteMessage = async (messageId: string) => {
-        // Optimistic update (Remove from UI immediately)
         setMessages(prev => prev.filter(m => m.id !== messageId));
 
         try {
             await deleteMessage(messageId);
 
-            // 1. Refresh Sidebar (in case the last message was deleted)
             loadMatches();
 
-            // 2. Refresh current chat messages (to ensure sync with backend)
             if (selectedMatch) {
                 const response = await getMessages(selectedMatch.id, 50);
                 setMessages(response.data);
@@ -250,8 +252,6 @@ export default function MessagesPage() {
     };
 
     // Auto-scroll to bottom
-
-    // Auto-scroll to bottom
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
@@ -259,7 +259,11 @@ export default function MessagesPage() {
     // Load matches
     const loadMatches = async () => {
         try {
-            const response = await getMatches();
+            const [response, planRes] = await Promise.all([
+                getMatches(),
+                getCurrentPlan()
+            ]);
+            setCurrentPlan(planRes.plan);
             // Sort by lastMessageAt descending (newest first)
             const sortedData = response.data.sort((a, b) => {
                 const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
@@ -278,9 +282,9 @@ export default function MessagesPage() {
     const handleSelectMatch = async (match: MatchResponse) => {
         setSelectedMatch(match);
         setMessages([]);
-        setShowAttachments(false); // Close attachments when switching chats
-        setNewMessage(''); // Clear input when switching chats
-        deleteRecording(); // Reset audio recording state
+        setShowAttachments(false);
+        setNewMessage('');
+        deleteRecording();
 
         try {
             const response = await getMessages(match.id, 50);
@@ -300,7 +304,6 @@ export default function MessagesPage() {
 
         let tempId: string | null = null;
 
-        // Optimistic Text Update
         if (type === 'text') {
             setNewMessage('');
             if (inputRef.current) inputRef.current.style.height = '44px';
@@ -329,19 +332,29 @@ export default function MessagesPage() {
             const message = response.data;
 
             if (tempId) {
-                // Replace optimistic message
                 setMessages(prev => prev.map(m => m.id === tempId ? message : m));
             } else {
                 setMessages(prev => [...prev, message]);
             }
 
-            // Reorder Sidebar
             updateMatchList(selectedMatch.id, message.content, message.createdAt, message.type);
 
         } catch (error) {
             console.error('Failed to send message:', error);
+
+            const msg = getErrorMessage(error);
+            if (msg.toLowerCase().includes('limit') || msg.toLowerCase().includes('upgrade') || msg.toLowerCase().includes('premium')) {
+                setUpsellModal({
+                    isOpen: true,
+                    title: 'Limit Reached ',
+                    desc: msg
+                });
+            } else {
+                handleApiError(error, 'Failed to send message');
+            }
+
             if (tempId) {
-                // Remove optimistic message
+
                 setMessages(prev => prev.filter(m => m.id !== tempId));
                 setNewMessage(content); // Restore content?
             }
@@ -353,7 +366,7 @@ export default function MessagesPage() {
     // Handle typing for messages page
     const handleTyping = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNewMessage(e.target.value);
-        setShowAttachments(false); // Hide attachments when typing
+        setShowAttachments(false);
 
         // Auto-resize textarea
         if (inputRef.current) {
@@ -372,7 +385,6 @@ export default function MessagesPage() {
 
         setShowAttachments(false);
 
-        // Optimistic Update
         const tempId = `temp-${Date.now()}`;
         const blobUrl = URL.createObjectURL(file);
 
@@ -402,8 +414,14 @@ export default function MessagesPage() {
             URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error('Failed to upload image:', error);
+            const msg = getErrorMessage(error);
+            if (msg.toLowerCase().includes('limit') || msg.toLowerCase().includes('upgrade') || msg.toLowerCase().includes('premium')) {
+                setUpsellModal({ isOpen: true, title: 'Limit Reached ', desc: msg });
+            } else {
+                handleApiError(error, 'Failed to send image');
+            }
             setMessages(prev => prev.filter(m => m.id !== tempId));
-            // alert('Failed to upload image');
+
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
@@ -415,7 +433,6 @@ export default function MessagesPage() {
 
         setShowAttachments(false);
 
-        // Optimistic Update
         const tempId = `temp-${Date.now()}`;
         const blobUrl = URL.createObjectURL(file);
 
@@ -445,8 +462,14 @@ export default function MessagesPage() {
             URL.revokeObjectURL(blobUrl);
         } catch (error) {
             console.error('Failed to upload audio:', error);
+            const msg = getErrorMessage(error);
+            if (msg.toLowerCase().includes('limit') || msg.toLowerCase().includes('upgrade') || msg.toLowerCase().includes('premium')) {
+                setUpsellModal({ isOpen: true, title: 'Limit Reached ', desc: msg });
+            } else {
+                handleApiError(error, 'Failed to send audio');
+            }
             setMessages(prev => prev.filter(m => m.id !== tempId));
-            // alert('Failed to upload audio');
+
         } finally {
             if (audioInputRef.current) audioInputRef.current.value = '';
         }
@@ -492,13 +515,13 @@ export default function MessagesPage() {
             setRecordingTime(0);
 
             timerRef.current = setInterval(() => {
-                if (!shouldSendAfterStopRef.current) { // Don't increment if about to stop
+                if (!shouldSendAfterStopRef.current) {
                     setRecordingTime(prev => prev + 1);
                 }
             }, 1000);
         } catch (error) {
             console.error('Error starting recording:', error);
-            // alert('Could not access microphone');
+
         }
     };
 
@@ -540,7 +563,7 @@ export default function MessagesPage() {
 
     const deleteRecording = () => {
         if (isRecording && mediaRecorderRef.current) {
-            mediaRecorderRef.current.onstop = null; // Prevent onstop from firing
+            mediaRecorderRef.current.onstop = null;
             mediaRecorderRef.current.stop();
             setIsRecording(false);
             setIsPaused(false);
@@ -570,9 +593,6 @@ export default function MessagesPage() {
         setMessages(prev => [...prev, optimisticMessage]);
         setAudioBlob(null);
         setRecordingTime(0);
-        // Don't set sending=true to block UI for audio, let it happen in background?
-        // But we usually block to prevent double sends? 
-        // For optimistic, we usually don't block. 
 
         try {
             const url = await uploadChatMedia(blob, 'audio');
@@ -583,18 +603,16 @@ export default function MessagesPage() {
             });
             const message = response.data;
 
-            // Replace optimistic message
+
             setMessages(prev => prev.map(m => m.id === tempId ? message : m));
 
-            // Reorder Sidebar (Real update)
             updateMatchList(selectedMatch.id, message.content, message.createdAt, 'audio');
 
-            URL.revokeObjectURL(localUrl); // Cleanup
+            URL.revokeObjectURL(localUrl);
         } catch (error) {
             console.error('Failed to send audio:', error);
-            // Remove optimistic message on failure
+            handleApiError(error, 'Failed to send audio');
             setMessages(prev => prev.filter(m => m.id !== tempId));
-            // alert('Failed to send audio message');
         }
     };
 
@@ -725,7 +743,8 @@ export default function MessagesPage() {
                                             {match.lastMessageType === 'text' ? match.lastMessage :
                                                 match.lastMessageType === 'image' ? 'Sent an image' :
                                                     match.lastMessageType === 'audio' ? 'Sent an audio' :
-                                                        match.lastMessage || 'Start a conversation'}
+                                                        match.lastMessageType === 'video_call' ? match.lastMessage :
+                                                            match.lastMessage || 'Start a conversation'}
                                         </p>
                                     </div>
                                 </motion.button>
@@ -783,12 +802,33 @@ export default function MessagesPage() {
 
                         {/* Header Actions */}
                         <div className="flex items-center gap-1 md:gap-3">
-                            <button className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-primary hover:bg-primary/10 transition-all duration-300">
-                                <Phone className="w-4 h-4 md:w-5 md:h-5" />
+                            <button
+                                onClick={() => {
+                                    setUpsellModal({
+                                        isOpen: true,
+                                        title: 'Voice Calls Locked ',
+                                        desc: 'Voice calls are not enabled in your current plan.\nUpgrade to Premium to use this feature!'
+                                    });
+                                }}
+                                className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-primary hover:bg-primary/10 transition-all duration-300"
+                            >
+                                {currentPlan && !currentPlan.features.audioEnabled ? (
+                                    <Lock className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
+                                ) : (
+                                    <Phone className="w-4 h-4 md:w-5 md:h-5" />
+                                )}
                             </button>
                             <button
                                 onClick={() => {
                                     if (!selectedMatch) return;
+                                    if (currentPlan && !currentPlan.features.videoCallEnabled) {
+                                        setUpsellModal({
+                                            isOpen: true,
+                                            title: 'Video Calls Locked ',
+                                            desc: 'Video calling is not enabled in your current plan.\nUpgrade to unlock face-to-face dates!'
+                                        });
+                                        return;
+                                    }
                                     const otherUser = selectedMatch.users.find(u => u.userId !== currentUser?.id) || selectedMatch.users[0];
                                     startCall({
                                         id: otherUser.userId,
@@ -798,7 +838,11 @@ export default function MessagesPage() {
                                 }}
                                 className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 transition-all duration-300"
                             >
-                                <Video className="w-4 h-4 md:w-5 md:h-5" />
+                                {currentPlan && !currentPlan.features.videoCallEnabled ? (
+                                    <Lock className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
+                                ) : (
+                                    <Video className="w-4 h-4 md:w-5 md:h-5" />
+                                )}
                             </button>
                             <div className="relative">
                                 <button
@@ -848,15 +892,12 @@ export default function MessagesPage() {
                             const isOwn = msg.senderId === currentUser?.id;
                             const isConsecutive = index > 0 && messages[index - 1].senderId === msg.senderId;
 
-                            // --- SIMPLIFIED DATE LOGIC ---
+                           
                             const date = new Date(msg.createdAt);
                             const prevDate = index > 0 ? new Date(messages[index - 1].createdAt) : null;
 
-                            // 1. Check if the day has changed compared to the previous message
-                            // .toDateString() gives us "Fri Nov 15 2024", perfect for comparing days!
                             const showDateSeparator = !prevDate || date.toDateString() !== prevDate.toDateString();
 
-                            // 2. Determine what to write (Today, Yesterday, or Date)
                             let dateLabel = '';
                             if (showDateSeparator) {
                                 const today = new Date();
@@ -872,8 +913,6 @@ export default function MessagesPage() {
                                 }
                             }
 
-                            // Helper to detect if message is ONLY emojis (using a broad emoji regex pattern)
-                            // This regex matches Extended Pictographic characters, Emoji Presentation characters, and whitespace.
                             const isEmoji = msg.type === 'text' && /^[\p{Extended_Pictographic}\p{Emoji_Presentation}\s]+$/u.test(msg.content);
                             const isImage = msg.type === 'image';
 
@@ -927,11 +966,11 @@ export default function MessagesPage() {
                                                 `}
                                             >
                                                 {msg.type === 'text' && (
-                                                    <p className={`leading-relaxed whitespace-pre-wrap wrap-break-wordbreak-word break-all ${isEmoji ? 'leading-normal' : ''}`}>{msg.content}</p>
+                                                    <p className={`leading-relaxed whitespace-pre-wrap wrap-break-word break-all ${isEmoji ? 'leading-normal' : ''}`}>{msg.content}</p>
                                                 )}
                                                 {msg.type === 'image' && (
                                                     <div className="relative group">
-                                                        <div className="relative max-w-xs md:max-w-sm h-60 md:h-80 group">
+                                                        <div className="relative w-64 md:w-80 h-60 md:h-80 group overflow-hidden rounded-xl bg-white/5 border border-white/10">
                                                             <Image
                                                                 src={msg.content}
                                                                 alt="Message attachment"
@@ -954,6 +993,12 @@ export default function MessagesPage() {
                                                         isOwn={isOwn}
                                                         isUploading={msg.id.startsWith('temp-')}
                                                     />
+                                                )}
+                                                {msg.type === 'video_call' && (
+                                                    <div className={`flex items-center gap-2 py-1 px-1 ${isOwn ? 'text-white' : 'text-primary'}`}>
+                                                        <Video className="w-4 h-4" />
+                                                        <span className="text-sm font-medium">{msg.content}</span>
+                                                    </div>
                                                 )}
                                             </div>
                                             {!isEmoji && !msg.id.startsWith('temp-') && (
@@ -1012,9 +1057,35 @@ export default function MessagesPage() {
                                         className="absolute bottom-full left-0 mb-2 p-1.5 bg-black/80 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl flex items-center gap-1 z-50 origin-bottom-left"
                                     >
                                         {[
-                                            { icon: ImageIcon, color: "text-blue-400", label: "Media", bg: "hover:bg-blue-400/20", onClick: () => fileInputRef.current?.click() },
+                                            {
+                                                icon: currentPlan && !currentPlan.features.mediaSharingEnabled ? Lock : ImageIcon, color: "text-blue-400", label: "Media", bg: "hover:bg-blue-400/20",
+                                                onClick: () => {
+                                                    if (currentPlan && !currentPlan.features.mediaSharingEnabled) {
+                                                        setUpsellModal({
+                                                            isOpen: true,
+                                                            title: 'Media Sharing Locked 📸',
+                                                            desc: 'Media sharing is not enabled in your current plan.\nUpgrade to Premium to share photos and express yourself!'
+                                                        });
+                                                    } else {
+                                                        fileInputRef.current?.click();
+                                                    }
+                                                }
+                                            },
                                             { icon: Camera, color: "text-purple-400", label: "Camera", bg: "hover:bg-purple-400/20" },
-                                            { icon: Mic, color: "text-red-400", label: "Audio", bg: "hover:bg-red-400/20", onClick: () => audioInputRef.current?.click() },
+                                            {
+                                                icon: currentPlan && !currentPlan.features.audioEnabled ? Lock : Mic, color: "text-red-400", label: "Audio", bg: "hover:bg-red-400/20",
+                                                onClick: () => {
+                                                    if (currentPlan && !currentPlan.features.audioEnabled) {
+                                                        setUpsellModal({
+                                                            isOpen: true,
+                                                            title: 'Audio Notes Locked 🎤',
+                                                            desc: 'Audio messaging is not enabled in your current plan.\nUpgrade to Premium to send voice notes!'
+                                                        });
+                                                    } else {
+                                                        audioInputRef.current?.click();
+                                                    }
+                                                }
+                                            },
                                         ].map((item, idx) => (
                                             <motion.button
                                                 key={idx}
@@ -1193,7 +1264,15 @@ export default function MessagesPage() {
                                     } else if (newMessage.trim()) {
                                         handleSendMessage();
                                     } else {
-                                        startRecording();
+                                        if (currentPlan && !currentPlan.features.audioEnabled) {
+                                            setUpsellModal({
+                                                isOpen: true,
+                                                title: 'Audio Notes Locked ',
+                                                desc: 'Audio messaging is not enabled in your current plan.\nUpgrade to Premium to send voice notes!'
+                                            });
+                                        } else {
+                                            startRecording();
+                                        }
                                     }
                                 }}
                                 disabled={sending || (selectedMatch?.users.find(u => u.userId !== currentUser?.id) || selectedMatch?.users[0])?.isBlocked}
@@ -1225,7 +1304,11 @@ export default function MessagesPage() {
                                             exit={{ scale: 0 }}
                                             transition={{ duration: 0.2 }}
                                         >
-                                            <Mic className="w-5 h-5 md:w-6 md:h-6" />
+                                            {currentPlan && !currentPlan.features.audioEnabled ? (
+                                                <Lock className="w-5 h-5 md:w-6 md:h-6" />
+                                            ) : (
+                                                <Mic className="w-5 h-5 md:w-6 md:h-6" />
+                                            )}
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -1297,6 +1380,12 @@ export default function MessagesPage() {
                 reportedUserId={selectedMatch ? (selectedMatch.users.find(u => u.userId !== currentUser?.id)?.userId || selectedMatch.users[0]?.userId) : null}
             />
 
+            <PremiumUpsellModal
+                isOpen={upsellModal.isOpen}
+                onClose={() => setUpsellModal({ ...upsellModal, isOpen: false })}
+                title={upsellModal.title}
+                description={upsellModal.desc}
+            />
         </div>
     );
 }

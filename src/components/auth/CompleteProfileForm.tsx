@@ -137,6 +137,25 @@ export default function CompleteProfileForm() {
                     {errors.interestedIn?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.interestedIn.message}</p>}
                 </div>
 
+                {/* Bio */}
+                <div className="relative w-full group">
+                    <textarea
+                        {...register("bio")}
+                        rows={3}
+                        placeholder="Share something about yourself..."
+                        className="w-full px-4 pt-6 pb-2 border border-white/10 rounded-xl text-gray-100 bg-transparent outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all duration-200 resize-none"
+                    />
+                    <label className="absolute left-4 top-2 text-gray-400 text-xs pointer-events-none">
+                        About Me (Optional)
+                    </label>
+                    <div className="flex justify-end pr-2 mt-1">
+                        <span className={`text-[10px] ${(watch("bio")?.length || 0) > 480 ? 'text-red-500' : 'text-gray-500'}`}>
+                            {watch("bio")?.length || 0}/500
+                        </span>
+                    </div>
+                    {errors.bio?.message && <p className="text-red-500 text-[10px] mt-1 ml-1">{errors.bio.message}</p>}
+                </div>
+
                 {/* Profile Photo */}
                 <div className="space-y-2">
                     <label className="text-gray-400 text-sm ml-1">Profile Photo</label>

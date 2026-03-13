@@ -40,3 +40,4 @@ export type ForgotPasswordVerifyOtpResponse = ApiResponse<string>;
 export type ResetPasswordResponse = ApiResponse<string>;
 
 
+export type ChangePasswordResponse = ApiResponse<string>;

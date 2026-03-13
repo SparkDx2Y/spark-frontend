@@ -2,8 +2,8 @@ import { api } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
 
 import { AUTH_ENDPOINTS } from "@/constants/api";
-import { ForgotPasswordPayload, ForgotPasswordVerifyOtpPayload, LoginPayload, ResetPasswordPayload, SignupPayload, VerifyOtpPayload } from "@/types/auth/payload";
-import { ForgotPasswordResponse, ForgotPasswordVerifyOtpResponse, LoginResponse, ResendOtpResponse, ResetPasswordResponse, SignupResponse, VerifyOtpResponse } from "@/types/auth/response";
+import { ChangePasswordPayload, ForgotPasswordPayload, ForgotPasswordVerifyOtpPayload, LoginPayload, ResetPasswordPayload, SignupPayload, VerifyOtpPayload } from "@/types/auth/payload";
+import { ChangePasswordResponse, ForgotPasswordResponse, ForgotPasswordVerifyOtpResponse, LoginResponse, ResendOtpResponse, ResetPasswordResponse, SignupResponse, VerifyOtpResponse } from "@/types/auth/response";
 
 
 // -----------------------------
@@ -89,6 +89,15 @@ export const resetPassword = async (data: ResetPasswordPayload): Promise<ResetPa
   const response = await api.post(AUTH_ENDPOINTS.RESET_PASSWORD, data)
   return response.data
 }
+
+// -----------------------------
+// Change Password
+// -----------------------------
+
+export const changePassword = async (data: ChangePasswordPayload): Promise<ChangePasswordResponse> => {
+  const response = await api.put(AUTH_ENDPOINTS.CHANGE_PASSWORD, data);
+  return response.data;
+};
 
 // -----------------------------
 // Logout

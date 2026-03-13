@@ -8,12 +8,12 @@ import { MatchResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
 import { MessageCircle, Heart } from 'lucide-react';
-
-
+import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
 
 export default function MatchesPage() {
     const [matches, setMatches] = useState<MatchResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const [previewUserId, setPreviewUserId] = useState<string | null>(null);
     const router = useRouter();
     const { socket } = useSocketContext();
     const currentUser = useAppSelector((state) => state.auth.user);
@@ -100,7 +100,10 @@ export default function MatchesPage() {
                             className="group relative bg-white/5 rounded-xl overflow-hidden border border-white/10 hover:border-primary/50 transition-all duration-300"
                         >
                             {/* Profile Photo */}
-                            <div className="relative aspect-square overflow-hidden bg-gray-900">
+                            <div
+                                onClick={() => setPreviewUserId(otherUser.userId)}
+                                className="relative aspect-square overflow-hidden bg-gray-900 cursor-pointer"
+                            >
                                 <Image
                                     src={otherUser.profilePhoto || '/default-avatar.png'}
                                     alt={otherUser.name}
@@ -109,6 +112,13 @@ export default function MatchesPage() {
                                     unoptimized
                                 />
                                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent" />
+
+                                {/* View Profile hint on hover */}
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-bold text-white border border-white/20">
+                                        View Profile
+                                    </div>
+                                </div>
 
                                 {/* Name overlay */}
                                 <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -135,6 +145,12 @@ export default function MatchesPage() {
                     );
                 })}
             </div>
+
+            <ProfilePreviewModal
+                isOpen={!!previewUserId}
+                userId={previewUserId}
+                onClose={() => setPreviewUserId(null)}
+            />
         </div>
     );
 }

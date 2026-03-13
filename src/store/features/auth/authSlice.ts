@@ -10,6 +10,7 @@ export interface User {
     isLocationCompleted: boolean;
     profilePhoto?: string | null;
     interests?: string[];
+    hasPassword?: boolean;
 }
 
 interface AuthState {

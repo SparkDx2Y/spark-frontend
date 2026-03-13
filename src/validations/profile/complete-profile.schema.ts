@@ -5,6 +5,7 @@ export const completeProfileSchema = z.object({
     gender: z.enum(["male", "female"] as const),
     interestedIn: z.enum(["male", "female"] as const),
     profilePhoto: z.string().min(1, "Please upload a profile photo"),
+    bio: z.string().max(500, "Bio cannot exceed 500 characters").optional(),
 });
 
 export type CompleteProfileSchemaType = z.infer<typeof completeProfileSchema>;

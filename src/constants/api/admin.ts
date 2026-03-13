@@ -1,6 +1,7 @@
 export const ADMIN_ENDPOINTS = {
     GET_ALL_USERS: '/admin/users',
     UPDATE_USER_BLOCK_STATUS: '/admin/users/:userId/block-status',
+    DASHBOARD_STATS: '/admin/dashboard/stats',
 
     // Interests & Categories
     GET_CATEGORIES: '/admin/categories',
@@ -16,5 +17,11 @@ export const ADMIN_ENDPOINTS = {
     // Reports
     GET_REPORTS: '/admin/reports',
     UPDATE_REPORT_STATUS: '/admin/reports/:reportId/status',
+
+    // Subscriptions
+    GET_SUBSCRIPTIONS: '/admin/subscriptions',
+    CREATE_SUBSCRIPTION: '/admin/subscriptions',
+    UPDATE_SUBSCRIPTION: '/admin/subscriptions/:id',
+    TOGGLE_SUBSCRIPTION_STATUS: '/admin/subscriptions/:id/toggle',
 } as const;
 
