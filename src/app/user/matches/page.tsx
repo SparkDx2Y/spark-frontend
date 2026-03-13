@@ -7,7 +7,7 @@ import { getMatches } from '@/services/messageService';
 import { MatchResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
-import { MessageCircle, Heart } from 'lucide-react';
+import { MessageCircle, Heart, Search, X } from 'lucide-react';
 import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
 
 export default function MatchesPage() {
@@ -17,6 +17,7 @@ export default function MatchesPage() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const router = useRouter();
     const { socket } = useSocketContext();
@@ -24,25 +25,31 @@ export default function MatchesPage() {
     const LIMIT = 3;
 
     useEffect(() => {
-        loadMatches(1, true);
+        const timer = setTimeout(() => {
+            loadMatches(1, true, searchQuery);
+        }, 500); // 500ms debounce
 
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    useEffect(() => {
         if (socket) {
             socket.on('match', () => {
-                loadMatches(1, true);
+                loadMatches(1, true, searchQuery);
             });
 
             return () => {
                 socket.off('match');
             };
         }
-    }, [socket]);
+    }, [socket, searchQuery]);
 
-    const loadMatches = async (pageNumber: number, replace: boolean = false) => {
+    const loadMatches = async (pageNumber: number, replace: boolean = false, search: string = searchQuery) => {
         if (pageNumber > 1) setLoadingMore(true);
         else setLoading(true);
 
         try {
-            const response = await getMatches(pageNumber, LIMIT);
+            const response = await getMatches(pageNumber, LIMIT, search);
             const newData = response.data;
 
             if (replace) {
@@ -63,7 +70,7 @@ export default function MatchesPage() {
 
     const handleLoadMore = () => {
         if (!loadingMore && hasMore) {
-            loadMatches(page + 1);
+            loadMatches(page + 1, false, searchQuery);
         }
     };
 
@@ -71,11 +78,36 @@ export default function MatchesPage() {
         router.push(`/user/messages?matchId=${matchId}`);
     };
 
-    if (loading) {
-        return (
-            <div className="p-8">
-                <h1 className="text-3xl font-bold mb-6">Your Matches</h1>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    return (
+        <div className="p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-3xl font-bold">Your Matches</h1>
+                    <p className="text-gray-400 mt-1">Start a conversation with your matches</p>
+                </div>
+
+                <div className="relative w-full md:w-80">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search matches by name..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all font-medium"
+                    />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map((i) => (
                         <div key={i} className="bg-white/5 rounded-xl p-4 animate-pulse">
                             <div className="w-full aspect-square bg-white/10 rounded-lg mb-4" />
@@ -84,34 +116,34 @@ export default function MatchesPage() {
                         </div>
                     ))}
                 </div>
-            </div>
-        );
-    }
-
-    if (matches.length === 0) {
-        return (
-            <div className="p-8 flex flex-col items-center justify-center min-h-[60vh]">
-                <Heart className="w-16 h-16 text-primary/30 mb-4" />
-                <h1 className="text-3xl font-bold mb-2">No Matches Yet</h1>
-                <p className="text-gray-400 mb-6">Start swiping to find your perfect match!</p>
-                <button
-                    onClick={() => router.push('/user/home')}
-                    className="px-6 py-3 bg-linear-to-r from-primary to-purple-500 rounded-lg font-semibold hover:opacity-90 transition"
-                >
-                    Start Swiping
-                </button>
-            </div>
-        );
-    }
-
-    return (
-        <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-3xl font-bold">Your Matches</h1>
-                <span className="text-gray-400">{matches.length} {matches.length === 1 ? 'match' : 'matches'}</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ) : matches.length === 0 ? (
+                searchQuery ? (
+                    <div className="flex flex-col items-center justify-center min-h-[40vh] text-center p-8 bg-white/5 rounded-2xl border border-white/5">
+                        <Search className="w-12 h-12 text-gray-500 mb-4" />
+                        <h3 className="text-xl font-bold mb-2">No results found</h3>
+                        <p className="text-gray-400">We couldn't find any matches matching "{searchQuery}"</p>
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="mt-4 text-primary font-medium hover:underline"
+                        >
+                            Clear search
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8">
+                        <Heart className="w-16 h-16 text-primary/30 mb-4" />
+                        <h1 className="text-3xl font-bold mb-2">No Matches Yet</h1>
+                        <p className="text-gray-400 mb-6">Start swiping to find your perfect match!</p>
+                        <button
+                            onClick={() => router.push('/user/home')}
+                            className="px-6 py-3 bg-linear-to-r from-primary to-purple-500 rounded-lg font-semibold hover:opacity-90 transition"
+                        >
+                            Start Swiping
+                        </button>
+                    </div>
+                )
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {matches.map((match) => {
                     const otherUser = match.users.find(u => u.userId !== currentUser?.id) || match.users[0];
 
@@ -167,6 +199,7 @@ export default function MatchesPage() {
                     );
                 })}
             </div>
+            )}
 
             {hasMore && (
                 <div className="flex justify-center mt-12 mb-8">

@@ -7,7 +7,7 @@ import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMess
 import { MatchResponse, MessageResponse } from '@/types/message/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
-import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle, Lock } from 'lucide-react';
+import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle, Lock, Search } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { uploadChatMedia } from '@/services/fileService';
@@ -116,6 +116,7 @@ export default function MessagesPage() {
     const [showAttachments, setShowAttachments] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Audio recording state
     const [isRecording, setIsRecording] = useState(false);
@@ -145,8 +146,11 @@ export default function MessagesPage() {
 
     // Load matches
     useEffect(() => {
-        loadMatches();
-    }, []);
+        const timer = setTimeout(() => {
+            loadMatches(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Auto-select match from URL
     useEffect(() => {
@@ -257,10 +261,10 @@ export default function MessagesPage() {
     }, [messages]);
 
     // Load matches
-    const loadMatches = async () => {
+    const loadMatches = async (search?: string) => {
         try {
             const [response, planRes] = await Promise.all([
-                getMatches(),
+                getMatches(1, 50, search),
                 getCurrentPlan()
             ]);
             setCurrentPlan(planRes.plan);
@@ -672,13 +676,23 @@ export default function MessagesPage() {
                     {/* Search Bar Placeholder for future */}
                     <div className="relative mb-4 group">
                         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                            <svg className="w-4 h-4 text-gray-500 group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <Search className="w-4 h-4 text-gray-500 group-focus-within:text-primary transition-colors" />
                         </div>
                         <input
                             type="text"
                             placeholder="Search conversations..."
-                            className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-gray-200 focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all placeholder:text-gray-600"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-10 text-sm text-gray-200 focus:outline-none focus:border-primary/50 focus:bg-white/10 transition-all placeholder:text-gray-600"
                         />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors p-1"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
