@@ -25,27 +25,6 @@ export default function MatchesPage() {
     const { socket } = useSocketContext();
     const currentUser = useAppSelector((state) => state.auth.user);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            loadMatches(1, true, searchQuery);
-        }, 500); // 500ms debounce
-
-        return () => clearTimeout(timer);
-    }, [searchQuery, loadMatches]);
-
-    useEffect(() => {
-        if (socket) {
-            const handleMatch = () => {
-                loadMatches(1, true, searchQuery);
-            };
-            socket.on('match', handleMatch);
-
-            return () => {
-                socket.off('match');
-            };
-        }
-    }, [socket, searchQuery, loadMatches]);
-
     const loadMatches = useCallback(async (pageNumber: number, replace: boolean = false, search: string = searchQuery) => {
         if (pageNumber > 1) setLoadingMore(true);
         else setLoading(true);
@@ -69,6 +48,27 @@ export default function MatchesPage() {
             setLoadingMore(false);
         }
     }, [searchQuery]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            loadMatches(1, true, searchQuery);
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(timer);
+    }, [searchQuery, loadMatches]);
+
+    useEffect(() => {
+        if (socket) {
+            const handleMatch = () => {
+                loadMatches(1, true, searchQuery);
+            };
+            socket.on('match', handleMatch);
+
+            return () => {
+                socket.off('match');
+            };
+        }
+    }, [socket, searchQuery, loadMatches]);
 
     const handleLoadMore = () => {
         if (!loadingMore && hasMore) {
