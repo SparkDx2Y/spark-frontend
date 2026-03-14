@@ -39,7 +39,8 @@ api.interceptors.response.use(
                 const isPublicPath = publicPaths.includes(window.location.pathname);
 
                 if (!isPublicPath) {
-                    window.location.replace('/login');
+                    const isAdminPath = window.location.pathname.startsWith('/admin');
+                    window.location.replace(isAdminPath ? '/admin/login' : '/login');
                 }
 
                 return Promise.reject(refreshError);
@@ -51,7 +52,8 @@ api.interceptors.response.use(
             isBlockedHandled = true;
             store.dispatch(logout());
             showError(message);
-            window.location.replace('/login');
+            const isAdminPath = window.location.pathname.startsWith('/admin');
+            window.location.replace(isAdminPath ? '/admin/login' : '/login');
         }
 
         return Promise.reject(error);
