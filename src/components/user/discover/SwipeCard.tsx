@@ -16,7 +16,13 @@ interface SwipeCardProps {
 
 export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) {
     const currentUser = useAppSelector((state) => state.auth.user);
-    const myInterests = currentUser?.interests || [];
+    // Filter: Only show shared interests
+    const sharedInterests = useMemo(() => {
+        const myInterests = currentUser?.interests || [];
+        if (!profile.interests || profile.interests.length === 0) return [];
+        return profile.interests.filter(interest => myInterests.includes(interest));
+    }, [profile.interests, currentUser?.interests]);
+
     //? state for current photo index for photo navigation
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const [showProfile, setShowProfile] = useState(false);
@@ -32,13 +38,6 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
         ...(profile.profilePhoto ? [profile.profilePhoto] : []),
         ...(profile.photos || [])
     ];
-
-
-    // Filter: Only show shared interests
-    const sharedInterests = useMemo(() => {
-        if (!profile.interests || profile.interests.length === 0) return [];
-        return profile.interests.filter(interest => myInterests.includes(interest));
-    }, [profile.interests, myInterests]);
 
     //? handle drag end for swipe actions 
     const handleDragEnd = (_: unknown, info: PanInfo) => {

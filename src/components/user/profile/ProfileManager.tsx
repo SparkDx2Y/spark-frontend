@@ -44,16 +44,13 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
     const dispatch = useAppDispatch();
     const authUser = useAppSelector((state) => state.auth.user);
 
-    /**
-     * One-time sync with Redux on mount to ensure Header/Sidebar matches the server data.
-     */
     useEffect(() => {
         if (initialProfile.profilePhoto && authUser && authUser.profilePhoto !== initialProfile.profilePhoto) {
             dispatch(setCredentials({
                 user: { ...authUser, profilePhoto: initialProfile.profilePhoto }
             }));
         }
-    }, []);
+    }, [authUser, dispatch, initialProfile.profilePhoto]);
 
     const updateAuthPhoto = (photoUrl: string | null) => {
         if (!authUser) return;
