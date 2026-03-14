@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getAllUsers, updateUserBlockStatus } from "@/services/adminService";
 import { User, Pagination } from "@/types/admin/userList/response";
 import { showError, showSuccess } from "@/utils/toast";
-import { Users, Search, Mail, Calendar, Shield, ShieldOff, CheckCircle, XCircle } from "lucide-react";
+import { Users, Search, Mail, Calendar, Shield, ShieldOff, CheckCircle, XCircle, Crown } from "lucide-react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import TablePagination from "./TablePagination";
 
@@ -187,6 +187,23 @@ export default function UsersTable({ initialUsers, initialPagination }: UsersTab
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-500/10 text-stone-400 text-xs font-bold border border-stone-500/20">
                             <Shield className="w-3 h-3" />
                             Active
+                        </span>
+                    )}
+                </div>
+            )
+        },
+        {
+            header: "Plan",
+            render: (user) => (
+                <div className="flex items-center">
+                    {user.plan === 'Free' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-500/10 text-stone-400 text-xs font-bold border border-stone-500/20">
+                            {user.plan}
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500/10 text-amber-500 text-xs font-bold border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+                            <Crown className="w-3.5 h-3.5" />
+                            {user.plan}
                         </span>
                     )}
                 </div>
