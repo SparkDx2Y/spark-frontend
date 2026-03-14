@@ -13,7 +13,7 @@ import { setCredentials } from "@/store/features/auth/authSlice";
 import { getInterests, updateInterests, updateLocation } from "@/services/profileService";
 import { InterestResponse } from "@/types/profile/response";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Sparkles, X, Check, Edit2 } from "lucide-react";
+import { MapPin, Sparkles, X, Check, Edit2, ChevronLeft, ChevronRight } from "lucide-react";
 
 
 interface ProfileManagerProps {
@@ -32,6 +32,9 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
     const [allInterests, setAllInterests] = useState<InterestResponse[]>([]);
     const [selectedInterestIds, setSelectedInterestIds] = useState<string[]>([]);
     const [loadingInterests, setLoadingInterests] = useState(false);
+
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
@@ -286,11 +289,25 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
             {/* Cover section */}
             <div className="relative h-64 md:h-80 lg:h-96 overflow-hidden rounded-b-3xl border border-white/5">
                 {profile.coverPhoto ? (
-                    <Image src={profile.coverPhoto} alt="Cover" fill className="object-cover" unoptimized />
+                    <Image
+                        src={profile.coverPhoto}
+                        alt="Cover"
+                        fill
+                        className="object-cover hover:scale-[1.02] transition-transform duration-700"
+                        unoptimized
+                    />
                 ) : (
                     <div className="w-full h-full bg-linear-to-r from-primary/20 to-purple-600/20" />
                 )}
-                <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+                <div 
+                    className={`absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent ${profile.coverPhoto ? 'cursor-pointer' : ''}`} 
+                    onClick={() => {
+                        if (profile.coverPhoto) {
+                            setPreviewImage(profile.coverPhoto);
+                            setPreviewIndex(null);
+                        }
+                    }}
+                />
                 <div className="absolute top-6 right-6 z-30">
                     <button
                         type="button"
@@ -327,8 +344,12 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                                     src={profile.profilePhoto || profile.photos?.[0]}
                                     alt="Profile photo"
                                     fill
-                                    className="object-cover"
+                                    className="object-cover cursor-pointer hover:scale-110 transition-transform duration-700"
                                     unoptimized
+                                    onClick={() => {
+                                        setPreviewImage(profile.profilePhoto || profile.photos?.[0] || null);
+                                        setPreviewIndex(null);
+                                    }}
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-primary/10 text-3xl font-bold text-primary">
@@ -443,25 +464,31 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
                     {(profile.photos || []).map((url, index) => (
                         <div key={url + index} className="relative group aspect-3/4 rounded-2xl overflow-hidden border border-white/10 bg-white/5 shadow-xl transition-transform duration-500 hover:scale-[1.02]">
-                            <Image src={url} alt={`Photo ${index + 1}`} fill className="object-cover" unoptimized />
+                            <Image
+                                src={url}
+                                alt={`Photo ${index + 1}`}
+                                fill
+                                className="object-cover cursor-pointer"
+                                unoptimized
+                                onClick={() => {
+                                    setPreviewImage(url);
+                                    setPreviewIndex(index);
+                                }}
+                            />
 
-                            <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/60 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300">
-                                <div className="absolute top-2 right-2 flex gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemovePhoto(index)}
-                                        disabled={saving.gallery}
-                                        className="p-2 rounded-xl bg-black/40 hover:bg-black/80 backdrop-blur-md border border-white/10 text-red-500 transition-all active:scale-95 shadow-lg disabled:opacity-50"
-                                        title="Remove photo"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                <div className="absolute bottom-2 left-2">
-                                    <span className="text-[10px] font-bold text-white/90 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg uppercase tracking-widest border border-white/5">
-                                        Photo {index + 1}
-                                    </span>
-                                </div>
+                            <div className="absolute top-2 right-2 z-10">
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemovePhoto(index);
+                                    }}
+                                    disabled={saving.gallery}
+                                    className="p-2 rounded-xl bg-black/40 hover:bg-black/80 backdrop-blur-md border border-white/10 text-red-500 transition-all active:scale-95 shadow-lg disabled:opacity-50"
+                                    title="Remove photo"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
                             </div>
                         </div>
                     ))}
@@ -659,6 +686,99 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                 )}
             </AnimatePresence>
 
+            {/* Image Preview Modal */}
+            <AnimatePresence>
+                {previewImage && (
+                    <div className="fixed inset-0 z-100 flex flex-col items-center justify-center overflow-hidden bg-black/98">
+                        {/* Immersive Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 cursor-default"
+                            onClick={() => {
+                                setPreviewImage(null);
+                                setPreviewIndex(null);
+                            }}
+                        />
+
+                        {/* Top Controls - Just Close Button */}
+                        <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-end z-110 bg-linear-to-b from-black/50 to-transparent">
+                            <button
+                                onClick={() => {
+                                    setPreviewImage(null);
+                                    setPreviewIndex(null);
+                                }}
+                                className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 active:scale-95 border border-white/10"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div 
+                            className="relative w-full flex-1 flex items-center justify-center p-4 cursor-default"
+                            onClick={() => {
+                                setPreviewImage(null);
+                                setPreviewIndex(null);
+                            }}
+                        >
+                            <AnimatePresence>
+                                <motion.div
+                                    key={previewImage}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 1.05 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="relative w-full h-full max-w-6xl flex items-center justify-center z-10 pointer-events-none"
+                                >
+                                    <div className="relative w-full h-full pointer-events-auto">
+                                        <Image
+                                            src={previewImage || ""}
+                                            alt="Preview"
+                                            fill
+                                            className="object-contain"
+                                            unoptimized
+                                            priority
+                                        />
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+
+                            {/* Center Navigation Arrows */}
+                            {previewIndex !== null && profile.photos && profile.photos.length > 1 && (
+                                <div className="absolute inset-y-0 inset-x-0 flex items-center justify-between px-4 md:px-10 z-20 pointer-events-none">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (previewIndex !== null && profile.photos) {
+                                                const prevIdx = (previewIndex - 1 + profile.photos.length) % profile.photos.length;
+                                                setPreviewIndex(prevIdx);
+                                                setPreviewImage(profile.photos[prevIdx]);
+                                            }
+                                        }}
+                                        className="pointer-events-auto p-4 rounded-full bg-black/40 hover:bg-white/10 text-white backdrop-blur-md border border-white/5 transition-all outline-none hover:scale-110 active:scale-90"
+                                    >
+                                        <ChevronLeft className="w-8 h-8" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (previewIndex !== null && profile.photos) {
+                                                const nextIdx = (previewIndex + 1) % profile.photos.length;
+                                                setPreviewIndex(nextIdx);
+                                                setPreviewImage(profile.photos[nextIdx]);
+                                            }
+                                        }}
+                                        className="pointer-events-auto p-4 rounded-full bg-black/40 hover:bg-white/10 text-white backdrop-blur-md border border-white/5 transition-all outline-none hover:scale-110 active:scale-90"
+                                    >
+                                        <ChevronRight className="w-8 h-8" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
