@@ -1,11 +1,10 @@
 import AuthHero from "@/components/auth/AuthHero";
 import AuthFormWrapper from "@/components/auth/AuthFormWrapper";
 import LoginForm from "@/components/auth/LoginForm";
-import GuestGuard from "@/components/guards/GuestGuard";
+
 
 export default function LoginPage() {
   return (
-    <GuestGuard>
      <div className="min-h-screen flex items-center justify-center px-4 py-20">
      
       <div className="w-full max-w-7xl">
@@ -24,6 +23,5 @@ export default function LoginPage() {
         </div>
       </div>
      </div>
-    </GuestGuard>
   );
 }

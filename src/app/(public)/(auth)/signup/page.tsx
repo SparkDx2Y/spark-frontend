@@ -1,14 +1,11 @@
 import AuthFormWrapper from "@/components/auth/AuthFormWrapper";
 import AuthHero from "@/components/auth/AuthHero";
 import SignupForm from "@/components/auth/SignupForm";
-import GuestGuard from "@/components/guards/GuestGuard";
-
 
 
 
 export default function SignupPage() {
     return (
-        <GuestGuard>
           <div className="min-h-screen flex items-center justify-center px-4 py-20">
 
             <div className="w-full max-w-7xl">
@@ -27,7 +24,6 @@ export default function SignupPage() {
                 </div>
             </div>
           </div>
-        </GuestGuard>
     )
 }
 
