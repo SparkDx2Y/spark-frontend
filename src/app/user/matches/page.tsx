@@ -121,7 +121,7 @@ export default function MatchesPage() {
                     <div className="flex flex-col items-center justify-center min-h-[40vh] text-center p-8 bg-white/5 rounded-2xl border border-white/5">
                         <Search className="w-12 h-12 text-gray-500 mb-4" />
                         <h3 className="text-xl font-bold mb-2">No results found</h3>
-                        <p className="text-gray-400">We couldn't find any matches matching "{searchQuery}"</p>
+                        <p className="text-gray-400">We couldn&apos;t find any matches matching &quot;{searchQuery}&quot;</p>
                         <button
                             onClick={() => setSearchQuery('')}
                             className="mt-4 text-primary font-medium hover:underline"

@@ -246,7 +246,7 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                                     {profile.bio && (
                                         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                             <p className="text-sm text-gray-200 leading-relaxed italic line-clamp-3">
-                                                "{profile.bio}"
+                                                &quot;{profile.bio}&quot;
                                             </p>
                                         </div>
                                     )}

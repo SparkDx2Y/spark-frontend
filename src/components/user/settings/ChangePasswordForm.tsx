@@ -48,7 +48,7 @@ export const ChangePasswordForm = () => {
             <div className="bg-zinc-900/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 text-center">
                 <ShieldCheck className="w-8 h-8 text-primary mx-auto mb-3" />
                 <h2 className="text-lg font-bold text-white mb-2">Social Login Account</h2>
-                <p className="text-sm text-gray-400">You signed in using a social provider (e.g., Google). You don't have a customized password to change.</p>
+                <p className="text-sm text-gray-400">You signed in using a social provider (e.g., Google). You don&apos;t have a customized password to change.</p>
             </div>
         );
     }
