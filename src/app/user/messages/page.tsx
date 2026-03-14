@@ -13,7 +13,7 @@ import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { uploadChatMedia } from '@/services/fileService';
 import { useVideoCallContext } from '@/contexts/VideoCallContext';
 import ReportModal from '@/components/user/ReportModal';
-import { handleApiError, showError } from '@/utils/toast';
+import { handleApiError } from '@/utils/toast';
 import { getErrorMessage } from '@/utils/errors';
 import { getCurrentPlan } from '@/services/subscriptionService';
 import type { SubscriptionPlan } from '@/types/subscription';

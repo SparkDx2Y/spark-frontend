@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useMemo, useEffect } from 'react';
-import { X, Heart, MapPin, Loader2, Flag, Images, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import { X, Heart, MapPin, Loader2, Flag, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import Image from 'next/image';
 import Modal from '@/components/ui/Modal';
 import ReportModal from './ReportModal';

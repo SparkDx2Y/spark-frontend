@@ -9,8 +9,6 @@ import {
     Users,
     Sparkles,
     Ticket,
-    Coins,
-    Bell,
     AlertTriangle,
     LogOut
 } from "lucide-react";

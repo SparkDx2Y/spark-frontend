@@ -1,6 +1,6 @@
 import { ADMIN_ENDPOINTS } from '@/constants/api';
 import { getServerConfig } from '../base';
-import type { SubscriptionPlan, GetSubscriptionsResponse } from "@/types/subscription";
+import type { GetSubscriptionsResponse } from "@/types/subscription";
 
 /**
  * SERVER-SIDE ONLY: Fetch Subscription Plans
