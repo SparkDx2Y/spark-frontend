@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { getMatches } from '@/services/messageService';
@@ -9,6 +9,8 @@ import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
 import { MessageCircle, Heart, Search, X } from 'lucide-react';
 import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
+
+const LIMIT = 3;
 
 export default function MatchesPage() {
     const [matches, setMatches] = useState<MatchResponse[]>([]);
@@ -22,7 +24,6 @@ export default function MatchesPage() {
     const router = useRouter();
     const { socket } = useSocketContext();
     const currentUser = useAppSelector((state) => state.auth.user);
-    const LIMIT = 3;
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -30,21 +31,22 @@ export default function MatchesPage() {
         }, 500); // 500ms debounce
 
         return () => clearTimeout(timer);
-    }, [searchQuery]);
+    }, [searchQuery, loadMatches]);
 
     useEffect(() => {
         if (socket) {
-            socket.on('match', () => {
+            const handleMatch = () => {
                 loadMatches(1, true, searchQuery);
-            });
+            };
+            socket.on('match', handleMatch);
 
             return () => {
                 socket.off('match');
             };
         }
-    }, [socket, searchQuery]);
+    }, [socket, searchQuery, loadMatches]);
 
-    const loadMatches = async (pageNumber: number, replace: boolean = false, search: string = searchQuery) => {
+    const loadMatches = useCallback(async (pageNumber: number, replace: boolean = false, search: string = searchQuery) => {
         if (pageNumber > 1) setLoadingMore(true);
         else setLoading(true);
 
@@ -66,7 +68,7 @@ export default function MatchesPage() {
             setLoading(false);
             setLoadingMore(false);
         }
-    };
+    }, [searchQuery]);
 
     const handleLoadMore = () => {
         if (!loadingMore && hasMore) {
