@@ -1,8 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useMemo, useEffect } from 'react';
-import { X, Heart, MapPin, Loader2, Flag, Images, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { X, Heart, MapPin, Loader2, Flag, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import Image from 'next/image';
 import Modal from '@/components/ui/Modal';
 import ReportModal from './ReportModal';
@@ -27,7 +27,8 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
     const currentUser = useAppSelector((state) => state.auth.user);
-    const myInterests = currentUser?.interests || [];
+    const myInterests = useMemo(() => currentUser?.interests || [], [currentUser?.interests]);
+
 
     useEffect(() => {
         if (isOpen && userId) {
@@ -125,19 +126,21 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
         setIsLightboxOpen(true);
     };
 
-    const nextLightboxPhoto = (e?: React.MouseEvent) => {
+    const nextLightboxPhoto = useCallback((e?: React.MouseEvent) => {
         e?.stopPropagation();
-        if (lightboxIndex < displayPhotos.length - 1) {
-            setLightboxIndex(prev => prev + 1);
-        }
-    };
+        setLightboxIndex(prev => {
+            if (prev < displayPhotos.length - 1) return prev + 1;
+            return prev;
+        });
+    }, [displayPhotos.length]);
 
-    const prevLightboxPhoto = (e?: React.MouseEvent) => {
+    const prevLightboxPhoto = useCallback((e?: React.MouseEvent) => {
         e?.stopPropagation();
-        if (lightboxIndex > 0) {
-            setLightboxIndex(prev => prev - 1);
-        }
-    };
+        setLightboxIndex(prev => {
+            if (prev > 0) return prev - 1;
+            return prev;
+        });
+    }, []);
 
     // Keyboard support for Lightbox
     useEffect(() => {
@@ -151,7 +154,7 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isLightboxOpen, lightboxIndex, displayPhotos.length]);
+    }, [isLightboxOpen, nextLightboxPhoto, prevLightboxPhoto]);
 
     return (
         <>
@@ -246,7 +249,7 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                                     {profile.bio && (
                                         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                             <p className="text-sm text-gray-200 leading-relaxed italic line-clamp-3">
-                                                "{profile.bio}"
+                                                &quot;{profile.bio}&quot;
                                             </p>
                                         </div>
                                     )}

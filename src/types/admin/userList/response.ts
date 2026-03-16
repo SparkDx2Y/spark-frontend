@@ -10,6 +10,7 @@ export interface User {
     createdAt: string;
     updatedAt: string;
     profilePhoto?: string | null;
+    plan?: string | null;
 }
 
 export interface Pagination {

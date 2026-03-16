@@ -19,6 +19,7 @@ export default function ActivityPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabType>('liked');
     const [previewUser, setPreviewUser] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const router = useRouter();
 
     useEffect(() => {
@@ -40,16 +41,28 @@ export default function ActivityPage() {
         }
     };
 
+    // Filter activity based on search query
     const currentData = useMemo(() => {
         if (!activity) return [];
+        let data: MatchAction[] = [];
         switch (activeTab) {
-            case 'liked': return activity.liked;
-            case 'passed': return activity.passed;
-            case 'received': return activity.received;
-            case 'viewedYou': return activity.viewedYou;
-            default: return [];
+            case 'liked': data = activity.liked; break;
+            case 'passed': data = activity.passed; break;
+            case 'received': data = activity.received; break;
+            case 'viewedYou': data = activity.viewedYou; break;
+            default: data = [];
         }
-    }, [activity, activeTab]);
+
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            return data.filter(item => {
+                const targetUser = (activeTab === 'received' || activeTab === 'viewedYou') ? item.fromUserId : item.toUserId;
+                return targetUser.name.toLowerCase().includes(query);
+            });
+        }
+
+        return data;
+    }, [activity, activeTab, searchQuery]);
 
     // Check for matches (Mutual likes)
     const getStatus = (item: MatchAction, type: TabType) => {
@@ -81,35 +94,57 @@ export default function ActivityPage() {
             </div>
 
             <div className="max-w-6xl mx-auto px-6 pt-8 md:pt-12 relative z-10">
-                <header className="mb-10">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-6">Swipe History</h1>
+                <header className="mb-10 space-y-6">
+                    <h1 className="text-3xl md:text-4xl font-bold">Swipe History</h1>
 
-                    {/* Consistent Tab Navigation */}
-                    <div className="flex p-1.5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 w-fit">
-                        <TabButton
-                            active={activeTab === 'liked'}
-                            onClick={() => setActiveTab('liked')}
-                            label="Sent"
-                            count={activity?.liked.length}
-                        />
-                        <TabButton
-                            active={activeTab === 'received'}
-                            onClick={() => setActiveTab('received')}
-                            label="Received"
-                            count={activity?.received.length}
-                        />
-                        <TabButton
-                            active={activeTab === 'passed'}
-                            onClick={() => setActiveTab('passed')}
-                            label="Passed"
-                            count={activity?.passed.length}
-                        />
-                        <TabButton
-                            active={activeTab === 'viewedYou'}
-                            onClick={() => setActiveTab('viewedYou')}
-                            label="Viewed You"
-                            count={activity?.viewedYou.length}
-                        />
+                    <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                        {/* Consistent Tab Navigation */}
+                        <div className="flex p-1.5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 w-fit overflow-x-auto max-w-full">
+                            <TabButton
+                                active={activeTab === 'liked'}
+                                onClick={() => setActiveTab('liked')}
+                                label="Sent"
+                                count={activity?.liked.length}
+                            />
+                            <TabButton
+                                active={activeTab === 'received'}
+                                onClick={() => setActiveTab('received')}
+                                label="Received"
+                                count={activity?.received.length}
+                            />
+                            <TabButton
+                                active={activeTab === 'passed'}
+                                onClick={() => setActiveTab('passed')}
+                                label="Passed"
+                                count={activity?.passed.length}
+                            />
+                            <TabButton
+                                active={activeTab === 'viewedYou'}
+                                onClick={() => setActiveTab('viewedYou')}
+                                label="Viewed You"
+                                count={activity?.viewedYou.length}
+                            />
+                        </div>
+
+                        {/* Search Bar */}
+                        <div className="relative w-full md:w-72">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            <input
+                                type="text"
+                                placeholder={`Search in ${activeTab}...`}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-gray-600"
+                            />
+                            {searchQuery && (
+                                <button 
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </header>
 
@@ -170,7 +205,9 @@ export default function ActivityPage() {
                                     <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center">
                                         <Search className="w-8 h-8 text-gray-600" />
                                     </div>
-                                    <p className="text-gray-400">No profiles found in this category.</p>
+                                    <p className="text-gray-400">
+                                        {searchQuery ? `No profiles matching "${searchQuery}"` : "No profiles found in this category."}
+                                    </p>
                                     <button
                                         onClick={() => router.push('/user/home')}
                                         className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm font-semibold transition"

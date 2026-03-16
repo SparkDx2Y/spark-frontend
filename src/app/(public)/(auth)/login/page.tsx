@@ -2,9 +2,10 @@ import AuthHero from "@/components/auth/AuthHero";
 import AuthFormWrapper from "@/components/auth/AuthFormWrapper";
 import LoginForm from "@/components/auth/LoginForm";
 
+
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-20">
+     <div className="min-h-screen flex items-center justify-center px-4 py-20">
      
       <div className="w-full max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -21,6 +22,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-    </div>
+     </div>
   );
 }

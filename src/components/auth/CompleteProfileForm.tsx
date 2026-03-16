@@ -11,13 +11,12 @@ import { useRouter } from "next/navigation";
 import { completeProfile } from "@/services/profileService";
 import { handleFormError } from "@/utils/handleFormError";
 import { showSuccess, handleApiError } from "@/utils/toast";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { uploadFile } from "@/services/fileService";
 
 import { useDispatch } from "react-redux";
 import { setCredentials } from "@/store/features/auth/authSlice";
 import { getCurrentUser } from "@/services/authService";
-
 export default function CompleteProfileForm() {
     const router = useRouter();
     const dispatch = useDispatch();
@@ -25,7 +24,9 @@ export default function CompleteProfileForm() {
     const { register, handleSubmit, setValue, watch, setError, formState: { errors, isSubmitting } } = useForm<CompleteProfileSchemaType>({
         resolver: zodResolver(completeProfileSchema),
         defaultValues: {
-            profilePhoto: ""
+            profilePhoto: "",
+            gender: "",
+            interestedIn: ""
         }
     });
 
@@ -33,10 +34,24 @@ export default function CompleteProfileForm() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const profilePhoto = watch("profilePhoto") || "";
+    const selectedGender = watch("gender") || "";
+
+    // Reset interestedIn whenever gender changes (to force re-selection from filtered list)
+    useEffect(() => {
+        if (selectedGender) {
+            setValue("interestedIn", "");
+        }
+    }, [selectedGender, setValue]);
 
     const onSubmit: SubmitHandler<CompleteProfileSchemaType> = async (data) => {
         try {
-            const response = await completeProfile(data);
+            // Map the form data to the specific API payload type
+            const payload = {
+                ...data,
+                gender: data.gender as 'male' | 'female',
+                interestedIn: data.interestedIn as 'male' | 'female'
+            };
+            const response = await completeProfile(payload);
             showSuccess(response.message);
 
             if (response.data.isCompleted) {
@@ -101,7 +116,7 @@ export default function CompleteProfileForm() {
                     <Input
                         label="Age"
                         type="number"
-                        {...register("age", { valueAsNumber: true })}
+                        {...register("age")}
                         error={errors.age?.message}
                     />
 
@@ -125,11 +140,15 @@ export default function CompleteProfileForm() {
                 <div className="relative w-full group">
                     <select
                         {...register("interestedIn")}
-                        className="w-full px-4 pt-6 pb-2 border border-white/10 rounded-xl text-gray-100 bg-transparent outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all duration-200 appearance-none"
+                        className="w-full px-4 pt-6 pb-2 border border-white/10 rounded-xl text-gray-100 bg-transparent outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all duration-200 appearance-none disabled:opacity-50"
                     >
                         <option value="" disabled className="bg-gray-900">Select Preference</option>
-                        <option value="male" className="bg-gray-900">Men</option>
-                        <option value="female" className="bg-gray-900">Women</option>
+                        {(!watch("gender") || watch("gender") === "female") && (
+                            <option value="male" className="bg-gray-900">Men</option>
+                        )}
+                        {(!watch("gender") || watch("gender") === "male") && (
+                            <option value="female" className="bg-gray-900">Women</option>
+                        )}
                     </select>
                     <label className="absolute left-4 top-2 text-gray-400 text-xs pointer-events-none">
                         Interested In
