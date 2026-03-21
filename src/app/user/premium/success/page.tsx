@@ -1,31 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { CheckCircle2, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export default function PremiumSuccessPage() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const sessionId = searchParams.get("session_id");
     const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
 
-    
-    useEffect(() => {
-        if (!sessionId) {
-            router.push("/user/premium");
-            return;
-        }
+   
+    if (!sessionId) {
+        redirect("/user/premium");
+    }
 
-       
+    useEffect(() => {
         const timer = setTimeout(() => {
             setStatus("success");
         }, 1500);
 
         return () => clearTimeout(timer);
-    }, [sessionId, router]);
+    }, [sessionId]);
 
     if (status === "verifying") {
         return (
