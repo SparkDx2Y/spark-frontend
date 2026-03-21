@@ -16,18 +16,11 @@ export interface ProfileResponse {
     hasSwiped?: boolean;
 }
 
-
-
 export interface InterestResponse {
     id: string;
     name: string;
 }
 
-export interface InterestCategoryWithInterests {
-    id: string;
-    name: string;
-    interests: InterestResponse[];
-}
 
 export type UpdateInterestsResponse = ApiResponse<{
     isInterestsSelected: boolean;
