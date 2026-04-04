@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import { getActivePlansData, getCurrentPlanData } from "@/lib/data/user/subscription.data";
 import PremiumPlans from "@/components/user/premium/PremiumPlans";
@@ -28,8 +29,10 @@ export default async function PremiumPage() {
 }
 
 async function PremiumContent() {
-    const plans = await getActivePlansData();
-    const currentPlanResponse = await getCurrentPlanData();
+    const [plans, currentPlanResponse] = await Promise.all([
+        getActivePlansData(),
+        getCurrentPlanData(),
+    ]);
     const currentPlan = currentPlanResponse?.plan;
     const subscriptionDetails = currentPlanResponse?.subscription;
 

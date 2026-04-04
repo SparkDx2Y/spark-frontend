@@ -1,6 +1,8 @@
+export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import { getSubscriptionsData } from "@/lib/data/admin/subscriptions.data";
 import SubscriptionManager from "@/components/admin/SubscriptionManager";
+
 
 export default async function SubscriptionsPage() {
     return (
