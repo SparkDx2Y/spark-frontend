@@ -144,7 +144,10 @@ export const useSocket = () => {
         });
 
 
-        setSocket(newSocket);
+        // Wrap in setTimeout to avoid calling setState synchronously within an effect
+        setTimeout(() => {
+            setSocket(newSocket);
+        }, 0);
 
         return () => {
             console.log('Cleaning up socket connection');

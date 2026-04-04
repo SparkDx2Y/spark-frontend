@@ -11,12 +11,19 @@ interface ChartData {
 
 const fmt = (n: number) => n?.toLocaleString('en-IN') ?? '0';
 
-const CustomTooltip = ({ active, payload, label, prefix = '' }: any) => {
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: Array<{ color: string; name: string; value: number }>;
+    label?: string;
+    prefix?: string;
+}
+
+const CustomTooltip = ({ active, payload, label, prefix = '' }: CustomTooltipProps) => {
     if (!active || !payload?.length) return null;
     return (
         <div className="bg-[#18181b] border border-white/10 rounded-xl px-4 py-3 shadow-2xl text-sm">
             <p className="text-green-400 text-xs mb-1">{label}</p>
-            {payload.map((p: any, i: number) => (
+            {payload.map((p: { color: string; name: string; value: number }, i: number) => (
                 <p key={i} style={{ color: p.color }} className="font-bold">
                     {p.name}: {prefix}{fmt(p.value)}
                 </p>

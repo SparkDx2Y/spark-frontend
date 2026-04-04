@@ -122,9 +122,10 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
             );
             toast.success(updatedPlan.isActive ? "Plan Activated!" : "Plan Deactivated!");
             setIsConfirmOpen(false);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Toggle error:", error);
-            toast.error(error.response?.data?.message || "Failed to update status");
+            const err = error as { response?: { data?: { message?: string } } };
+            toast.error(err.response?.data?.message || "Failed to update status");
         } finally {
             setIsLoading(false);
             setPlanToToggle(null);
@@ -155,10 +156,11 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                 fetchPlans(currentPage);
             }
             setIsModalOpen(false);
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.message ||
-                error.response?.data?.error ||
-                error.message ||
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string, error?: string } }, message?: string };
+            const errorMessage = err.response?.data?.message ||
+                err.response?.data?.error ||
+                err.message ||
                 "Operation failed";
             toast.error(errorMessage);
         } finally {
@@ -508,7 +510,7 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                         <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
                             <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
                             <p className="text-[10px] text-red-500 font-black uppercase tracking-wider leading-relaxed">
-                                {(errors.features as any)?.message || "Please select at least one feature or limit for the plan"}
+                                {(errors.features as { message?: string })?.message || "Please select at least one feature or limit for the plan"}
                             </p>
                         </div>
                     )}

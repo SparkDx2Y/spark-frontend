@@ -36,8 +36,9 @@ export const ChangePasswordForm = () => {
             toast.success(response.message || "Password changed successfully");
             reset();
             setIsExpanded(false);
-        } catch (error: any) {
-            toast.error(error?.response?.data?.message || "Something went wrong. Please try again.");
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            toast.error(err?.response?.data?.message || "Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);
         }

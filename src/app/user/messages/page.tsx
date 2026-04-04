@@ -134,7 +134,6 @@ export default function MessagesPage() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const audioInputRef = useRef<HTMLInputElement>(null);
-    const audioRef = useRef<HTMLAudioElement>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -160,6 +159,7 @@ export default function MessagesPage() {
                 handleSelectMatch(match);
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [matchIdFromUrl, matches]);
 
     // Join/Leave chat room
@@ -231,6 +231,7 @@ export default function MessagesPage() {
         return () => {
             socket.off('message', handleNewMessage);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket, selectedMatch]);
 
     // Handle delete message
@@ -404,6 +405,7 @@ export default function MessagesPage() {
 
         setMessages(prev => [...prev, optimisticMessage]);
 
+        setUploading(true);
         try {
             const url = await uploadChatMedia(file, 'image');
             const response = await sendMessage({
@@ -427,6 +429,7 @@ export default function MessagesPage() {
             setMessages(prev => prev.filter(m => m.id !== tempId));
 
         } finally {
+            setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
@@ -452,6 +455,7 @@ export default function MessagesPage() {
 
         setMessages(prev => [...prev, optimisticMessage]);
 
+        setUploading(true);
         try {
             const url = await uploadChatMedia(file, 'audio');
             const response = await sendMessage({
@@ -475,6 +479,7 @@ export default function MessagesPage() {
             setMessages(prev => prev.filter(m => m.id !== tempId));
 
         } finally {
+            setUploading(false);
             if (audioInputRef.current) audioInputRef.current.value = '';
         }
     };
@@ -598,6 +603,7 @@ export default function MessagesPage() {
         setAudioBlob(null);
         setRecordingTime(0);
 
+        setUploading(true);
         try {
             const url = await uploadChatMedia(blob, 'audio');
             const response = await sendMessage({
@@ -617,6 +623,8 @@ export default function MessagesPage() {
             console.error('Failed to send audio:', error);
             handleApiError(error, 'Failed to send audio');
             setMessages(prev => prev.filter(m => m.id !== tempId));
+        } finally {
+            setUploading(false);
         }
     };
 

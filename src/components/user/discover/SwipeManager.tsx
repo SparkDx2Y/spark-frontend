@@ -54,7 +54,7 @@ export default function SwipeManager({ initialProfiles }: SwipeManagerProps) {
         try {
             await swipeAction({ targetId: activeProfile.userId, action });
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Swipe action failed", error);
 
             const message = getErrorMessage(error) || "Something went wrong";

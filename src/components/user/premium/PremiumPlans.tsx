@@ -26,9 +26,10 @@ export default function PremiumPlans({ plans, currentPlanId, expiryDate }: Premi
             if (data.url) {
                 window.location.href = data.url;
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
             console.error("Failed to start checkout", error);
-            toast.error(error?.response?.data?.message || "Failed to start checkout. Please try again.");
+            toast.error(err?.response?.data?.message || "Failed to start checkout. Please try again.");
         } finally {
             setIsRedirecting(null);
         }

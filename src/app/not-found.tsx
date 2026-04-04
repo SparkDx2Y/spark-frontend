@@ -39,7 +39,7 @@ export default function NotFound() {
         animate={{
           "--swing-x": [-100, 100],
           "--swing-y": [-100, 0, -100],
-        } as any}
+        } as Record<string, number[]>}
         transition={{
           "--swing-x": { duration: 2, repeat: Infinity, repeatType: "mirror", ease: "linear" },
           "--swing-y": { duration: 1, repeat: Infinity, repeatType: "mirror", ease: "linear" },
