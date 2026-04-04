@@ -126,12 +126,12 @@ export const getAllSubscriptions = async (params?: { page?: number; limit?: numb
     return response.data.data;
 };
 
-export const createSubscription = async (data: any): Promise<SubscriptionPlan> => {
+export const createSubscription = async (data: Record<string, unknown>): Promise<SubscriptionPlan> => {
     const response = await api.post<{ data: SubscriptionPlan }>(ADMIN_ENDPOINTS.CREATE_SUBSCRIPTION, data);
     return response.data.data;
 };
 
-export const updateSubscription = async (id: string, data: any): Promise<SubscriptionPlan> => {
+export const updateSubscription = async (id: string, data: Record<string, unknown>): Promise<SubscriptionPlan> => {
     const response = await api.put<{ data: SubscriptionPlan }>(ADMIN_ENDPOINTS.UPDATE_SUBSCRIPTION.replace(":id", id), data);
     return response.data.data;
 };

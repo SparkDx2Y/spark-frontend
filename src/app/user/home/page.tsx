@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { Suspense } from 'react';
 import { getServerMatchFeed } from '@/lib/data/user/match.data';
 import SwipeManager from '@/components/user/discover/SwipeManager';

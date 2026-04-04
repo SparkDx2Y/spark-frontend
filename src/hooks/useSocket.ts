@@ -20,8 +20,10 @@ export const useSocket = () => {
     useEffect(() => {
         if (!isAuthenticated || !user) {
             // State will be cleared; cleanup function below will handle disconnection
-            setSocket(null);
-            setIsConnected(false);
+            setTimeout(() => {
+                setSocket(null);
+                setIsConnected(false);
+            }, 0);
             return;
         }
 
@@ -142,7 +144,10 @@ export const useSocket = () => {
         });
 
 
-        setSocket(newSocket);
+        // Wrap in setTimeout to avoid calling setState synchronously within an effect
+        setTimeout(() => {
+            setSocket(newSocket);
+        }, 0);
 
         return () => {
             console.log('Cleaning up socket connection');
