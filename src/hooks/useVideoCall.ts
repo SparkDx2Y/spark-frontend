@@ -168,7 +168,7 @@ export const useVideoCall = (
     useEffect(() => {
         if (callerSignalInitial) {
             signalRef.current = callerSignalInitial;
-            setIsIncoming(true);
+            setTimeout(() => setIsIncoming(true), 0);
         }
     }, [callerSignalInitial]);
 
