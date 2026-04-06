@@ -62,7 +62,7 @@ const HowItWorks = () => {
     }, [isInView]);
 
     return (
-        <section ref={containerRef} className="relative w-full px-4 sm:px-6 pt-8 lg:pt-10 pb-6 lg:pb-8 bg-linear-to-b from-black via-gray-950 to-black overflow-hidden">
+        <section id="how-it-works" ref={containerRef} className="relative w-full px-4 sm:px-6 pt-8 lg:pt-10 pb-6 lg:pb-8 bg-linear-to-b from-black via-gray-950 to-black overflow-hidden">
 
             {/* Header */}
             <motion.div

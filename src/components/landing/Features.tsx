@@ -62,7 +62,7 @@ const Features = () => {
     ];
 
     return (
-        <section className="relative w-full px-4 sm:px-6 pt-4 sm:pt-6 lg:pt-8 pb-10 sm:pb-12 lg:pb-14 bg-linear-to-b from-black via-gray-950 to-black">
+        <section id="features" className="relative w-full px-4 sm:px-6 pt-4 sm:pt-6 lg:pt-8 pb-10 sm:pb-12 lg:pb-14 bg-linear-to-b from-black via-gray-950 to-black">
 
             {/* Large Container - Matches the reference image shape */}
             <motion.div

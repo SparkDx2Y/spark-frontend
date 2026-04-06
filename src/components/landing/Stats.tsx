@@ -63,7 +63,7 @@ const Stats = () => {
     ];
 
     return (
-        <section className="relative w-full pt-6 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 lg:pb-12 bg-linear-to-b from-black via-gray-950 to-black">
+        <section id="success" className="relative w-full pt-6 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 lg:pb-12 bg-linear-to-b from-black via-gray-950 to-black">
 
             {/* Section Title */}
             <motion.div
