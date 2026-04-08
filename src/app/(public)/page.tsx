@@ -24,10 +24,15 @@ const HowItWorks = dynamic(() => import("@/components/landing/HowItWorks"), {
   loading: () => <SectionSkeleton h="h-[600px] lg:h-screen" />,
 });
 
+const SplitFlipSection = dynamic(() => import("@/components/landing/split-flip/SplitFlipSection"), {
+  loading: () => <SectionSkeleton h="h-screen" />,
+});
+
 export default function LandingPage() {
   return (
     <div className="bg-black">
       <Hero />
+      <SplitFlipSection />
       <Stats />
       <Features />
       <HowItWorks />
