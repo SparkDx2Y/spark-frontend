@@ -35,17 +35,17 @@ export default function Footer() {
                                     <h3 className="text-white font-bold text-xl sm:text-2xl lg:text-3xl mb-8 tracking-tight">Product</h3>
                                     <ul className='space-y-5'>
                                         <li>
-                                            <Link href='#features' className="text-gray-400 hover:text-primary transition-colors text-lg sm:text-xl font-medium tracking-wide">
+                                            <Link href='/#features' className="text-gray-400 hover:text-primary transition-colors text-lg sm:text-xl font-medium tracking-wide">
                                                 Features
                                             </Link>
                                         </li>
                                         <li>
-                                            <Link href='#how-it-works' className="text-gray-400 hover:text-primary transition-colors text-lg sm:text-xl font-medium tracking-wide">
+                                            <Link href='/#how-it-works' className="text-gray-400 hover:text-primary transition-colors text-lg sm:text-xl font-medium tracking-wide">
                                                 How It Works
                                             </Link>
                                         </li>
                                         <li>
-                                            <Link href='#' className="text-gray-400 hover:text-primary transition-colors text-lg sm:text-xl font-medium tracking-wide">
+                                            <Link href='/#success' className="text-gray-400 hover:text-primary transition-colors text-lg sm:text-xl font-medium tracking-wide">
                                                 Success
                                             </Link>
                                         </li>
