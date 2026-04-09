@@ -221,39 +221,58 @@ const SplitFlipSection = () => {
         
         <div className="w-full max-w-sm flex flex-col relative pb-10">
           {/* Card 1 */}
-          <div className="sticky top-32 w-full aspect-2/3 mb-12 overflow-hidden border border-primary/30 rounded-[32px] shadow-[0_-10px_40px_-10px_rgba(255,75,125,0.3)] bg-black -rotate-3 transition-transform duration-500 hover:rotate-0">
-            <div className="relative w-full h-full">
-              <Image src="/girl.jpg" alt="A Spark Awaits" fill priority sizes="(max-width: 768px) 100vw, 400px" className="object-cover opacity-80" />
+          <div className="sticky top-32 w-full aspect-2/3 mb-12 overflow-hidden border border-primary/30 rounded-[32px] shadow-[0_-10px_40px_-10px_rgba(255,75,125,0.3)] bg-[#111] -rotate-3 transition-transform duration-500 hover:rotate-0">
+            <div className="absolute inset-0 pointer-events-none">
+              <Image 
+                src="/girl.jpg" 
+                alt="A Spark Awaits" 
+                fill 
+                priority 
+                sizes="(max-width: 768px) 100vw, 400px" 
+                className="object-cover opacity-60" 
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-[#1E1F23] via-[#1E1F23]/70 to-transparent"></div>
             </div>
-            <div className="absolute inset-0 bg-linear-to-t from-[#1E1F23] via-[#1E1F23]/70 to-transparent"></div>
-            <div className="relative z-10 flex flex-col justify-end h-full px-8 pb-8">
-              <Text className="mt-auto mb-2 text-5xl! font-bold text-primary opacity-90 drop-shadow-[0_0_15px_rgba(255,75,125,0.8)]"> 01 </Text>
+            <div className="relative z-20 h-full flex flex-col justify-end p-8">
+              <Text className="mb-2 text-5xl! font-bold text-primary opacity-90 drop-shadow-[0_0_15px_rgba(255,75,125,0.8)]"> 01 </Text>
               <Text className={COPY.titleLight}>A Spark Awaits</Text>
               <Text className={COPY.bodyLight}>Every great romance begins with a single moment. Find the one who truly gets your vibe.</Text>
             </div>
           </div>
 
           {/* Card 2 */}
-          <div className="sticky top-40 w-full aspect-2/3 mb-12 overflow-hidden border border-purple-500/30 rounded-[32px] shadow-[0_-10px_40px_-10px_rgba(168,85,247,0.3)] bg-black rotate-2 transition-transform duration-500 hover:rotate-0">
-            <div className="relative w-full h-full">
-              <Image src="/boy1.jpg" alt="Meaningful Connections" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover opacity-80" />
+          <div className="sticky top-40 w-full aspect-2/3 mb-12 overflow-hidden border border-purple-500/30 rounded-[32px] shadow-[0_-10px_40px_-10px_rgba(168,85,247,0.3)] bg-[#111] rotate-2 transition-transform duration-500 hover:rotate-0">
+            <div className="absolute inset-0 pointer-events-none">
+              <Image 
+                src="/boy1.jpg" 
+                alt="Meaningful Connections" 
+                fill 
+                sizes="(max-width: 768px) 100vw, 400px" 
+                className="object-cover opacity-60" 
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-[#1E1F23] via-[#1E1F23]/70 to-transparent"></div>
             </div>
-            <div className="absolute inset-0 bg-linear-to-t from-[#1E1F23] via-[#1E1F23]/70 to-transparent"></div>
-            <div className="relative z-10 flex flex-col justify-end h-full px-8 pb-8">
-              <Text className="mt-auto mb-2 text-5xl! font-bold text-purple-400 opacity-90 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)]"> 02 </Text>
+            <div className="relative z-20 h-full flex flex-col justify-end p-8">
+              <Text className="mb-2 text-5xl! font-bold text-purple-400 opacity-90 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)]"> 02 </Text>
               <Text className={COPY.titleLight}>Meaningful Connections</Text>
               <Text className={COPY.bodyLight}>Skip the superficial small talk. Dive into deep conversations that map to what actually matters to you.</Text>
             </div>
           </div>
 
           {/* Card 3 */}
-          <div className="sticky top-48 w-full aspect-2/3 mb-12 overflow-hidden border border-pink-400/30 rounded-[32px] shadow-[0_-10px_40px_-10px_rgba(244,114,182,0.3)] bg-black -rotate-1 transition-transform duration-500 hover:rotate-0">
-             <div className="relative w-full h-full">
-              <Image src="/girl2.jpg" alt="Your Next Chapter" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover opacity-80" />
+          <div className="sticky top-48 w-full aspect-2/3 mb-12 overflow-hidden border border-pink-400/30 rounded-[32px] shadow-[0_-10px_40px_-10px_rgba(244,114,182,0.3)] bg-[#111] -rotate-1 transition-transform duration-500 hover:rotate-0">
+             <div className="absolute inset-0 pointer-events-none">
+              <Image 
+                src="/girl2.jpg" 
+                alt="Your Next Chapter" 
+                fill 
+                sizes="(max-width: 768px) 100vw, 400px" 
+                className="object-cover opacity-60" 
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-[#1E1F23] via-[#1E1F23]/70 to-transparent"></div>
             </div>
-            <div className="absolute inset-0 bg-linear-to-t from-[#1E1F23] via-[#1E1F23]/70 to-transparent"></div>
-            <div className="relative z-10 flex flex-col justify-end h-full px-8 pb-8">
-              <Text className="mt-auto mb-2 text-5xl! font-bold text-pink-400 opacity-90 drop-shadow-[0_0_15px_rgba(244,114,182,0.8)]"> 03 </Text>
+            <div className="relative z-20 h-full flex flex-col justify-end p-8">
+              <Text className="mb-2 text-5xl! font-bold text-pink-400 opacity-90 drop-shadow-[0_0_15px_rgba(244,114,182,0.8)]"> 03 </Text>
               <Text className={COPY.titleLight}>Your Next Chapter</Text>
               <Text className={COPY.bodyLight}>Your one-in-a-million might just be a swipe away. A vibrant community of authentic people awaits.</Text>
             </div>
