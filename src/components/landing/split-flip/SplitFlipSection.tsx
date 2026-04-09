@@ -94,7 +94,7 @@ const SplitFlipSection = () => {
         scrollTrigger: {
           trigger: section,
           start: "top top",
-          end: "+=200%",
+          end: "+=150%",
           pin: true,
           scrub: 0.5,
           anticipatePin: 1,
