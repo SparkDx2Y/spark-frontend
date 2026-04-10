@@ -20,3 +20,8 @@ export const getActivity = async (): Promise<ApiResponse<ActivityResponse>> => {
     const response = await api.get<ApiResponse<ActivityResponse>>(MATCH_ENDPOINTS.ACTIVITY);
     return response.data;
 };
+
+export const getDateSuggestions = async (matchId: string, type: string = 'cafe'): Promise<ApiResponse<any[]>> => {
+    const response = await api.get<ApiResponse<any[]>>(`${MATCH_ENDPOINTS.SUGGEST_DATE(matchId)}?type=${type}`);
+    return response.data;
+};

@@ -5,9 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMessageCount, deleteMessage } from '@/services/messageService';
 import { MatchResponse, MessageResponse } from '@/types/message/response';
+import { getDateSuggestions } from '@/services/matchService';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
-import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle, Lock, Search } from 'lucide-react';
+import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle, Lock, Search, MapPin, Star, ExternalLink, Coffee, Utensils, Music } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { uploadChatMedia } from '@/services/fileService';
@@ -131,6 +132,10 @@ export default function MessagesPage() {
     const [showMenu, setShowMenu] = useState(false);
     const [reportModalOpen, setReportModalOpen] = useState(false);
     const [upsellModal, setUpsellModal] = useState<{ isOpen: boolean, title: string, desc: string }>({ isOpen: false, title: '', desc: '' });
+    const [dateSuggestions, setDateSuggestions] = useState<any[]>([]);
+    const [isFetchingDate, setIsFetchingDate] = useState(false);
+    const [showDatePanel, setShowDatePanel] = useState(false);
+    const [selectedDateCategory, setSelectedDateCategory] = useState('cafe');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const audioInputRef = useRef<HTMLInputElement>(null);
@@ -174,14 +179,14 @@ export default function MessagesPage() {
     }, [selectedMatch, joinChat, leaveChat, emitTyping]);
 
     // Helper to move active chat to top
-    const updateMatchList = (matchId: string, content: string, createdAt: string, type: 'text' | 'image' | 'audio' | 'video_call' = 'text') => {
+    const updateMatchList = (matchId: string, content: string, createdAt: string, type: 'text' | 'image' | 'audio' | 'video_call' | 'date_proposal' = 'text') => {
         setMatches(prev => {
             const index = prev.findIndex(m => m.id === matchId);
             if (index === -1) return prev;
 
             const updatedMatch = {
                 ...prev[index],
-                lastMessage: content,
+                lastMessage: type === 'date_proposal' ? 'Proposed a date 📍' : content,
                 lastMessageAt: createdAt,
                 lastMessageType: type
             };
@@ -303,7 +308,17 @@ export default function MessagesPage() {
     };
 
     // Handle send message for messages page
-    const handleSendMessage = async (customContent?: string, type: 'text' | 'image' | 'audio' = 'text') => {
+    const handleSendMessage = async (
+        customContent?: string, 
+        type: 'text' | 'image' | 'audio' | 'date_proposal' = 'text', 
+        metadata?: {
+            placeId?: string;
+            name?: string;
+            address?: string;
+            rating?: number;
+            photo?: string;
+        }
+    ) => {
         const content = customContent || newMessage.trim();
         if (!content || !selectedMatch || sending) return;
 
@@ -332,7 +347,8 @@ export default function MessagesPage() {
             const response = await sendMessage({
                 matchId: selectedMatch.id,
                 content: content,
-                type: type
+                type: type,
+                metadata: metadata
             });
             const message = response.data;
 
@@ -634,6 +650,33 @@ export default function MessagesPage() {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
+    const handleFetchDateSuggestions = async (categoryOverride?: any) => {
+        if (!selectedMatch) return;
+        
+       
+        const category = typeof categoryOverride === 'string' ? categoryOverride : selectedDateCategory;
+        
+        setIsFetchingDate(true);
+        setShowDatePanel(true);
+        try {
+            const response = await getDateSuggestions(selectedMatch.id, category);
+            setDateSuggestions(response.data);
+        } catch (error) {
+            console.error('Failed to get date suggestions:', error);
+            handleApiError(error, 'Could not calculate midpoint or find spots');
+            setShowDatePanel(false);
+        } finally {
+            setIsFetchingDate(false);
+        }
+    };
+
+    // Refetch when category changes while panel is open
+    useEffect(() => {
+        if (showDatePanel && selectedMatch) {
+            handleFetchDateSuggestions(selectedDateCategory);
+        }
+    }, [selectedDateCategory]);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -765,8 +808,9 @@ export default function MessagesPage() {
                                             {match.lastMessageType === 'text' ? match.lastMessage :
                                                 match.lastMessageType === 'image' ? 'Sent an image' :
                                                     match.lastMessageType === 'audio' ? 'Sent an audio' :
-                                                        match.lastMessageType === 'video_call' ? match.lastMessage :
-                                                            match.lastMessage || 'Start a conversation'}
+                                                        match.lastMessageType === 'date_proposal' ? 'Proposed a date 📍' :
+                                                            match.lastMessageType === 'video_call' ? match.lastMessage :
+                                                                match.lastMessage || 'Start a conversation'}
                                         </p>
                                     </div>
                                 </motion.button>
@@ -866,6 +910,16 @@ export default function MessagesPage() {
                                     <Video className="w-4 h-4 md:w-5 md:h-5" />
                                 )}
                             </button>
+                            <button
+                                onClick={handleFetchDateSuggestions}
+                                className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all duration-300 relative group"
+                                title="Find a midway date spot"
+                            >
+                                <MapPin className="w-4 h-4 md:w-5 md:h-5" />
+                                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                                    Midway Date
+                                </span>
+                            </button>
                             <div className="relative">
                                 <button
                                     onClick={() => setShowMenu(!showMenu)}
@@ -937,6 +991,7 @@ export default function MessagesPage() {
 
                             const isEmoji = msg.type === 'text' && /^[\p{Extended_Pictographic}\p{Emoji_Presentation}\s]+$/u.test(msg.content);
                             const isImage = msg.type === 'image';
+                            const isDateProposal = msg.type === 'date_proposal';
 
                             return (
                                 <div key={msg.id}>
@@ -972,8 +1027,8 @@ export default function MessagesPage() {
                                                     relative selection:bg-black/30 selection:text-white
                                                     ${isEmoji
                                                         ? 'bg-transparent text-7xl md:text-8xl p-0 shadow-none border-none leading-none' /* Emoji Style - Fixed large size */
-                                                        : `text-sm md:text-base ${isImage
-                                                            ? `p-1.5 shadow-md backdrop-blur-sm ${ // Image Style (Reduced Padding)
+                                                        : `text-sm md:text-base ${isImage || isDateProposal
+                                                            ? `p-1.5 shadow-md backdrop-blur-sm ${ // Card/Image Style
                                                             isOwn
                                                                 ? `bg-transparent ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tr-none'}`
                                                                 : `bg-[#1a1a1a] border border-white/5 ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tl-none'}`
@@ -1020,6 +1075,50 @@ export default function MessagesPage() {
                                                     <div className={`flex items-center gap-2 py-1 px-1 ${isOwn ? 'text-white' : 'text-primary'}`}>
                                                         <Video className="w-4 h-4" />
                                                         <span className="text-sm font-medium">{msg.content}</span>
+                                                    </div>
+                                                )}
+                                                {msg.type === 'date_proposal' && msg.metadata && (
+                                                    <div className="w-64 md:w-72 bg-[#0d0d0d] rounded-xl overflow-hidden shadow-2xl border border-white/5">
+                                                        {msg.metadata.photo && (
+                                                            <div className="relative h-32 w-full">
+                                                                <Image
+                                                                    src={msg.metadata.photo}
+                                                                    alt={msg.metadata.name || 'Venue'}
+                                                                    fill
+                                                                    className="object-cover"
+                                                                    unoptimized
+                                                                />
+                                                                <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-black/60 backdrop-blur-md rounded-lg flex items-center gap-1">
+                                                                    <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+                                                                    <span className="text-[10px] text-white font-bold">{msg.metadata.rating || 'N/A'}</span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        <div className="p-4">
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h4 className="text-sm font-bold text-white truncate">{msg.metadata.name}</h4>
+                                                                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{msg.metadata.address}</p>
+                                                                </div>
+                                                                <div className="p-2 bg-green-500/10 rounded-lg shrink-0">
+                                                                    <MapPin className="w-4 h-4 text-green-400" />
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div className="mt-3 text-xs text-gray-300 leading-relaxed italic bg-white/5 p-2 rounded-lg border border-white/5">
+                                                                "{msg.content}"
+                                                            </div>
+
+                                                            <a
+                                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(msg.metadata.name + ' ' + msg.metadata.address)}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="mt-4 w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-white transition-all"
+                                                            >
+                                                                <ExternalLink className="w-3.5 h-3.5" />
+                                                                View in Maps
+                                                            </a>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
@@ -1408,6 +1507,170 @@ export default function MessagesPage() {
                 title={upsellModal.title}
                 description={upsellModal.desc}
             />
+
+            {/* Date Suggestions Overlay */}
+            <AnimatePresence>
+                {showDatePanel && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowDatePanel(false)}
+                            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed right-0 top-0 bottom-0 w-full max-w-sm bg-[#0d0d0d] border-l border-white/10 z-50 flex flex-col shadow-2xl"
+                        >
+                            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/40">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-green-500/20 rounded-lg">
+                                        <MapPin className="w-5 h-5 text-green-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-white">Meet in the Middle</h3>
+                                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Midpoint Suggestions</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowDatePanel(false)}
+                                    className="p-2 hover:bg-white/10 rounded-full text-gray-400 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="p-4 bg-black/40 border-b border-white/5">
+                                <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                    {[
+                                        { id: 'cafe', label: 'Coffee', icon: Coffee },
+                                        { id: 'restaurant', label: 'Food', icon: Utensils },
+                                        { id: 'bar', label: 'Drinks', icon: Music },
+                                        { id: 'movie_theater', label: 'Movies', icon: Play },
+                                        { id: 'park', label: 'Parks', icon: MapPin },
+                                    ].map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => setSelectedDateCategory(cat.id)}
+                                            className={`flex flex-col items-center gap-1.5 px-4 py-2 rounded-xl border transition-all duration-300 min-w-[70px] ${
+                                                selectedDateCategory === cat.id 
+                                                ? 'bg-green-500 text-black border-green-500 shadow-lg shadow-green-500/20' 
+                                                : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10 hover:text-white'
+                                            }`}
+                                        >
+                                            <cat.icon className="w-4 h-4" />
+                                            <span className="text-[10px] font-bold">{cat.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                {isFetchingDate ? (
+                                    <div className="flex flex-col items-center justify-center h-full py-12 space-y-4">
+                                        <div className="relative">
+                                            <div className="w-12 h-12 border-2 border-green-500/20 rounded-full" />
+                                            <div className="absolute top-0 w-12 h-12 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                                        </div>
+                                        <p className="text-gray-400 animate-pulse text-sm">Calculating fair midpoint...</p>
+                                    </div>
+                                ) : dateSuggestions.length > 0 ? (
+                                    dateSuggestions.map((place, idx) => (
+                                        <motion.div
+                                            key={place.id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.1 }}
+                                            className="group bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-green-500/50 hover:bg-white/10 transition-all duration-300"
+                                        >
+                                            <div className="relative h-32 w-full bg-white/5">
+                                                {place.photo_reference ? (
+                                                    <Image
+                                                        src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photo_reference}&key=YOUR_KEY`}
+                                                        alt={place.name}
+                                                        fill
+                                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                                        unoptimized
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        {place.types?.includes('cafe') ? <Coffee className="w-8 h-8 text-white/20" /> : 
+                                                         place.types?.includes('restaurant') ? <Utensils className="w-8 h-8 text-white/20" /> :
+                                                         place.types?.includes('movie_theater') ? <Play className="w-8 h-8 text-white/20" /> :
+                                                         place.types?.includes('park') ? <MapPin className="w-8 h-8 text-white/20" /> :
+                                                         place.types?.includes('bar') ? <Music className="w-8 h-8 text-white/20" /> :
+                                                         <Utensils className="w-8 h-8 text-white/20" />}
+                                                    </div>
+                                                )}
+                                                <div className="absolute top-2 right-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg flex items-center gap-1">
+                                                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                                                    <span className="text-xs text-white font-bold">{place.rating || 'N/A'}</span>
+                                                </div>
+                                            </div>
+                                            <div className="p-4">
+                                                <h4 className="font-bold text-white group-hover:text-green-400 transition-colors truncate">{place.name}</h4>
+                                                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{place.address}</p>
+                                                
+                                                <div className="mt-4 flex gap-2">
+                                                    <a
+                                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}&query_place_id=${place.id}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex-1 py-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-2 text-xs font-medium hover:bg-white/10 transition-colors"
+                                                    >
+                                                        <MapPin className="w-3.5 h-3.5" />
+                                                        View Map
+                                                    </a>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!selectedMatch) return;
+                                                            const message = `Check out this spot: ${place.name}! It's exactly midway between us.`;
+                                                            const metadata = {
+                                                                placeId: place.id,
+                                                                name: place.name,
+                                                                address: place.address,
+                                                                rating: place.rating,
+                                                                photo: place.photo_reference 
+                                                                    ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photo_reference}&key=YOUR_KEY`
+                                                                    : undefined
+                                                            };
+                                                            handleSendMessage(message, 'date_proposal', metadata);
+                                                            setShowDatePanel(false);
+                                                        }}
+                                                        className="flex-1 py-2 rounded-xl bg-green-500/80 hover:bg-green-500 text-black flex items-center justify-center gap-2 text-xs font-bold transition-all"
+                                                    >
+                                                        <Send className="w-3.5 h-3.5" />
+                                                        Propose
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+                                        <div className="p-4 bg-white/5 rounded-full mb-4">
+                                            <AlertTriangle className="w-8 h-8 text-gray-500" />
+                                        </div>
+                                        <p className="text-gray-400 text-sm">No spots found near the midpoint.</p>
+                                        <p className="text-xs text-gray-600 mt-2 px-4">Try expanding your search or selecting another category.</p>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="p-6 bg-black/40 border-t border-white/10">
+                                <p className="text-[10px] text-gray-500 leading-tight">
+                                    Spark calculates the geometric center between you and your match to suggest the most convenient meeting spots.
+                                </p>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
+
