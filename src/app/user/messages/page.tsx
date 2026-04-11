@@ -1529,11 +1529,11 @@ export default function MessagesPage() {
                             {/* ── Hero Header ── */}
                             <div className="relative overflow-hidden shrink-0">
                                 {/* gradient bg */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-purple-600/15 to-transparent" />
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a0a0a]" />
+                                <div className="absolute inset-0 bg-linear-to-br from-primary/25 via-purple-600/15 to-transparent" />
+                                <div className="absolute inset-0 bg-linear-to-b from-transparent to-[#0a0a0a]" />
                                 <div className="relative px-5 pt-6 pb-5 flex items-start justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/30">
+                                        <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg shadow-primary/30">
                                             <MapPin className="w-5 h-5 text-white" />
                                         </div>
                                         <div>
@@ -1568,7 +1568,7 @@ export default function MessagesPage() {
                                                 onClick={() => setSelectedDateCategory(cat.id)}
                                                 className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl transition-all duration-200 ${
                                                     isActive
-                                                        ? 'bg-gradient-to-r from-primary to-purple-600 text-white border-transparent shadow-md shadow-primary/25'
+                                                        ? 'bg-linear-to-r from-primary to-purple-600 text-white border-transparent shadow-md shadow-primary/25'
                                                         : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
                                                 }`}
                                             >
@@ -1587,7 +1587,7 @@ export default function MessagesPage() {
                                     /* Loading State */
                                     <div className="flex flex-col items-center justify-center h-full pb-10 space-y-5">
                                         <div className="relative w-16 h-16">
-                                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-purple-600/20 blur-xl" />
+                                            <div className="absolute inset-0 rounded-full bg-linear-to-br from-primary/20 to-purple-600/20 blur-xl" />
                                             <div className="relative w-16 h-16 rounded-full border border-white/10 flex items-center justify-center">
                                                 <motion.div
                                                     animate={{ rotate: 360 }}
@@ -1622,7 +1622,7 @@ export default function MessagesPage() {
                                                         unoptimized
                                                     />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-purple-600/5">
+                                                    <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/5 to-purple-600/5">
                                                         <div className="text-4xl opacity-30">
                                                             {place.types?.includes('cafe') ? '☕' :
                                                              place.types?.includes('restaurant') ? '🍽️' :
@@ -1633,7 +1633,7 @@ export default function MessagesPage() {
                                                     </div>
                                                 )}
                                                 {/* Dark gradient overlay at bottom */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent" />
+                                                <div className="absolute inset-0 bg-linear-to-t from-[#141414] via-transparent to-transparent" />
                                                 {/* Rating badge */}
                                                 {place.rating && (
                                                     <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 bg-black/70 backdrop-blur-md rounded-lg border border-white/10">
@@ -1680,7 +1680,7 @@ export default function MessagesPage() {
                                                             handleSendMessage(message, 'date_proposal', metadata);
                                                             setShowDatePanel(false);
                                                         }}
-                                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white text-xs font-bold shadow-md shadow-primary/20 hover:shadow-primary/40 hover:opacity-90 transition-all duration-200"
+                                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-linear-to-r from-primary to-purple-600 text-white text-xs font-bold shadow-md shadow-primary/20 hover:shadow-primary/40 hover:opacity-90 transition-all duration-200"
                                                     >
                                                         <Send className="w-3.5 h-3.5" />
                                                         Propose Date ✨
@@ -1704,7 +1704,7 @@ export default function MessagesPage() {
                             </div>
 
                             {/* ── Footer ── */}
-                            <div className="px-5 py-4 bg-gradient-to-t from-black to-transparent border-t border-white/5 shrink-0">
+                            <div className="px-5 py-4 bg-linear-to-t from-black to-transparent border-t border-white/5 shrink-0">
                                 <p className="text-[10px] text-gray-600 leading-relaxed text-center">
                                     ✦ Spark finds the geographic midpoint between you and your match
                                 </p>
