@@ -1082,7 +1082,7 @@ export default function MessagesPage() {
                                                         {msg.metadata.photo && (
                                                             <div className="relative h-32 w-full">
                                                                 <Image
-                                                                    src={msg.metadata.photo}
+                                                                    src={msg.metadata.photo.replace('YOUR_KEY', process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '')}
                                                                     alt={msg.metadata.name || 'Venue'}
                                                                     fill
                                                                     className="object-cover"
@@ -1615,7 +1615,7 @@ export default function MessagesPage() {
                                             <div className="relative h-36 w-full bg-[#1a1a1a] overflow-hidden">
                                                 {place.photo_reference ? (
                                                     <Image
-                                                        src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photo_reference}&key=YOUR_KEY`}
+                                                        src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
                                                         alt={place.name}
                                                         fill
                                                         className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -1634,6 +1634,27 @@ export default function MessagesPage() {
                                                 )}
                                                 {/* Dark gradient overlay at bottom */}
                                                 <div className="absolute inset-0 bg-linear-to-t from-[#141414] via-transparent to-transparent" />
+                                                {/* Status badge */}
+                                                <div className={`absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 backdrop-blur-md rounded-lg border transition-all duration-300
+                                                    ${(place as any).isOpenNow === true ? 'bg-green-500/20 border-green-500/20 text-green-400' : 
+                                                      (place as any).isOpenNow === false ? 'bg-red-500/20 border-red-500/20 text-red-400' : 
+                                                      (place as any).businessStatus === 'CLOSED_TEMPORARILY' ? 'bg-orange-500/20 border-orange-500/20 text-orange-400' :
+                                                      'bg-white/5 border-white/10 text-gray-400'}`}>
+                                                    
+                                                    <div className={`w-1.5 h-1.5 rounded-full 
+                                                        ${(place as any).isOpenNow === true ? 'bg-green-500 animate-pulse' : 
+                                                          (place as any).isOpenNow === false ? 'bg-red-500' : 
+                                                          (place as any).businessStatus === 'CLOSED_TEMPORARILY' ? 'bg-orange-500' :
+                                                          'bg-gray-500'}`} />
+                                                    
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                                                        {(place as any).isOpenNow === true ? 'Open Now' : 
+                                                         (place as any).isOpenNow === false ? 'Closed' : 
+                                                         (place as any).businessStatus === 'CLOSED_TEMPORARILY' ? 'Temp. Closed' :
+                                                         (place as any).businessStatus === 'CLOSED_PERMANENTLY' ? 'Perm. Closed' :
+                                                         'No hours listed'}
+                                                    </span>
+                                                </div>
                                                 {/* Rating badge */}
                                                 {place.rating && (
                                                     <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2 py-1 bg-black/70 backdrop-blur-md rounded-lg border border-white/10">
@@ -1674,7 +1695,7 @@ export default function MessagesPage() {
                                                                 address: place.address,
                                                                 rating: place.rating,
                                                                 photo: place.photo_reference
-                                                                    ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photo_reference}&key=YOUR_KEY`
+                                                                    ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
                                                                     : undefined
                                                             };
                                                             handleSendMessage(message, 'date_proposal', metadata);
