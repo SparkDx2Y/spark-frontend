@@ -2,7 +2,7 @@ import { api } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
 import { MATCH_ENDPOINTS } from "@/constants/api/match";
 import { ProfileResponse } from "@/types/profile/response";
-import { MatchActionResponse, ActivityResponse } from "@/types/match/response";
+import { MatchActionResponse, ActivityResponse, DateSuggestion } from "@/types/match/response";
 import { SwipeActionPayload } from "@/types/match/payload";
 
 
@@ -21,7 +21,7 @@ export const getActivity = async (): Promise<ApiResponse<ActivityResponse>> => {
     return response.data;
 };
 
-export const getDateSuggestions = async (matchId: string, type: string = 'cafe'): Promise<ApiResponse<any[]>> => {
-    const response = await api.get<ApiResponse<any[]>>(`${MATCH_ENDPOINTS.SUGGEST_DATE(matchId)}?type=${type}`);
+export const getDateSuggestions = async (matchId: string, type: string = 'cafe'): Promise<ApiResponse<DateSuggestion[]>> => {
+    const response = await api.get<ApiResponse<DateSuggestion[]>>(`${MATCH_ENDPOINTS.SUGGEST_DATE(matchId)}?type=${type}`);
     return response.data;
 };
