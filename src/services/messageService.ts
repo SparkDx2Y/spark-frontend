@@ -36,3 +36,8 @@ export const markMessagesAsRead = async (matchId: string): Promise<void> => {
 export const deleteMessage = async (messageId: string): Promise<void> => {
     await api.delete(MESSAGE_ENDPOINTS.DELETE(messageId));
 };
+
+export const respondToDateProposal = async (messageId: string, status: 'accepted' | 'declined' | 'suggested', newTime?: string): Promise<ApiResponse<MessageResponse>> => {
+    const response = await api.post<ApiResponse<MessageResponse>>(MESSAGE_ENDPOINTS.RESPOND_TO_PROPOSAL(messageId), { status, newTime });
+    return response.data;
+};

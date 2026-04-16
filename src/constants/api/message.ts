@@ -5,4 +5,5 @@ export const MESSAGE_ENDPOINTS = {
     GET_MESSAGES: (matchId: string) => `/messages/${matchId}`,
     MARK_AS_READ: (matchId: string) => `/messages/${matchId}/read`,
     DELETE: (messageId: string) => `/messages/${messageId}`,
+    RESPOND_TO_PROPOSAL: (messageId: string) => `/messages/proposal/${messageId}`,
 } as const;
