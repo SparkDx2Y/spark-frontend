@@ -6,6 +6,7 @@ export interface SubscriptionFeatures {
     mediaSharingEnabled: boolean;
     audioEnabled: boolean;
     videoCallEnabled: boolean;
+    dateProposalEnabled: boolean;
     swipeLimit: number;
 }
 

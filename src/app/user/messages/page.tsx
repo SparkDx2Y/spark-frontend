@@ -811,16 +811,30 @@ export default function MessagesPage() {
                                     <Video className="w-4 h-4 md:w-5 md:h-5" />
                                 )}
                             </button>
-                            <button
-                                onClick={() => handleFetchDateSuggestions()}
-                                className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all duration-300 relative group"
-                                title="Find a midway date spot"
-                            >
-                                <MapPin className="w-4 h-4 md:w-5 md:h-5" />
-                                <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                                    Midway Date
-                                </span>
-                            </button>
+                             <button
+                                 onClick={() => {
+                                     if (currentPlan && !currentPlan.features.dateProposalEnabled) {
+                                         setUpsellModal({
+                                             isOpen: true,
+                                             title: 'Midway Date Locked 📍',
+                                             desc: 'Finding the perfect midway date spot is a premium feature.\nUpgrade to Premium to find cafes, restaurants, and more halfway between you and your match!'
+                                         });
+                                     } else {
+                                         handleFetchDateSuggestions();
+                                     }
+                                 }}
+                                 className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all duration-300 relative group"
+                                 title="Find a midway date spot"
+                             >
+                                 {currentPlan && !currentPlan.features.dateProposalEnabled ? (
+                                     <Lock className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
+                                 ) : (
+                                     <MapPin className="w-4 h-4 md:w-5 md:h-5" />
+                                 )}
+                                 <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                                     Midway Date
+                                 </span>
+                             </button>
                             <div className="relative">
                                 <button
                                     onClick={() => setShowMenu(!showMenu)}
