@@ -41,3 +41,8 @@ export const respondToDateProposal = async (messageId: string, status: 'accepted
     const response = await api.post<ApiResponse<MessageResponse>>(MESSAGE_ENDPOINTS.RESPOND_TO_PROPOSAL(messageId), { status, newTime });
     return response.data;
 };
+
+export const getDateProposals = async (page: number = 1, limit: number = 10): Promise<ApiResponse<MessageResponse[]>> => {
+    const response = await api.get<ApiResponse<MessageResponse[]>>(`${MESSAGE_ENDPOINTS.GET_DATE_PROPOSALS}?page=${page}&limit=${limit}`);
+    return response.data;
+};

@@ -83,6 +83,8 @@ export const useSocket = () => {
                 showInfo(data.message || 'New message received');
             } else if (data.type === 'profile_view') {
                 showInfo(data.message || 'Someone viewed your profile');
+            } else if (data.type === 'date_reminder') {
+                showInfo('🚨 Your date is approaching! Check your notifications.');
             }
         });
 
