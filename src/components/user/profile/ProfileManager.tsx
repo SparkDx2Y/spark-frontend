@@ -13,7 +13,9 @@ import { setCredentials } from "@/store/features/auth/authSlice";
 import { getInterests, updateInterests, updateLocation } from "@/services/profileService";
 import { InterestResponse } from "@/types/profile/response";
 import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Sparkles, X, Check, Edit2, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Sparkles, X, Check, Edit2, ChevronLeft, ChevronRight, Video, CameraIcon } from "lucide-react";
+import VideoRecorderModal from "./VideoRecorderModal";
+import VideoTrimmerModal from "./VideoTrimmerModal";
 
 
 interface ProfileManagerProps {
@@ -23,7 +25,7 @@ interface ProfileManagerProps {
 export default function ProfileManager({ initialProfile }: ProfileManagerProps) {
     //  Initialize state WITH the server-fetched data
     const [profile, setProfile] = useState<ProfileResponse>(initialProfile);
-    const [saving, setSaving] = useState({ avatar: false, cover: false, gallery: false, location: false, interests: false, bio: false });
+    const [saving, setSaving] = useState({ avatar: false, cover: false, gallery: false, location: false, interests: false, bio: false, vibe: false });
     const [isEditingBio, setIsEditingBio] = useState(false);
     const [tempBio, setTempBio] = useState(initialProfile.bio || "");
 
@@ -35,10 +37,15 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
 
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+    const [isRecorderOpen, setIsRecorderOpen] = useState(false);
+    const [isVibeSelectionOpen, setIsVibeSelectionOpen] = useState(false);
+    const [isTrimmerOpen, setIsTrimmerOpen] = useState(false);
+    const [trimmerFile, setTrimmerFile] = useState<File | null>(null);
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+    const vibeInputRef = useRef<HTMLInputElement>(null);
 
 
     const dispatch = useAppDispatch();
@@ -93,6 +100,110 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
             handleApiError(error, "Failed to update cover photo");
         } finally {
             setSaving((prev) => ({ ...prev, cover: false }));
+        }
+    };
+
+    const handleVibeChange = async (file: File) => {
+        // Standard size check (50MB)
+        if (file.size > 50 * 1024 * 1024) return showError("Video must be under 50MB");
+
+        try {
+            // Check Duration
+            const duration = await new Promise<number>((resolve) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.onloadedmetadata = () => {
+                    URL.revokeObjectURL(video.src);
+                    resolve(video.duration);
+                };
+                video.src = URL.createObjectURL(file);
+            });
+
+            // If video is long, open trimmer
+            if (duration > 16) { 
+                setTrimmerFile(file);
+                setIsTrimmerOpen(true);
+                return;
+            }
+
+            // Otherwise upload directly
+            setSaving((prev) => ({ ...prev, vibe: true }));
+            const url = await uploadFile(file);
+            const response = await updateProfile({ vibeVideo: url });
+            
+            setProfile((prev) => ({
+                ...prev,
+                ...response.data.profile
+            }));
+            
+            showSuccess("Vibe clip updated!");
+        } catch (error: unknown) {
+            handleApiError(error, "Failed to update vibe clip");
+        } finally {
+            setSaving((prev) => ({ ...prev, vibe: false }));
+        }
+    };
+
+    const handleTrimComplete = async (startTime: number) => {
+        if (!trimmerFile) return;
+        
+        try {
+            setIsTrimmerOpen(false);
+            setSaving((prev) => ({ ...prev, vibe: true }));
+            
+            const url = await uploadFile(trimmerFile, startTime);
+            const response = await updateProfile({ vibeVideo: url });
+            
+            setProfile((prev) => ({
+                ...prev,
+                ...response.data.profile
+            }));
+            
+            showSuccess("Vibe clip trimmed and updated!");
+            setTrimmerFile(null);
+        } catch (error: unknown) {
+            handleApiError(error, "Failed to save trimmed video");
+        } finally {
+            setSaving((prev) => ({ ...prev, vibe: false }));
+        }
+    };
+
+    const handleRemoveVibe = async () => {
+        try {
+            setSaving((prev) => ({ ...prev, vibe: true }));
+            const response = await updateProfile({ vibeVideo: "" });
+            
+            setProfile((prev) => ({
+                ...prev,
+                ...response.data.profile
+            }));
+            
+            showSuccess("Vibe clip removed");
+        } catch (error: unknown) {
+            handleApiError(error, "Failed to remove vibe clip");
+        } finally {
+            setSaving((prev) => ({ ...prev, vibe: false }));
+        }
+    };
+
+    const handleRecordComplete = async (videoBlob: Blob) => {
+        try {
+            setSaving((prev) => ({ ...prev, vibe: true }));
+            // Convert blob to file for standard upload
+            const file = new File([videoBlob], `vibe_${Date.now()}.webm`, { type: 'video/webm' });
+            const url = await uploadFile(file);
+            const response = await updateProfile({ vibeVideo: url });
+            
+            setProfile((prev) => ({
+                ...prev,
+                ...response.data.profile
+            }));
+            
+            showSuccess("Vibe clip recorded!");
+        } catch (error: unknown) {
+            handleApiError(error, "Failed to save transition");
+        } finally {
+            setSaving((prev) => ({ ...prev, vibe: false }));
         }
     };
 
@@ -330,127 +441,241 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
             </div>
 
             {/* Profile header */}
-            <div className="max-w-5xl mx-auto px-4 md:px-6 -mt-16 md:-mt-24 relative z-20">
-                <div className="bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/20 p-6 md:p-10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] relative overflow-hidden group">
-                    <div className="absolute -top-24 -right-24 w-80 h-80 bg-primary/10 blur-[100px] rounded-full pointer-events-none group-hover:bg-primary/20 transition-all duration-700" />
+            <div className="max-w-5xl mx-auto px-4 md:px-6 -mt-20 md:-mt-28 relative z-30">
+                <div className="relative overflow-hidden bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.8)]">
+                    {/* Animated background accent */}
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                    
+                    <div className="flex flex-col md:flex-row gap-6 md:gap-10 p-5 md:p-8">
+                        {/* Hero Media Section (The "Identity Slot") */}
+                        <div className="relative w-full md:w-52 lg:w-56 shrink-0">
+                            {/* Main Vibe Container */}
+                            <div className="relative aspect-4/5 rounded-[1.75rem] overflow-hidden bg-zinc-800/50 border border-white/5 shadow-2xl group/hero">
+                                {profile.vibeVideo ? (
+                                    <video
+                                        src={profile.vibeVideo || undefined}
+                                        className="w-full h-full object-cover"
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex flex-col items-center justify-center bg-white/2 text-white/20 gap-3 border-2 border-dashed border-white/5 rounded-[1.75rem]">
+                                        <div className="p-3 rounded-full bg-white/5">
+                                            <Video className="w-6 h-6 opacity-30" />
+                                        </div>
+                                        <p className="text-[9px] uppercase tracking-[0.2em] font-bold">Add Vibe</p>
+                                    </div>
+                                )}
 
-                    <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-10">
-                        <div className="relative w-32 h-32 md:w-44 md:h-44 mx-auto md:mx-0 rounded-[2.5rem] border-4 border-neutral-900 overflow-hidden shadow-2xl bg-neutral-800 shrink-0">
-                            {profile.profilePhoto || profile.photos?.[0] ? (
-                                <Image
-                                    src={profile.profilePhoto || profile.photos?.[0]}
-                                    alt="Profile photo"
-                                    fill
-                                    className="object-cover cursor-pointer hover:scale-110 transition-transform duration-700"
-                                    unoptimized
+                                {saving.vibe && (
+                                    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center backdrop-blur-2xl bg-white/5">
+                                        <div className="relative w-12 h-12">
+                                            <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                                        </div>
+                                        <p className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] text-white animate-pulse text-center px-4 drop-shadow-lg">Processing Vibe...</p>
+                                    </div>
+                                )}
+
+                                {/* Tap-to-Preview Vibe Trigger (Background layer) */}
+                                <div 
+                                    className="absolute inset-0 cursor-pointer z-10" 
                                     onClick={() => {
-                                        setPreviewImage(profile.profilePhoto || profile.photos?.[0] || null);
+                                        setPreviewImage(profile.vibeVideo || null);
                                         setPreviewIndex(null);
                                     }}
                                 />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-primary/10 text-3xl font-bold text-primary">
-                                    {profile.name?.[0]?.toUpperCase() || "U"}
-                                </div>
-                            )}
-                            <button
-                                type="button"
-                                onClick={() => avatarInputRef.current?.click()}
-                                disabled={saving.avatar}
-                                className="absolute bottom-2 right-2 rounded-full bg-primary text-white p-2 shadow-lg hover:scale-105 transition"
-                            >
-                                {saving.avatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                            </button>
-                            <input
-                                ref={avatarInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleAvatarChange(file);
-                                    e.target.value = "";
-                                }}
-                            />
-                        </div>
 
-                        <div className="flex-1 space-y-3 text-center md:text-left">
-                            <div className="flex items-center justify-center md:justify-start gap-2 md:gap-3 flex-wrap">
-                                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{authUser?.name || profile.name}</h1>
-                                <div className="flex gap-2 w-full justify-center md:w-auto md:justify-start">
-                                    <span className="px-3 py-1 rounded-full bg-white/10 text-xs md:text-sm border border-white/10 whitespace-nowrap">
-                                        {profile.age ? `${profile.age} yrs` : "Age not set"}
-                                    </span>
-                                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs md:text-sm border border-primary/30 whitespace-nowrap">
-                                        {profile.gender || "Gender not set"}
-                                    </span>
+                                {/* Floating Vibe Controls (Hover Triggered) */}
+                                <div className="absolute top-4 right-4 flex flex-col items-end gap-2 opacity-100 md:opacity-0 md:group-hover/hero:opacity-100 transition-all duration-300 z-50">
+                                    <div className="flex flex-row-reverse items-center gap-2">
+                                        <div className="pointer-events-auto">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setIsVibeSelectionOpen(!isVibeSelectionOpen);
+                                                }}
+                                                className="h-10 w-10 rounded-full bg-black/60 hover:bg-primary backdrop-blur-3xl border border-white/20 text-white shadow-xl hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
+                                                title="Add Vibe"
+                                            >
+                                                <Video className="w-5 h-5 shadow-sm" />
+                                            </button>
+                                        </div>
+
+                                        {/* Selection Dropdown (Miniature - Compact) */}
+                                        <AnimatePresence mode="wait">
+                                            {isVibeSelectionOpen && (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, x: 20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: 20 }}
+                                                    className="h-8 bg-black/95 backdrop-blur-3xl border border-white/10 rounded-full px-2 shadow-2xl flex items-center gap-1 pointer-events-auto mr-0"
+                                                >
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsVibeSelectionOpen(false);
+                                                            setIsRecorderOpen(true);
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-2 h-6 rounded-full hover:bg-white/10 text-white transition-all whitespace-nowrap group/btn"
+                                                    >
+                                                        <CameraIcon className="w-2.5 h-2.5 text-primary transition-transform group-hover/btn:scale-110" />
+                                                        <span className="text-[8px] font-black uppercase tracking-widest">Cam</span>
+                                                    </button>
+                                                    <div className="w-px h-2.5 bg-white/5" />
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsVibeSelectionOpen(false);
+                                                            vibeInputRef.current?.click();
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-2 h-6 rounded-full hover:bg-white/10 text-white transition-all whitespace-nowrap group/btn"
+                                                    >
+                                                        <Plus className="w-2.5 h-2.5 text-gray-400 transition-transform group-hover/btn:scale-110" />
+                                                        <span className="text-[8px] font-black uppercase tracking-widest">File</span>
+                                                    </button>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                    
+                                    {profile.vibeVideo && !isVibeSelectionOpen && (
+                                        <div className="pointer-events-auto">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleRemoveVibe();
+                                                }}
+                                                className="h-10 w-10 rounded-full bg-black/60 hover:bg-red-500 backdrop-blur-3xl border border-white/20 text-white shadow-xl hover:scale-110 active:scale-90 transition-all flex items-center justify-center"
+                                                title="Remove Vibe"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                                <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-200 text-xs md:text-sm border border-purple-500/30">
-                                    Interested in {profile.interestedIn || "—"}
-                                </span>
                             </div>
 
-                            {/* Bio Section */}
-                            <div className="relative pt-2">
-                                <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                                    <h3 className="text-sm font-bold uppercase tracking-widest text-white/50">About Me</h3>
-                                    {!isEditingBio && (
-                                        <button
-                                            onClick={() => setIsEditingBio(true)}
-                                            className="p-1 hover:bg-white/10 rounded-full text-primary transition-colors"
-                                        >
-                                            <Edit2 className="w-3.5 h-3.5" />
-                                        </button>
+                            {/* Static Avatar Overlay (Picture-in-Picture) */}
+                            <div className="absolute -bottom-3 -right-3 w-20 h-20 md:w-28 md:h-28 group/avatar z-40">
+                                {/* Clipped Image Container */}
+                                <div className="relative w-full h-full rounded-full border-4 border-zinc-900 overflow-hidden shadow-2xl bg-neutral-800">
+                                    {profile.profilePhoto ? (
+                                        <Image
+                                            src={profile.profilePhoto}
+                                            alt="Static Profile"
+                                            fill
+                                            className="object-cover cursor-pointer hover:scale-110 transition-transform duration-700"
+                                            unoptimized
+                                            onClick={() => {
+                                                setPreviewImage(profile.profilePhoto || null);
+                                                setPreviewIndex(null);
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-2xl font-bold text-white/20">
+                                            {profile.name?.[0]}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {/* Separate Floating Edit Icon (Outside the clip mask) */}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        avatarInputRef.current?.click();
+                                    }}
+                                    className="absolute bottom-0 right-0 w-8 h-8 md:w-9 md:h-9 rounded-full bg-primary text-white shadow-[0_4px_12px_rgba(0,0,0,0.5)] flex items-center justify-center border-2 border-zinc-900 opacity-100 md:opacity-0 md:group-hover/avatar:opacity-100 transition-all hover:scale-110 active:scale-90 z-50"
+                                    title="Change Photo"
+                                >
+                                    {saving.avatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                                </button>
+                            </div>
+
+                            {/* Hidden Inputs */}
+                            <input ref={vibeInputRef} type="file" accept="video/*" className="hidden" onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleVibeChange(file);
+                                e.target.value = "";
+                            }} />
+                            <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleAvatarChange(file);
+                                e.target.value = "";
+                            }} />
+                        </div>
+
+                        {/* Profile Info Section */}
+                        <div className="flex-1 flex flex-col justify-center pt-1 md:pl-4">
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
+                                        {authUser?.name || profile.name}
+                                    </h1>
+                                    <div className="flex flex-wrap gap-2">
+                                        <span className="px-3 py-1 rounded-full bg-white/10 text-[10px] font-bold border border-white/10 uppercase tracking-widest text-gray-300">
+                                            {profile.age} Years Old
+                                        </span>
+                                        <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold border border-primary/30 uppercase tracking-widest">
+                                            {profile.gender}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Bio Section */}
+                                <div className="space-y-3">
+                                    {isEditingBio ? (
+                                        <div className="space-y-4">
+                                            <textarea
+                                                value={tempBio}
+                                                onChange={(e) => setTempBio(e.target.value)}
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 text-sm text-gray-200 focus:outline-none focus:border-primary/50 transition-all resize-none min-h-[120px] shadow-inner"
+                                                maxLength={500}
+                                                placeholder="What's your story?"
+                                            />
+                                            <div className="flex justify-end gap-3">
+                                                <Button variant="ghost" onClick={() => setIsEditingBio(false)} className="text-xs">Cancel</Button>
+                                                <Button onClick={handleSaveBio} disabled={saving.bio} className="text-xs px-8">Save</Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="group/bio relative">
+                                            <p className="text-gray-300 text-lg md:text-xl leading-relaxed font-light italic max-w-2xl">
+                                                {profile.bio ? `"${profile.bio}"` : "Add a bio to complete your vibe..."}
+                                            </p>
+                                            <button
+                                                onClick={() => setIsEditingBio(true)}
+                                                className="absolute -top-1 -right-8 p-2 bg-white/5 hover:bg-primary/20 rounded-full opacity-0 group-hover/bio:opacity-100 transition-all text-primary"
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
 
-                                {isEditingBio ? (
-                                    <div className="space-y-3 max-w-lg mx-auto md:mx-0">
-                                        <textarea
-                                            value={tempBio}
-                                            onChange={(e) => setTempBio(e.target.value)}
-                                            placeholder="Write something interesting about yourself..."
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-all resize-none min-h-[100px]"
-                                            maxLength={500}
-                                        />
-                                        <div className="flex justify-center md:justify-start gap-2 text-xs text-gray-400 mb-1">
-                                            {tempBio.length}/500 characters
-                                        </div>
-                                        <div className="flex justify-center md:justify-start gap-3">
-                                            <Button
-                                                variant="ghost"
-                                                onClick={() => {
-                                                    setIsEditingBio(false);
-                                                    setTempBio(profile.bio || "");
-                                                }}
-                                                className="text-xs py-1.5 px-4 h-auto"
+                                {/* Integrated Interests (Fills the 'Empty' space with valid profile content) */}
+                                {profile.interests && profile.interests.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 pt-2 max-w-xl">
+                                        {profile.interests?.slice(0, 5).map((interest, i) => (
+                                            <span 
+                                                key={i} 
+                                                className="text-[10px] font-bold uppercase tracking-widest text-white/40 border border-white/5 px-2.5 py-1 rounded-lg bg-white/2"
                                             >
-                                                Cancel
-                                            </Button>
-                                            <Button
-                                                onClick={handleSaveBio}
-                                                disabled={saving.bio}
-                                                className="text-xs py-1.5 px-6 h-auto min-w-[100px]"
-                                            >
-                                                {saving.bio ? <Loader2 className="w-3 h-3 animate-spin" /> : "Save Bio"}
-                                            </Button>
-                                        </div>
+                                                {interest}
+                                            </span>
+                                        ))}
+                                        {(profile.interests?.length || 0) > 5 && (
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary/40 px-2 py-1">
+                                                +{(profile.interests?.length || 0) - 5} More
+                                            </span>
+                                        )}
                                     </div>
-                                ) : (
-                                    <p className="text-gray-300 text-sm leading-relaxed max-w-lg mx-auto md:mx-0 italic">
-                                        {profile.bio ? `"${profile.bio}"` : "Click the edit icon to add a bio and tell others about yourself!"}
-                                    </p>
                                 )}
                             </div>
-
-                            <p className="text-gray-400 flex items-center justify-center md:justify-start gap-2 text-sm pt-2">
-                                <ShieldCheck className="w-4 h-4 text-green-400 shrink-0" />
-                                Keep your photos updated for better visibility.
-                            </p>
                         </div>
                     </div>
                 </div>
             </div>
+
 
             {/* Gallery Section */}
             <div className="max-w-5xl mx-auto px-4 md:px-6 mt-6 md:mt-10 pb-24 md:pb-16 relative z-10">
@@ -473,7 +698,7 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                                 }}
                             />
 
-                            <div className="absolute top-2 right-2 z-10">
+                            <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                     type="button"
                                     onClick={(e) => {
@@ -482,7 +707,6 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                                     }}
                                     disabled={saving.gallery}
                                     className="p-2 rounded-xl bg-black/40 hover:bg-black/80 backdrop-blur-md border border-white/10 text-red-500 transition-all active:scale-95 shadow-lg disabled:opacity-50"
-                                    title="Remove photo"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -523,6 +747,21 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                             </div>
                         </button>
                     )}
+
+
+                    <input
+                        ref={galleryInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                            if (e.target.files) {
+                                handleGalleryAdd(e.target.files);
+                                e.target.value = "";
+                            }
+                        }}
+                    />
                 </div>
 
                 {profile.photos?.length === 0 && (
@@ -729,14 +968,25 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                                     className="relative w-full h-full max-w-6xl flex items-center justify-center z-10 pointer-events-none"
                                 >
                                     <div className="relative w-full h-full pointer-events-auto">
-                                        <Image
-                                            src={previewImage || ""}
-                                            alt="Preview"
-                                            fill
-                                            className="object-contain"
-                                            unoptimized
-                                            priority
-                                        />
+                                        {previewImage === profile.vibeVideo ? (
+                                            <video
+                                                src={previewImage || undefined}
+                                                className="w-full h-full object-contain"
+                                                autoPlay
+                                                muted
+                                                loop
+                                                playsInline
+                                            />
+                                        ) : (
+                                            <Image
+                                                src={previewImage || ""}
+                                                alt="Preview"
+                                                fill
+                                                className="object-contain"
+                                                unoptimized
+                                                priority
+                                            />
+                                        )}
                                     </div>
                                 </motion.div>
                             </AnimatePresence>
@@ -776,6 +1026,19 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Live Recorder Modal */}
+            <VideoRecorderModal 
+                isOpen={isRecorderOpen}
+                onClose={() => setIsRecorderOpen(false)}
+                onComplete={handleRecordComplete}
+            />
+            <VideoTrimmerModal 
+                isOpen={isTrimmerOpen}
+                onClose={() => setIsTrimmerOpen(false)}
+                videoFile={trimmerFile}
+                onComplete={handleTrimComplete}
+            />
         </div>
     );
 }

@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { X, Heart, MapPin, Loader2, Flag, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import { X, Heart, MapPin, Loader2, Flag, ChevronLeft, ChevronRight, ZoomIn, Video } from 'lucide-react';
 import Image from 'next/image';
 import Modal from '@/components/ui/Modal';
 import ReportModal from './ReportModal';
@@ -52,14 +52,26 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
         }
     }, [isOpen, userId, onClose]);
 
-    const displayPhotos = useMemo(() => {
+    const displayMedia = useMemo(() => {
         if (!profile) return [];
-        const allPhotos = [
-            ...(profile.profilePhoto ? [profile.profilePhoto] : []),
-            ...(profile.photos || [])
-        ];
-        // Filter out duplicates (important if profilePhoto is also in photos array)
-        return Array.from(new Set(allPhotos));
+        const media: { type: 'video' | 'image', url: string }[] = [];
+        // 1. Add Vibe Video first
+        if (profile.vibeVideo) {
+            media.push({ type: 'video', url: profile.vibeVideo });
+        }
+        // 2. Add Profile Photo
+        if (profile.profilePhoto) {
+            media.push({ type: 'image', url: profile.profilePhoto });
+        }
+        // 3. Add Gallery
+        if (profile.photos) {
+            profile.photos.forEach(url => {
+                if (url !== profile.profilePhoto) {
+                    media.push({ type: 'image', url });
+                }
+            });
+        }
+        return media;
     }, [profile]);
 
     const sortedInterests = useMemo(() => {
@@ -109,7 +121,7 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
 
     const nextPhoto = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (displayPhotos.length > 1 && currentPhotoIndex < displayPhotos.length - 1) {
+        if (displayMedia.length > 1 && currentPhotoIndex < displayMedia.length - 1) {
             setCurrentPhotoIndex(prev => prev + 1);
         }
     };
@@ -129,10 +141,10 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
     const nextLightboxPhoto = useCallback((e?: React.MouseEvent) => {
         e?.stopPropagation();
         setLightboxIndex(prev => {
-            if (prev < displayPhotos.length - 1) return prev + 1;
+            if (prev < displayMedia.length - 1) return prev + 1;
             return prev;
         });
-    }, [displayPhotos.length]);
+    }, [displayMedia.length]);
 
     const prevLightboxPhoto = useCallback((e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -169,15 +181,26 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                         </div>
                     ) : profile ? (
                         <>
-                            {/* Profile Photo */}
+                            {/* Profile Media (Photo or Video) */}
                             <div className="relative h-full w-full">
-                                <Image
-                                    src={displayPhotos[currentPhotoIndex] || "/placeholder-user.png"}
-                                    alt={profile.name}
-                                    fill
-                                    className="object-cover"
-                                    unoptimized
-                                />
+                                {displayMedia[currentPhotoIndex]?.type === 'video' ? (
+                                    <video
+                                        src={displayMedia[currentPhotoIndex].url}
+                                        className="h-full w-full object-cover"
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                    />
+                                ) : (
+                                    <Image
+                                        src={displayMedia[currentPhotoIndex]?.url || "/placeholder-user.png"}
+                                        alt={profile.name}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
+                                )}
 
                                 {/* Navigation Overlays */}
                                 <div className="absolute inset-x-0 top-0 h-24 bg-linear-to-b from-black/60 to-transparent pointer-events-none" />
@@ -203,9 +226,9 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                                 </button>
 
                                 {/* Photo Indicators */}
-                                {displayPhotos.length > 1 && (
+                                {displayMedia.length > 1 && (
                                     <div className="absolute top-4 inset-x-4 flex gap-1.5 z-40 px-10">
-                                        {displayPhotos.map((_, i) => (
+                                        {displayMedia.map((_, i) => (
                                             <div
                                                 key={i}
                                                 className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i === currentPhotoIndex ? "bg-white" : "bg-white/30"}`}
@@ -255,9 +278,9 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                                     )}
 
                                     {/* Photo Gallery Thumbnails */}
-                                    {displayPhotos.length > 1 && (
+                                    {displayMedia.length > 1 && (
                                         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar animate-in fade-in slide-in-from-bottom-3 duration-500 delay-150">
-                                            {displayPhotos.map((photo, i) => (
+                                            {displayMedia.map((media, i) => (
                                                 <button
                                                     key={i}
                                                     onClick={(e) => {
@@ -266,13 +289,19 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                                                     }}
                                                     className={`relative w-12 h-16 rounded-lg overflow-hidden shrink-0 border-2 transition-all duration-300 ${i === currentPhotoIndex ? 'border-primary ring-2 ring-primary/20 scale-105' : 'border-white/10 hover:border-white/30'}`}
                                                 >
-                                                    <Image
-                                                        src={photo}
-                                                        alt={`Gallery ${i}`}
-                                                        fill
-                                                        className="object-cover"
-                                                        unoptimized
-                                                    />
+                                                    {media.type === 'video' ? (
+                                                        <div className="w-full h-full flex items-center justify-center bg-primary/20">
+                                                            <Video className="w-4 h-4 text-primary" />
+                                                        </div>
+                                                    ) : (
+                                                        <Image
+                                                            src={media.url}
+                                                            alt={`Thumbnail ${i}`}
+                                                            fill
+                                                            className="object-cover"
+                                                            unoptimized
+                                                        />
+                                                    )}
                                                 </button>
                                             ))}
                                         </div>
@@ -338,7 +367,7 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
 
             {/* Lightbox Overlay */}
             <AnimatePresence>
-                {isLightboxOpen && (
+                {profile && isLightboxOpen && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -363,14 +392,25 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                                 className="relative w-full h-full"
                             >
-                                <Image
-                                    src={displayPhotos[lightboxIndex]}
-                                    alt={`Lightbox ${lightboxIndex}`}
-                                    fill
-                                    className="object-contain"
-                                    unoptimized
-                                    priority
-                                />
+                                {displayMedia[lightboxIndex]?.type === 'video' ? (
+                                    <video
+                                        src={displayMedia[lightboxIndex].url}
+                                        className="w-full h-full object-contain"
+                                        autoPlay
+                                        muted
+                                        loop
+                                        playsInline
+                                    />
+                                ) : (
+                                    <Image
+                                        src={displayMedia[lightboxIndex]?.url || "/placeholder-user.png"}
+                                        alt={`Lightbox ${lightboxIndex}`}
+                                        fill
+                                        className="object-contain"
+                                        unoptimized
+                                        priority
+                                    />
+                                )}
                             </motion.div>
 
                             {/* Click areas for navigation */}
@@ -388,7 +428,7 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                             </div>
 
                             {/* Navigation Buttons */}
-                            {displayPhotos.length > 1 && (
+                            {displayMedia.length > 1 && (
                                 <>
                                     <button
                                         onClick={prevLightboxPhoto}
@@ -399,8 +439,8 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                                     </button>
                                     <button
                                         onClick={nextLightboxPhoto}
-                                        disabled={lightboxIndex === displayPhotos.length - 1}
-                                        className={`absolute right-0 p-4 rounded-full bg-white/5 hover:bg-white/10 text-white transition ${lightboxIndex === displayPhotos.length - 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                                        disabled={lightboxIndex === displayMedia.length - 1}
+                                        className={`absolute right-0 p-4 rounded-full bg-white/5 hover:bg-white/10 text-white transition ${lightboxIndex === displayMedia.length - 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
                                     >
                                         <ChevronRight className="w-8 h-8" />
                                     </button>
@@ -411,23 +451,29 @@ export default function ProfilePreviewModal({ userId, isOpen, onClose }: Profile
                         {/* Counter and Gallery Strip */}
                         <div className="mt-8 flex flex-col items-center gap-4 w-full">
                             <span className="text-sm font-medium text-white/60 tracking-widest uppercase">
-                                {lightboxIndex + 1} / {displayPhotos.length}
+                                {lightboxIndex + 1} / {displayMedia.length}
                             </span>
 
                             <div className="flex gap-2 overflow-x-auto max-w-full pb-2 no-scrollbar px-4">
-                                {displayPhotos.map((photo, i) => (
+                                {displayMedia.map((media, i) => (
                                     <button
                                         key={i}
                                         onClick={() => setLightboxIndex(i)}
                                         className={`relative w-12 h-16 rounded-md overflow-hidden shrink-0 border-2 transition-all duration-300 ${i === lightboxIndex ? 'border-primary scale-110 shadow-[0_0_15px_rgba(255,51,102,0.5)]' : 'border-white/10 hover:border-white/30 opcaity-60 hover:opacity-100'}`}
                                     >
-                                        <Image
-                                            src={photo}
-                                            alt={`Gallery ${i}`}
-                                            fill
-                                            className="object-cover"
-                                            unoptimized
-                                        />
+                                        {media.type === 'video' ? (
+                                            <div className="w-full h-full flex items-center justify-center bg-primary/20">
+                                                <Video className="w-4 h-4 text-primary" />
+                                            </div>
+                                        ) : (
+                                            <Image
+                                                src={media.url}
+                                                alt={`Gallery ${i}`}
+                                                fill
+                                                className="object-cover"
+                                                unoptimized
+                                            />
+                                        )}
                                     </button>
                                 ))}
                             </div>
