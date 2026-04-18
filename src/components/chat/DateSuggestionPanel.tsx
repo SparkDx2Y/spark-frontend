@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, X, Calendar, Star, ExternalLink, Send } from 'lucide-react';
 import { DateSuggestion } from '@/types/match/response';
+import dayjs from 'dayjs';
 
 interface DateSuggestionPanelProps {
     isOpen: boolean;
@@ -203,7 +204,7 @@ export default function DateSuggestionPanel({
                                                 <input
                                                     type="datetime-local"
                                                     value={proposalDateTimes[place.id] || ''}
-                                                    min={new Date(Date.now() + 60 * 60 * 1000 - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+                                                    min={dayjs().add(1, 'hour').format('YYYY-MM-DDTHH:mm')}
                                                     onChange={(e) => onTimeChange(place.id, e.target.value)}
                                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden focus:border-primary/50 transition-colors scheme-dark"
                                                 />
@@ -221,7 +222,7 @@ export default function DateSuggestionPanel({
                                                     Maps
                                                 </a>
                                                 <button
-                                                    onClick={() => onPropose(place, proposalDateTimes[place.id] || '')}
+                                                    onClick={() => onPropose(place, dayjs(proposalDateTimes[place.id]).utc().toISOString())}
                                                     className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-linear-to-r from-primary to-purple-600 text-white text-xs font-bold shadow-md shadow-primary/20 hover:shadow-primary/40 hover:opacity-90 transition-all duration-200"
                                                 >
                                                     <Send className="w-3.5 h-3.5" />

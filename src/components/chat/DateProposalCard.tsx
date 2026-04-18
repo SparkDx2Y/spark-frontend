@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { Calendar, Star, MapPin, Clock, ExternalLink, Check, Send } from 'lucide-react';
 import { MessageResponse } from '@/types/message/response';
 import CountdownTimer from './CountdownTimer';
+import { formatDate } from '@/utils/date';
+import dayjs from 'dayjs';
 
 interface DateProposalCardProps {
     msg: MessageResponse;
@@ -75,9 +77,7 @@ export default function DateProposalCard({
                         <div className="min-w-0">
                             <p className="text-[8px] font-bold text-gray-500 uppercase tracking-tight">When</p>
                             <p className="text-[10px] text-white font-medium truncate">
-                                {new Date(msg.metadata.scheduledAt).toLocaleString([], {
-                                    weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                                })}
+                                {formatDate(msg.metadata.scheduledAt)}
                             </p>
                         </div>
                     </div>
@@ -132,13 +132,13 @@ export default function DateProposalCard({
                                             <input
                                                 type="datetime-local"
                                                 value={suggestedTimeValue}
-                                                min={new Date(Date.now() + 60 * 60 * 1000 - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+                                                min={dayjs().add(1, 'hour').format('YYYY-MM-DDTHH:mm')}
                                                 onChange={(e) => onTimeChange(e.target.value)}
                                                 className="w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white scheme-dark focus:border-primary/50 outline-hidden transition-colors"
                                                 autoFocus
                                             />
                                             <div className="flex gap-1.5">
-                                                <button onClick={() => onRespond(msg.id, 'suggested', suggestedTimeValue)} className="flex-1 py-1.5 bg-primary text-black font-black text-[10px] rounded-lg">Send</button>
+                                                <button onClick={() => onRespond(msg.id, 'suggested', dayjs(suggestedTimeValue).utc().toISOString())} className="flex-1 py-1.5 bg-primary text-black font-black text-[10px] rounded-lg">Send</button>
                                                 <button onClick={() => onToggleSuggest(null)} className="px-3 py-1.5 bg-white/5 text-white font-bold text-[10px] rounded-lg">Cancel</button>
                                             </div>
                                         </div>
@@ -154,7 +154,7 @@ export default function DateProposalCard({
                                             <button
                                                 onClick={() => {
                                                     onToggleSuggest(msg.id);
-                                                    onTimeChange(new Date(new Date(msg.metadata?.scheduledAt || Date.now()).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16));
+                                                    onTimeChange(dayjs(msg.metadata?.scheduledAt).local().format('YYYY-MM-DDTHH:mm'));
                                                 }}
                                                 className="py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg flex items-center justify-center gap-1.5 text-[9px] font-black text-white transition-all active:scale-95"
                                             >

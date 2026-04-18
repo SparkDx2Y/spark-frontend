@@ -26,6 +26,8 @@ import DateProposalCard from '@/components/chat/DateProposalCard';
 import DateSuggestionPanel from '@/components/chat/DateSuggestionPanel';
 import AudioMessage from '@/components/chat/AudioMessage';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { formatDate } from '@/utils/date';
+import dayjs from 'dayjs';
 
 interface SocketMessageUpdate {
     type: 'message' | 'message_deleted' | 'date_proposal_updated' | 'date_reminder_1hr';
@@ -242,7 +244,9 @@ export default function MessagesPage() {
     const handleRespondToProposal = async (messageId: string, status: 'accepted' | 'declined' | 'suggested', newTime?: string) => {
         
         try {
-            const response = await respondToDateProposal(messageId, status, newTime);
+
+            const utcTime = newTime ? dayjs(newTime).utc().toISOString() : undefined;
+            const response = await respondToDateProposal(messageId, status, utcTime);
 
             if (response.success && response.data) {
                 const updatedMsg = response.data;
@@ -753,7 +757,7 @@ export default function MessagesPage() {
                                             </div>
                                             <div className="flex flex-col gap-1 mt-1 bg-black/20 p-2.5 rounded-xl border border-white/5">
                                                 <span className="text-xs text-white font-bold flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-primary" /> {dateMsg.metadata?.name}</span>
-                                                <span className="text-[11px] text-gray-400 flex items-center gap-2"><Clock className="w-3 h-3 text-gray-500" /> {new Date(dateMsg.metadata?.scheduledAt || '').toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                                <span className="text-[11px] text-gray-400 flex items-center gap-2"><Clock className="w-3 h-3 text-gray-500" /> {formatDate(dateMsg.metadata?.scheduledAt || '')}</span>
                                             </div>
                                             {dateMsg.metadata?.proposalStatus === 'accepted' && (
                                             <div className="grid grid-cols-2 gap-2 mt-1">
@@ -761,8 +765,10 @@ export default function MessagesPage() {
                                                     onClick={() => {
                                                         const eventTitle = encodeURIComponent(`Date with ${otherUser.name} at ${dateMsg.metadata?.name}`);
                                                         const eventDetails = encodeURIComponent(`Venue location: ${dateMsg.metadata?.name}, ${dateMsg.metadata?.address || ''}`);
-                                                        const eventDates = new Date(dateMsg.metadata?.scheduledAt || '').toISOString().replace(/-|:|\.\d\d\d/g, "");
-                                                        const endDates = new Date(new Date(dateMsg.metadata?.scheduledAt || '').getTime() + 2 * 60 * 60 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
+                                                        const start = dayjs(dateMsg.metadata?.scheduledAt).utc();
+                                                        const end = start.add(2, 'hour')
+                                                        const eventDates = start.format('YYYYMMDDTHHmm[Z]')
+                                                        const endDates = end.format('YYYYMMDDTHHmm[Z]')
                                                         window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${eventDetails}&dates=${eventDates}/${endDates}`, '_blank');
                                                     }}
                                                     className="py-2 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-[10px] rounded-xl flex items-center justify-center gap-1.5 transition-colors"
@@ -850,7 +856,7 @@ export default function MessagesPage() {
                                             </h3>
                                             {match.lastMessageAt && (
                                                 <span className={`text-[10px] ${isSelected ? 'text-gray-300' : 'text-gray-500 group-hover:text-gray-400'}`}>
-                                                    {new Date(match.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {dayjs(match.lastMessageAt).local().format('HH:mm')}
                                                 </span>
                                             )}
                                         </div>
@@ -1033,23 +1039,19 @@ export default function MessagesPage() {
                             const isConsecutive = index > 0 && messages[index - 1].senderId === msg.senderId;
 
 
-                            const date = new Date(msg.createdAt);
-                            const prevDate = index > 0 ? new Date(messages[index - 1].createdAt) : null;
+                            const date = dayjs(msg.createdAt).local()   ;
+                            const prevDate = index > 0 ? dayjs(messages[index - 1].createdAt).local() : null;
 
-                            const showDateSeparator = !prevDate || date.toDateString() !== prevDate.toDateString();
+                            const showDateSeparator = !prevDate || !date.isSame(prevDate, 'day');
 
                             let dateLabel = '';
                             if (showDateSeparator) {
-                                const today = new Date();
-                                const yesterday = new Date();
-                                yesterday.setDate(today.getDate() - 1);
-
-                                if (date.toDateString() === today.toDateString()) {
+                                if (date.isSame(dayjs(), 'day')) {
                                     dateLabel = 'Today';
-                                } else if (date.toDateString() === yesterday.toDateString()) {
+                                } else if (date.isSame(dayjs().subtract(1, 'day'), 'day')) {
                                     dateLabel = 'Yesterday';
                                 } else {
-                                    dateLabel = date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+                                    dateLabel = date.format('MMM D, YYYY');
                                 }
                             }
 
@@ -1158,7 +1160,7 @@ export default function MessagesPage() {
                                             </div>
                                             {!isEmoji && !msg.id.startsWith('temp-') && (
                                                 <p className={`text-[10px] mt-1.5 font-medium px-1 ${isOwn ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {dayjs(msg.createdAt).format('HH:mm')}
                                                 </p>
                                             )}
                                         </div>
@@ -1552,13 +1554,7 @@ export default function MessagesPage() {
                 proposalDateTimes={proposalDateTimes}
                 onTimeChange={(placeId, time) => setProposalDateTimes(prev => ({ ...prev, [placeId]: time }))}
                 onPropose={(place, selectedTime) => {
-                    const formattedDate = new Date(selectedTime).toLocaleString([], {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
+                    const formattedDate = dayjs(selectedTime).utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
 
                     const message = `Check out this spot: ${place.name}! How does ${formattedDate} sound?`;
                     const metadata = {
@@ -1566,7 +1562,7 @@ export default function MessagesPage() {
                         name: place.name,
                         address: place.address,
                         rating: place.rating,
-                        scheduledAt: selectedTime,
+                        scheduledAt: dayjs(selectedTime).utc().toISOString(),
                         photo: place.photo_reference
                             ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
                             : undefined
