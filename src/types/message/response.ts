@@ -3,7 +3,17 @@ export interface MessageResponse {
     matchId: string;
     senderId: string;
     content: string;
-    type: 'text' | 'image' | 'audio' | 'video_call';
+    type: 'text' | 'image' | 'audio' | 'video_call' | 'date_proposal';
+    metadata?: {
+        placeId?: string;
+        name?: string;
+        address?: string;
+        rating?: number;
+        photo?: string;
+        proposalStatus?: 'pending' | 'accepted' | 'declined' | 'suggested';
+        lastSuggestedBy?: string;
+        scheduledAt?: string;
+    };
     isRead: boolean;
     createdAt: string;
 }
@@ -20,6 +30,6 @@ export interface MatchResponse {
     users: UserInfo[];
     lastMessageAt?: string;
     lastMessage?: string;
-    lastMessageType?: 'text' | 'image' | 'audio' | 'video_call';
+    lastMessageType?: 'text' | 'image' | 'audio' | 'video_call' | 'date_proposal';
     createdAt: string;
 }

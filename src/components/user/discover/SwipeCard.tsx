@@ -33,13 +33,25 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
     const likeOpacity = useTransform(x, [50, 150], [0, 1]);
     const passOpacity = useTransform(x, [-50, -150], [0, 1]);
 
-    // Combine profile photo with gallery photos
-    const displayPhotos = [
-        ...(profile.profilePhoto ? [profile.profilePhoto] : []),
-        ...(profile.photos || [])
-    ];
+    
+    const displayMedia = useMemo(() => {
+        const media = [];
+        
+        if (profile.vibeVideo) {
+            media.push({ type: 'video', url: profile.vibeVideo });
+        }
+       
+        if (profile.profilePhoto) {
+            media.push({ type: 'image', url: profile.profilePhoto });
+        }
+       
+        if (profile.photos) {
+            profile.photos.forEach(url => media.push({ type: 'image', url }));
+        }
+        return media;
+    }, [profile]);
 
-    //? handle drag end for swipe actions 
+    
     const handleDragEnd = (_: unknown, info: PanInfo) => {
         if (info.offset.x > 100) {
             onSwipe("right");
@@ -50,7 +62,7 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
 
     const nextPhoto = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (displayPhotos.length > 0 && currentPhotoIndex < displayPhotos.length - 1) {
+        if (displayMedia.length > 0 && currentPhotoIndex < displayMedia.length - 1) {
             setCurrentPhotoIndex(prev => prev + 1);
         }
     };
@@ -75,28 +87,38 @@ export default function SwipeCard({ profile, onSwipe, active }: SwipeCardProps) 
                 whileTap={{ scale: 0.98 }}
             >
                 <div className="relative h-full w-full rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-gray-900">
-                    {/* Profile Photo */}
-                    <Image
-                        src={displayPhotos[currentPhotoIndex] || "/placeholder-user.png"}
-                        alt={profile.name}
-                        fill
-                        className="object-cover pointer-events-none"
-                        unoptimized
-                    />
+                    {/* Profile Media (Photo or Video) */}
+                    {displayMedia[currentPhotoIndex]?.type === 'video' ? (
+                        <video
+                            src={displayMedia[currentPhotoIndex].url}
+                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                        />
+                    ) : (
+                        <Image
+                            src={displayMedia[currentPhotoIndex]?.url || "/placeholder-user.png"}
+                            alt={profile.name}
+                            fill
+                            className="object-cover pointer-events-none transition-opacity duration-300"
+                            unoptimized
+                        />
+                    )}
 
                     {/* Overlay Gradients */}
                     <div className="absolute inset-x-0 top-0 h-24 bg-linear-to-b from-black/60 to-transparent pointer-events-none" />
                     <div className="absolute inset-x-0 bottom-0 h-48 bg-linear-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
 
 
-                    {/* Photo Navigation Indicators */}
-                    {displayPhotos.length > 1 && (
+                    {/* Media Navigation Indicators */}
+                    {displayMedia.length > 1 && (
                         <div className="absolute top-4 inset-x-4 flex gap-1.5 z-20">
-                            {displayPhotos.map((_, i) => (
+                            {displayMedia.map((_, i) => (
                                 <div
                                     key={i}
-                                    className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i === currentPhotoIndex ? "bg-white shadow-sm" : "bg-white/30"
-                                        }`}
+                                    className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i === currentPhotoIndex ? "bg-white shadow-sm" : "bg-white/30"}`}
                                 />
                             ))}
                         </div>

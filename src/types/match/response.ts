@@ -24,3 +24,13 @@ export interface ActivityResponse {
   passedBy: MatchAction[];
   viewedYou: MatchAction[];
 }
+export interface DateSuggestion {
+  id: string;
+  name: string;
+  address: string;
+  rating?: number;
+  photo_reference?: string;
+  types?: string[];
+  isOpenNow?: boolean;
+  businessStatus?: string;
+}

@@ -7,7 +7,7 @@ import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } 
 import { NotificationResponse } from '@/types/notification/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 
-import { Heart, MessageCircle, Bell, Check, ShieldCheck, ShieldX, User, Lock, Crown } from 'lucide-react';
+import { Heart, MessageCircle, Bell, Check, ShieldCheck, ShieldX, User, Lock, Crown, Calendar } from 'lucide-react';
 import ProfilePreviewModal from '@/components/user/ProfilePreviewModal';
 
 
@@ -27,12 +27,11 @@ export default function NotificationsPage() {
         loadNotifications(1, true);
 
         if (socket) {
-            socket.on('notification', () => {
-                loadNotifications(1, true);
-            });
+            const handleNotification = () => loadNotifications(1, true);
+            socket.on('notification', handleNotification);
 
             return () => {
-                socket.off('notification');
+                socket.off('notification', handleNotification);
             };
         }
     }, [socket]);
@@ -111,6 +110,8 @@ export default function NotificationsPage() {
             setPreviewUser(notification.fromUser.userId);
         } else if (notification.type === 'subscription_expired' || notification.type === 'subscription_expiring_soon') {
             router.push('/user/premium');
+        } else if (notification.type === 'date_reminder' && notification.matchId) {
+            router.push(`/user/messages?matchId=${notification.matchId}`);
         }
     };
 
@@ -134,6 +135,8 @@ export default function NotificationsPage() {
                 return <Crown className="w-5 h-5 text-red-400" />;
             case 'subscription_expiring_soon':
                 return <Crown className="w-5 h-5 text-amber-400" />;
+            case 'date_reminder':
+                return <Calendar className="w-5 h-5 text-primary" />;
             default:
                 return <Bell className="w-5 h-5 text-yellow-500" />;
         }
@@ -256,6 +259,7 @@ export default function NotificationsPage() {
                                             {notification.type === 'profile_view' && `viewed your profile.`}
                                             {notification.type === 'subscription_expired' && `Your Premium subscription has expired. Upgrade to continue enjoying Premium features!`}
                                             {notification.type === 'subscription_expiring_soon' && `Your Premium subscription is expiring in 3 days. Renew now to avoid losing access!`}
+                                            {notification.type === 'date_reminder' && `Your date is rapidly approaching! Check your messages.`}
                                         </>
                                     )}
                                 </p>

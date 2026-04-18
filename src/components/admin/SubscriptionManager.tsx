@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Edit2, Check, X, Shield, Users, MessageSquare, Video, Eye, Heart, Infinity, Image as ImageIcon, AlertTriangle, Mic } from "lucide-react";
+import { Plus, Edit2, Check, X, Shield, Users, MessageSquare, Video, Eye, Heart, Infinity, Image as ImageIcon, AlertTriangle, Mic, MapPin } from "lucide-react";
 import type { SubscriptionPlan, SubscriptionFeatures } from "@/types/subscription";
 import Modal from "@/components/ui/Modal";
 import TablePagination from "./TablePagination";
@@ -25,6 +25,7 @@ const defaultFeatures: SubscriptionFeatures = {
     mediaSharingEnabled: false,
     audioEnabled: false,
     videoCallEnabled: false,
+    dateProposalEnabled: false,
     swipeLimit: 0,
 };
 
@@ -268,6 +269,7 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                                         <FeatureItem label="Video Calls" active={plan.features.videoCallEnabled} icon={<Video className="w-3.5 h-3.5" />} />
                                         <FeatureItem label="Audio Messages" active={plan.features.audioEnabled} icon={<Mic className="w-3.5 h-3.5" />} />
                                         <FeatureItem label="Media Sharing" active={plan.features.mediaSharingEnabled} icon={<ImageIcon className="w-3.5 h-3.5" />} />
+                                        <FeatureItem label="Date Proposals" active={plan.features.dateProposalEnabled} icon={<MapPin className="w-3.5 h-3.5" />} />
 
                                         <div className="flex items-center justify-between p-4 rounded-2xl bg-white/2 border border-white/5 transition-all group-hover:bg-amber-500/5 group-hover:border-amber-500/10">
                                             <div className="flex items-center gap-3">
@@ -433,6 +435,7 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                                                 setValue("features.audioEnabled", false);
                                                 setValue("features.videoCallEnabled", false);
                                                 setValue("features.mediaSharingEnabled", false);
+                                                setValue("features.dateProposalEnabled", false);
                                                 setValue("features.dailyMessageLimit", 20);
                                             }
                                         }}
@@ -473,6 +476,18 @@ export default function SubscriptionManager({ initialPlans, initialPagination }:
                                             <FeatureToggle
                                                 icon={<ImageIcon className="w-4 h-4" />}
                                                 label="Media Sharing"
+                                                active={field.value}
+                                                onClick={() => field.onChange(!field.value)}
+                                            />
+                                        )}
+                                    />
+                                    <Controller
+                                        name="features.dateProposalEnabled"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <FeatureToggle
+                                                icon={<MapPin className="w-4 h-4" />}
+                                                label="Date Proposals"
                                                 active={field.value}
                                                 onClick={() => field.onChange(!field.value)}
                                             />

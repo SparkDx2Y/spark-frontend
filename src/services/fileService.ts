@@ -2,9 +2,13 @@ import { api } from "@/lib/axios";
 import { FILE_ENDPOINTS } from "@/constants/api";
 import { ApiResponse } from "@/types/api";
 
-export const uploadFile = async (file: File): Promise<string> => {
+export const uploadFile = async (file: File | Blob, startTime?: number): Promise<string> => {
     const formData = new FormData();
     formData.append("file", file);
+    
+    if (startTime !== undefined) {
+        formData.append("startTime", startTime.toString());
+    }
 
     const response = await api.post<ApiResponse<{ url: string }>>(FILE_ENDPOINTS.UPLOAD, formData, {
         headers: {

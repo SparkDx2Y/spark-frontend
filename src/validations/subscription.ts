@@ -20,9 +20,10 @@ export const planSchema = z.object({
         mediaSharingEnabled: z.boolean(),
         audioEnabled: z.boolean(),
         videoCallEnabled: z.boolean(),
+        dateProposalEnabled: z.boolean(),
         swipeLimit: z.coerce.number().min(-1, "Use -1 for unlimited"),
     }).refine((f) => {
-        const hasActiveToggle = f.seeWhoLikedYou || f.seeWhoViewedProfile || f.chatEnabled || f.mediaSharingEnabled || f.audioEnabled || f.videoCallEnabled;
+        const hasActiveToggle = f.seeWhoLikedYou || f.seeWhoViewedProfile || f.chatEnabled || f.mediaSharingEnabled || f.audioEnabled || f.videoCallEnabled || f.dateProposalEnabled;
         const hasNonZeroLimit = f.dailyMessageLimit !== 0 || f.swipeLimit !== 0;
         return hasActiveToggle || hasNonZeroLimit;
     }, {

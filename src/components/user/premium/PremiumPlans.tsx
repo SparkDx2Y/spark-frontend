@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Heart, Eye, MessageSquare, Video, Mic, Image as ImageIcon, Infinity, Star, ArrowRight, Loader2 } from "lucide-react";
+import { Check, Heart, Eye, MessageSquare, Video, Mic, Image as ImageIcon, Infinity, Star, ArrowRight, Loader2, MapPin } from "lucide-react";
 import type { SubscriptionPlan } from "@/types/subscription";
 import { createCheckoutSession } from "@/services/paymentService";
 import { useState } from "react";
@@ -122,6 +122,7 @@ function PlanCard({ plan, index, isCurrentPlan, isDowngrade, isRedirecting, onSu
                     <FeatureRow label="Video calling" active={plan.features.videoCallEnabled} icon={<Video className="w-4 h-4" />} />
                     <FeatureRow label="Audio messages" active={plan.features.audioEnabled} icon={<Mic className="w-4 h-4" />} />
                     <FeatureRow label="Media sharing" active={plan.features.mediaSharingEnabled} icon={<ImageIcon className="w-4 h-4" />} />
+                    <FeatureRow label="Date Proposals" active={plan.features.dateProposalEnabled} icon={<MapPin className="w-4 h-4" />} />
                     <LimitRow label="Daily Messages" limit={plan.features.dailyMessageLimit} icon={<MessageSquare className="w-4 h-4" />} />
                     <LimitRow label="Daily Swipes" limit={plan.features.swipeLimit} icon={<Star className="w-4 h-4" />} />
                 </div>

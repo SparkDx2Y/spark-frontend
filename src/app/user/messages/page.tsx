@@ -3,110 +3,49 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMessageCount, deleteMessage } from '@/services/messageService';
+import { getMatches, getMessages, sendMessage, markMessagesAsRead, getUnreadMessageCount, deleteMessage, respondToDateProposal, getDateProposals } from '@/services/messageService';
 import { MatchResponse, MessageResponse } from '@/types/message/response';
+import { getDateSuggestions } from '@/services/matchService';
+import { DateSuggestion } from '@/types/match/response';
 import { useSocketContext } from '@/contexts/SocketContext';
 import { useAppSelector } from '@/store/hooks';
-import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle, Lock, Search } from 'lucide-react';
+import { Send, ArrowLeft, Plus, Image as ImageIcon, Mic, Video, Phone, MoreVertical, X, Camera, MessageSquare, Smile, Play, Pause, Trash2, Loader2, AlertTriangle, Lock, Search, MapPin, Star, ExternalLink, Coffee, Utensils, Music, Check, Calendar, Clock } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { uploadChatMedia } from '@/services/fileService';
 import { useVideoCallContext } from '@/contexts/VideoCallContext';
 import ReportModal from '@/components/user/ReportModal';
 import { handleApiError } from '@/utils/toast';
+import toast from 'react-hot-toast';
 import { getErrorMessage } from '@/utils/errors';
 import { getCurrentPlan } from '@/services/subscriptionService';
 import type { SubscriptionPlan } from '@/types/subscription';
 import PremiumUpsellModal from '@/components/user/PremiumUpsellModal';
+import CountdownTimer from '@/components/chat/CountdownTimer';
+import DateProposalCard from '@/components/chat/DateProposalCard';
+import DateSuggestionPanel from '@/components/chat/DateSuggestionPanel';
+import AudioMessage from '@/components/chat/AudioMessage';
+import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 
 interface SocketMessageUpdate {
-    type: 'message' | 'message_deleted';
+    type: 'message' | 'message_deleted' | 'date_proposal_updated' | 'date_reminder_1hr';
     matchId: string;
     message?: MessageResponse;
     messageId?: string;
+    partnerName?: string;
 }
 
-function AudioMessage({ src, isOwn, isUploading }: { src: string; isOwn: boolean; isUploading?: boolean }) {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const audioRef = useRef<HTMLAudioElement>(null);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
 
-    const togglePlay = () => {
-        if (!audioRef.current || isUploading) return;
-        if (isPlaying) {
-            audioRef.current.pause();
-        } else {
-            audioRef.current.play();
-        }
-        setIsPlaying(!isPlaying);
-    };
-
-    useEffect(() => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-        // Simple duration handling
-        const onLoadedMetadata = () => setDuration(audio.duration);
-
-        const handleEnded = () => setIsPlaying(false);
-
-        audio.addEventListener('timeupdate', handleTimeUpdate);
-        audio.addEventListener('loadedmetadata', onLoadedMetadata);
-        audio.addEventListener('ended', handleEnded);
-
-        return () => {
-            audio.removeEventListener('timeupdate', handleTimeUpdate);
-            audio.removeEventListener('loadedmetadata', onLoadedMetadata);
-            audio.removeEventListener('ended', handleEnded);
-        };
-    }, []);
-
-    const formatTime = (time: number) => {
-        if (!time || isNaN(time)) return "0:00";
-        const min = Math.floor(time / 60);
-        const sec = Math.floor(time % 60);
-        return `${min}:${sec.toString().padStart(2, '0')}`;
-    };
-
-    return (
-        <div className={`flex items-center gap-3 min-w-[200px] py-1 ${isUploading ? 'opacity-80' : ''}`}>
-            <button
-                onClick={togglePlay}
-                disabled={isUploading}
-                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isOwn ? 'bg-white/20 hover:bg-white/30' : 'bg-primary/20 hover:bg-primary/30'} transition-colors ${isUploading ? 'cursor-not-allowed' : ''}`}
-            >
-                {isUploading ? (
-                    <Loader2 className={`w-5 h-5 animate-spin ${isOwn ? 'text-white' : 'text-primary'}`} />
-                ) : isPlaying ? (
-                    <Pause className={`w-5 h-5 ${isOwn ? 'text-white' : 'text-primary'}`} />
-                ) : (
-                    <Play className={`w-5 h-5 ${isOwn ? 'text-white' : 'text-primary'}`} />
-                )}
-            </button>
-            <div className="flex-1 space-y-2">
-                <div className={`h-1.5 w-full rounded-full ${isOwn ? 'bg-white/20' : 'bg-white/10'}`}>
-                    <div
-                        className={`h-full rounded-full ${isOwn ? 'bg-white' : 'bg-primary'} transition-all`}
-                        style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
-                    />
-                </div>
-                <div className="flex justify-between text-[10px] opacity-70">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{isUploading ? 'Sending...' : formatTime(duration)}</span>
-                </div>
-            </div>
-            <audio ref={audioRef} src={src} className="hidden" preload="metadata" />
-        </div>
-    );
-}
 
 export default function MessagesPage() {
     const searchParams = useSearchParams();
     const matchIdFromUrl = searchParams.get('matchId');
 
     const [matches, setMatches] = useState<MatchResponse[]>([]);
+    const [dateHistory, setDateHistory] = useState<MessageResponse[]>([]);
+    const [dateHistoryPage, setDateHistoryPage] = useState(1);
+    const [hasMoreDates, setHasMoreDates] = useState(true);
+    const [activeTab, setActiveTab] = useState<'chats' | 'dates'>('chats');
     const [selectedMatch, setSelectedMatch] = useState<MatchResponse | null>(null);
     const [messages, setMessages] = useState<MessageResponse[]>([]);
     const [newMessage, setNewMessage] = useState('');
@@ -118,19 +57,32 @@ export default function MessagesPage() {
     const [uploading, setUploading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Audio recording state
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordingTime, setRecordingTime] = useState(0);
-    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const audioChunksRef = useRef<Blob[]>([]);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const {
+        isRecording,
+        recordingTime,
+        isPaused,
+        audioBlob,
+        startRecording,
+        stopRecording,
+        pauseRecording,
+        resumeRecording,
+        deleteRecording,
+        setAudioBlob
+    } = useAudioRecorder();
+
     const shouldSendAfterStopRef = useRef(false);
-    const [isPaused, setIsPaused] = useState(false);
+
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const [showMenu, setShowMenu] = useState(false);
     const [reportModalOpen, setReportModalOpen] = useState(false);
     const [upsellModal, setUpsellModal] = useState<{ isOpen: boolean, title: string, desc: string }>({ isOpen: false, title: '', desc: '' });
+    const [dateSuggestions, setDateSuggestions] = useState<DateSuggestion[]>([]);
+    const [isFetchingDate, setIsFetchingDate] = useState(false);
+    const [showDatePanel, setShowDatePanel] = useState(false);
+    const [selectedDateCategory, setSelectedDateCategory] = useState('cafe');
+    const [proposalDateTimes, setProposalDateTimes] = useState<Record<string, string>>({});
+    const [isSuggestingTime, setIsSuggestingTime] = useState<string | null>(null);
+    const [suggestedTimeValue, setSuggestedTimeValue] = useState<string>('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const audioInputRef = useRef<HTMLInputElement>(null);
@@ -147,6 +99,7 @@ export default function MessagesPage() {
     useEffect(() => {
         const timer = setTimeout(() => {
             loadMatches(searchQuery);
+            loadDateHistory();
         }, 500);
         return () => clearTimeout(timer);
     }, [searchQuery]);
@@ -174,14 +127,14 @@ export default function MessagesPage() {
     }, [selectedMatch, joinChat, leaveChat, emitTyping]);
 
     // Helper to move active chat to top
-    const updateMatchList = (matchId: string, content: string, createdAt: string, type: 'text' | 'image' | 'audio' | 'video_call' = 'text') => {
+    const updateMatchList = (matchId: string, content: string, createdAt: string, type: 'text' | 'image' | 'audio' | 'video_call' | 'date_proposal' = 'text') => {
         setMatches(prev => {
             const index = prev.findIndex(m => m.id === matchId);
             if (index === -1) return prev;
 
             const updatedMatch = {
                 ...prev[index],
-                lastMessage: content,
+                lastMessage: type === 'date_proposal' ? 'Proposed a date 📍' : content,
                 lastMessageAt: createdAt,
                 lastMessageType: type
             };
@@ -208,6 +161,32 @@ export default function MessagesPage() {
                 return;
             }
 
+            // Handle Proposal update
+            if (data.type === 'date_proposal_updated') {
+                if (selectedMatch && data.matchId === selectedMatch.id && data.message) {
+                    const updatedMsg = data.message;
+                    setMessages(prev => prev.map(m => m.id === updatedMsg.id ? updatedMsg : m));
+                }
+                
+                loadDateHistory();
+                return;
+            }
+
+            // Handle Date Reminder 1 Hr
+            if (data.type === 'date_reminder_1hr' && data.message) {
+                const partnerName = data.partnerName || 'your match';
+                toast(`🚨 Date Reminder! You have a date with ${partnerName} at ${data.message.metadata?.name} in exactly 1 hour!`, {
+                    icon: '🥂',
+                    duration: 10000,
+                    style: {
+                        borderRadius: '10px',
+                        background: '#333',
+                        color: '#fff',
+                    },
+                });
+                return;
+            }
+
             // 1. Update Messages Area (if chat is open)
             if (selectedMatch && data.matchId === selectedMatch.id && data.message) {
                 const newMessage = data.message;
@@ -223,6 +202,9 @@ export default function MessagesPage() {
 
             if (data.message) {
                 updateMatchList(data.matchId, data.message.content, data.message.createdAt, data.message.type);
+                if (data.message.type === 'date_proposal') {
+                    loadDateHistory();
+                }
             }
         };
 
@@ -256,6 +238,32 @@ export default function MessagesPage() {
         }
     };
 
+    // Handle responding to date proposal
+    const handleRespondToProposal = async (messageId: string, status: 'accepted' | 'declined' | 'suggested', newTime?: string) => {
+        
+        try {
+            const response = await respondToDateProposal(messageId, status, newTime);
+
+            if (response.success && response.data) {
+                const updatedMsg = response.data;
+                console.log('[Proposal] Server returned status:', updatedMsg.metadata?.proposalStatus);
+
+                setMessages(prev => {
+                    return prev.map(m => {
+                        if (m.id === messageId) {
+                            return { ...updatedMsg };
+                        }
+                        return m;
+                    });
+                });
+                setIsSuggestingTime(null);
+                loadDateHistory();
+            }
+        } catch (error) {
+            handleApiError(error, 'Could not record your response');
+        }
+    };
+
     // Auto-scroll to bottom
     useEffect(() => {
         scrollToBottom();
@@ -283,6 +291,25 @@ export default function MessagesPage() {
         }
     };
 
+    const loadDateHistory = async (page: number = 1, append: boolean = false) => {
+        try {
+            const response = await getDateProposals(page, 10);
+            if (response.success && response.data) {
+                if (append) {
+                    setDateHistory(prev => {
+                        const newDates = response.data.filter(newDate => !prev.some(d => d.id === newDate.id));
+                        return [...prev, ...newDates];
+                    });
+                } else {
+                    setDateHistory(response.data);
+                }
+                setHasMoreDates(response.data.length === 10);
+            }
+        } catch (error) {
+            console.error('Failed to load dates:', error);
+        }
+    };
+
     // Handle select match for messages page
     const handleSelectMatch = async (match: MatchResponse) => {
         setSelectedMatch(match);
@@ -303,7 +330,17 @@ export default function MessagesPage() {
     };
 
     // Handle send message for messages page
-    const handleSendMessage = async (customContent?: string, type: 'text' | 'image' | 'audio' = 'text') => {
+    const handleSendMessage = async (
+        customContent?: string,
+        type: 'text' | 'image' | 'audio' | 'date_proposal' = 'text',
+        metadata?: {
+            placeId?: string;
+            name?: string;
+            address?: string;
+            rating?: number;
+            photo?: string;
+        }
+    ) => {
         const content = customContent || newMessage.trim();
         if (!content || !selectedMatch || sending) return;
 
@@ -332,7 +369,8 @@ export default function MessagesPage() {
             const response = await sendMessage({
                 matchId: selectedMatch.id,
                 content: content,
-                type: type
+                type: type,
+                metadata: metadata
             });
             const message = response.data;
 
@@ -343,6 +381,10 @@ export default function MessagesPage() {
             }
 
             updateMatchList(selectedMatch.id, message.content, message.createdAt, message.type);
+
+            if (type === 'date_proposal') {
+                loadDateHistory();
+            }
 
         } catch (error) {
             console.error('Failed to send message:', error);
@@ -492,94 +534,21 @@ export default function MessagesPage() {
         }
     };
 
-    // Audio Recording Functions
-    const startRecording = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorderRef.current = new MediaRecorder(stream);
-            audioChunksRef.current = [];
-
-            mediaRecorderRef.current.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunksRef.current.push(event.data);
-                }
-            };
-
-            mediaRecorderRef.current.onstop = () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                setAudioBlob(audioBlob);
-                stream.getTracks().forEach(track => track.stop());
-                setIsPaused(false);
-
-                if (shouldSendAfterStopRef.current) {
-                    handleAudioSend(audioBlob);
-                    shouldSendAfterStopRef.current = false;
-                }
-            };
-
-            mediaRecorderRef.current.start();
-            setIsRecording(true);
-            setIsPaused(false);
+    // Watch for recording to stop if we want to send it immediately
+    useEffect(() => {
+        if (audioBlob && shouldSendAfterStopRef.current) {
+            handleAudioSend(audioBlob);
             shouldSendAfterStopRef.current = false;
-            setRecordingTime(0);
-
-            timerRef.current = setInterval(() => {
-                if (!shouldSendAfterStopRef.current) {
-                    setRecordingTime(prev => prev + 1);
-                }
-            }, 1000);
-        } catch (error) {
-            console.error('Error starting recording:', error);
-
         }
-    };
-
-    const stopRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
-            mediaRecorderRef.current.stop();
-            setIsRecording(false);
-            setIsPaused(false);
-            if (timerRef.current) clearInterval(timerRef.current);
-        }
-    };
-
-    const pauseRecording = () => {
-        if (mediaRecorderRef.current && isRecording && !isPaused) {
-            mediaRecorderRef.current.pause();
-            setIsPaused(true);
-            if (timerRef.current) clearInterval(timerRef.current);
-        }
-    };
-
-    const resumeRecording = () => {
-        if (mediaRecorderRef.current && isRecording && isPaused) {
-            mediaRecorderRef.current.resume();
-            setIsPaused(false);
-            timerRef.current = setInterval(() => {
-                setRecordingTime(prev => prev + 1);
-            }, 1000);
-        }
-    };
+    }, [audioBlob]);
 
     const sendRecording = () => {
-        if (mediaRecorderRef.current && isRecording) {
+        if (isRecording) {
             shouldSendAfterStopRef.current = true;
             stopRecording();
         } else if (audioBlob) {
             handleAudioSend(audioBlob);
         }
-    };
-
-    const deleteRecording = () => {
-        if (isRecording && mediaRecorderRef.current) {
-            mediaRecorderRef.current.onstop = null;
-            mediaRecorderRef.current.stop();
-            setIsRecording(false);
-            setIsPaused(false);
-            if (timerRef.current) clearInterval(timerRef.current);
-        }
-        setAudioBlob(null);
-        setRecordingTime(0);
     };
 
     const handleAudioSend = async (blobToSend?: Blob) => {
@@ -601,7 +570,6 @@ export default function MessagesPage() {
 
         setMessages(prev => [...prev, optimisticMessage]);
         setAudioBlob(null);
-        setRecordingTime(0);
 
         setUploading(true);
         try {
@@ -634,6 +602,33 @@ export default function MessagesPage() {
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
+    const handleFetchDateSuggestions = async (categoryOverride?: string) => {
+        if (!selectedMatch) return;
+
+
+        const category = typeof categoryOverride === 'string' ? categoryOverride : selectedDateCategory;
+
+        setIsFetchingDate(true);
+        setShowDatePanel(true);
+        try {
+            const response = await getDateSuggestions(selectedMatch.id, category);
+            setDateSuggestions(response.data);
+        } catch (error) {
+            console.error('Failed to get date suggestions:', error);
+            handleApiError(error, 'Could not calculate midpoint or find spots');
+            setShowDatePanel(false);
+        } finally {
+            setIsFetchingDate(false);
+        }
+    };
+
+    // Refetch when category changes while panel is open
+    useEffect(() => {
+        if (showDatePanel && selectedMatch) {
+            handleFetchDateSuggestions(selectedDateCategory);
+        }
+    }, [selectedDateCategory]);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -665,7 +660,7 @@ export default function MessagesPage() {
     }
 
     return (
-        <div className="fixed inset-0 md:relative md:h-screen md:inset-auto flex bg-black overflow-hidden">
+        <div className={`fixed inset-0 md:relative md:h-screen md:inset-auto flex bg-black overflow-hidden ${showDatePanel ? 'z-1000' : 'z-0'}`}>
             {/* Background Gradients */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0 opacity-20">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/30 blur-[120px] rounded-full mix-blend-screen" />
@@ -702,10 +697,108 @@ export default function MessagesPage() {
                             </button>
                         )}
                     </div>
+                    <div className="flex bg-white/5 p-1 rounded-xl mb-4 text-center">
+                        <button 
+                            onClick={() => setActiveTab('chats')}
+                            className={`flex-1 flex justify-center items-center py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'chats' ? 'bg-white/10 text-white shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                        >
+                            Chats
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('dates')}
+                            className={`flex-1 flex justify-center items-center gap-1.5 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'dates' ? 'bg-primary text-black shadow-sm' : 'text-gray-500 hover:text-gray-300'}`}
+                        >
+                            <Calendar className="w-3.5 h-3.5" />
+                            Your Dates
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-3 scrollbar-hide space-y-1 pb-4">
-                    {(() => {
+                    {activeTab === 'dates' && (() => {
+                        if (dateHistory.length === 0) {
+                            return (
+                                <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-50">
+                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                                        <Calendar className="w-8 h-8 text-gray-400" />
+                                    </div>
+                                    <p className="text-gray-400 font-medium">No dates yet</p>
+                                    <p className="text-xs text-gray-600 mt-2">Get back to matching! 🥂</p>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <>
+                                {dateHistory.map((dateMsg) => {
+                                    const match = matches.find(m => m.id === dateMsg.matchId);
+                                    if (!match) return null;
+                                    const otherUser = match.users.find(u => u.userId !== currentUser?.id) || match.users[0];
+                                    
+                                    return (
+                                        <div key={dateMsg.id} className="w-full flex flex-col gap-2 p-3 mb-2 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative w-10 h-10 rounded-full">
+                                                        <Image src={otherUser.profilePhoto || '/default-avatar.png'} alt={otherUser.name} fill className="rounded-full object-cover" unoptimized />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-semibold text-sm text-white">{otherUser.name}</h3>
+                                                        {(!dateMsg.metadata?.proposalStatus || dateMsg.metadata?.proposalStatus === 'pending') && <p className="text-[10px] text-yellow-400 font-bold uppercase tracking-widest flex items-center gap-1"><div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse" />Pending</p>}
+                                                        {dateMsg.metadata?.proposalStatus === 'accepted' && <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest flex items-center gap-1"><div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />Confirmed</p>}
+                                                        {dateMsg.metadata?.proposalStatus === 'declined' && <p className="text-[10px] text-red-400 font-bold uppercase tracking-widest flex items-center gap-1"><div className="w-1.5 h-1.5 bg-red-400 rounded-full" />Declined</p>}
+                                                        {dateMsg.metadata?.proposalStatus === 'suggested' && <p className="text-[10px] text-orange-400 font-bold uppercase tracking-widest flex items-center gap-1"><div className="w-1.5 h-1.5 bg-orange-400 rounded-full" />Rescheduled</p>}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-1 mt-1 bg-black/20 p-2.5 rounded-xl border border-white/5">
+                                                <span className="text-xs text-white font-bold flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-primary" /> {dateMsg.metadata?.name}</span>
+                                                <span className="text-[11px] text-gray-400 flex items-center gap-2"><Clock className="w-3 h-3 text-gray-500" /> {new Date(dateMsg.metadata?.scheduledAt || '').toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                            </div>
+                                            {dateMsg.metadata?.proposalStatus === 'accepted' && (
+                                            <div className="grid grid-cols-2 gap-2 mt-1">
+                                                <button 
+                                                    onClick={() => {
+                                                        const eventTitle = encodeURIComponent(`Date with ${otherUser.name} at ${dateMsg.metadata?.name}`);
+                                                        const eventDetails = encodeURIComponent(`Venue location: ${dateMsg.metadata?.name}, ${dateMsg.metadata?.address || ''}`);
+                                                        const eventDates = new Date(dateMsg.metadata?.scheduledAt || '').toISOString().replace(/-|:|\.\d\d\d/g, "");
+                                                        const endDates = new Date(new Date(dateMsg.metadata?.scheduledAt || '').getTime() + 2 * 60 * 60 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
+                                                        window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&details=${eventDetails}&dates=${eventDates}/${endDates}`, '_blank');
+                                                    }}
+                                                    className="py-2 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-[10px] rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                                                >
+                                                    <Calendar className="w-3.5 h-3.5" />
+                                                    Google Calendar
+                                                </button>
+                                                <button 
+                                                    onClick={() => { setActiveTab('chats'); handleSelectMatch(match); }} 
+                                                    className="py-2 bg-white/5 hover:bg-white/10 text-white font-bold text-[10px] rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                                                >
+                                                    <MessageSquare className="w-3.5 h-3.5" />
+                                                    Go to Chat
+                                                </button>
+                                            </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                {hasMoreDates && dateHistory.length >= 10 && (
+                                    <button
+                                        onClick={() => {
+                                            const nextPage = dateHistoryPage + 1;
+                                            setDateHistoryPage(nextPage);
+                                            loadDateHistory(nextPage, true);
+                                        }}
+                                        className="w-full mt-2 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-gray-300 transition-colors"
+                                    >
+                                        Load More Dates
+                                    </button>
+                                )}
+                            </>
+                        );
+                    })()}
+
+                    {activeTab === 'chats' && (() => {
                         const displayMatches = matches.filter(match => {
                             const otherUser = match.users.find(u => u.userId !== currentUser?.id) || match.users[0];
                             return !otherUser.isBlocked;
@@ -765,8 +858,9 @@ export default function MessagesPage() {
                                             {match.lastMessageType === 'text' ? match.lastMessage :
                                                 match.lastMessageType === 'image' ? 'Sent an image' :
                                                     match.lastMessageType === 'audio' ? 'Sent an audio' :
-                                                        match.lastMessageType === 'video_call' ? match.lastMessage :
-                                                            match.lastMessage || 'Start a conversation'}
+                                                        match.lastMessageType === 'date_proposal' ? 'Proposed a date 📍' :
+                                                            match.lastMessageType === 'video_call' ? match.lastMessage :
+                                                                match.lastMessage || 'Start a conversation'}
                                         </p>
                                     </div>
                                 </motion.button>
@@ -866,6 +960,30 @@ export default function MessagesPage() {
                                     <Video className="w-4 h-4 md:w-5 md:h-5" />
                                 )}
                             </button>
+                             <button
+                                 onClick={() => {
+                                     if (currentPlan && !currentPlan.features.dateProposalEnabled) {
+                                         setUpsellModal({
+                                             isOpen: true,
+                                             title: 'Midway Date Locked 📍',
+                                             desc: 'Finding the perfect midway date spot is a premium feature.\nUpgrade to Premium to find cafes, restaurants, and more halfway between you and your match!'
+                                         });
+                                     } else {
+                                         handleFetchDateSuggestions();
+                                     }
+                                 }}
+                                 className="p-2 md:p-2.5 rounded-full text-gray-400 hover:text-green-400 hover:bg-green-500/10 transition-all duration-300 relative group"
+                                 title="Find a midway date spot"
+                             >
+                                 {currentPlan && !currentPlan.features.dateProposalEnabled ? (
+                                     <Lock className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
+                                 ) : (
+                                     <MapPin className="w-4 h-4 md:w-5 md:h-5" />
+                                 )}
+                                 <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                                     Midway Date
+                                 </span>
+                             </button>
                             <div className="relative">
                                 <button
                                     onClick={() => setShowMenu(!showMenu)}
@@ -914,7 +1032,7 @@ export default function MessagesPage() {
                             const isOwn = msg.senderId === currentUser?.id;
                             const isConsecutive = index > 0 && messages[index - 1].senderId === msg.senderId;
 
-                           
+
                             const date = new Date(msg.createdAt);
                             const prevDate = index > 0 ? new Date(messages[index - 1].createdAt) : null;
 
@@ -937,6 +1055,7 @@ export default function MessagesPage() {
 
                             const isEmoji = msg.type === 'text' && /^[\p{Extended_Pictographic}\p{Emoji_Presentation}\s]+$/u.test(msg.content);
                             const isImage = msg.type === 'image';
+                            const isDateProposal = msg.type === 'date_proposal';
 
                             return (
                                 <div key={msg.id}>
@@ -972,8 +1091,8 @@ export default function MessagesPage() {
                                                     relative selection:bg-black/30 selection:text-white
                                                     ${isEmoji
                                                         ? 'bg-transparent text-7xl md:text-8xl p-0 shadow-none border-none leading-none' /* Emoji Style - Fixed large size */
-                                                        : `text-sm md:text-base ${isImage
-                                                            ? `p-1.5 shadow-md backdrop-blur-sm ${ // Image Style (Reduced Padding)
+                                                        : `text-sm md:text-base ${isImage || isDateProposal
+                                                            ? `p-1.5 shadow-md backdrop-blur-sm ${ // Card/Image Style
                                                             isOwn
                                                                 ? `bg-transparent ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tr-none'}`
                                                                 : `bg-[#1a1a1a] border border-white/5 ${isConsecutive ? 'rounded-2xl' : 'rounded-2xl rounded-tl-none'}`
@@ -1009,6 +1128,7 @@ export default function MessagesPage() {
                                                         )}
                                                     </div>
                                                 )}
+                                                {/* Audio Message - Extracted */}
                                                 {msg.type === 'audio' && (
                                                     <AudioMessage
                                                         src={msg.content}
@@ -1021,6 +1141,19 @@ export default function MessagesPage() {
                                                         <Video className="w-4 h-4" />
                                                         <span className="text-sm font-medium">{msg.content}</span>
                                                     </div>
+                                                )}
+                                                {/* Date Proposal Card - Extracted */}
+                                                {msg.type === 'date_proposal' && (
+                                                    <DateProposalCard
+                                                        msg={msg}
+                                                        isOwn={isOwn}
+                                                        currentUserId={currentUser?.id || ''}
+                                                        onRespond={handleRespondToProposal}
+                                                        isSuggestingTime={isSuggestingTime === msg.id}
+                                                        onToggleSuggest={(id) => setIsSuggestingTime(id)}
+                                                        suggestedTimeValue={suggestedTimeValue}
+                                                        onTimeChange={(time) => setSuggestedTimeValue(time)}
+                                                    />
                                                 )}
                                             </div>
                                             {!isEmoji && !msg.id.startsWith('temp-') && (
@@ -1407,6 +1540,40 @@ export default function MessagesPage() {
                 onClose={() => setUpsellModal({ ...upsellModal, isOpen: false })}
                 title={upsellModal.title}
                 description={upsellModal.desc}
+            />
+
+            <DateSuggestionPanel
+                isOpen={showDatePanel}
+                onClose={() => setShowDatePanel(false)}
+                isFetching={isFetchingDate}
+                suggestions={dateSuggestions}
+                selectedCategory={selectedDateCategory}
+                onCategoryChange={(id) => setSelectedDateCategory(id)}
+                proposalDateTimes={proposalDateTimes}
+                onTimeChange={(placeId, time) => setProposalDateTimes(prev => ({ ...prev, [placeId]: time }))}
+                onPropose={(place, selectedTime) => {
+                    const formattedDate = new Date(selectedTime).toLocaleString([], {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    const message = `Check out this spot: ${place.name}! How does ${formattedDate} sound?`;
+                    const metadata = {
+                        placeId: place.id,
+                        name: place.name,
+                        address: place.address,
+                        rating: place.rating,
+                        scheduledAt: selectedTime,
+                        photo: place.photo_reference
+                            ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photo_reference}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`
+                            : undefined
+                    };
+                    handleSendMessage(message, 'date_proposal', metadata);
+                    setShowDatePanel(false);
+                }}
             />
         </div>
     );
