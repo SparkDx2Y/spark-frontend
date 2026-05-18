@@ -10,7 +10,7 @@ export default function CareersPage() {
                     Join Our <span className="text-primary">Team</span>
                 </h1>
                 <p className="text-gray-400 text-lg md:text-xl max-w-xl mb-10 font-light leading-relaxed">
-                    We're always looking for passionate people to join Spark. Open positions will be listed here soon.
+                    We&apos;re always looking for passionate people to join Spark. Open positions will be listed here soon.
                 </p>
                 
                 <Link 

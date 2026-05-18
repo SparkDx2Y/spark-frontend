@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Calendar, Star, MapPin, Clock, ExternalLink, Check, Send } from 'lucide-react';
+import { Calendar, Star, MapPin, Clock, ExternalLink, Check } from 'lucide-react';
 import { MessageResponse } from '@/types/message/response';
 import CountdownTimer from './CountdownTimer';
 import { formatDate } from '@/utils/date';
@@ -84,7 +84,7 @@ export default function DateProposalCard({
                 )}
 
                 <div className="text-[10px] text-gray-400 leading-snug italic bg-white/5 p-2 rounded-lg border border-white/5">
-                    "{msg.content}"
+                    &quot;{msg.content}&quot;
                 </div>
 
                 <div className="flex gap-2">

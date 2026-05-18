@@ -31,7 +31,7 @@ export default function AuthInitializer({ children }: { children: React.ReactNod
                         }
                     }));
                 }
-            } catch (error) {
+            } catch  {
                 // console.error('AuthInitializer: Failed to fetch user', error);
             } finally {
                 dispatch(setLoading(false));

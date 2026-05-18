@@ -32,7 +32,7 @@ const SplitFlipSection = () => {
       const heading = headingRef.current
       if (!section || !row || !heading) return
 
-      let mm = gsap.matchMedia()
+      const mm = gsap.matchMedia()
       mm.add("(min-width: 768px)", () => {
 
       const cards = row.querySelectorAll<HTMLElement>("[data-card-shell]")

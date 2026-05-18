@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
-import { X, Play, Pause, Scissors, Timer, Activity } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Play, Scissors, Timer, Activity } from "lucide-react";
+import { motion } from "framer-motion";
 import Modal from "@/components/ui/Modal";
 
 interface VideoTrimmerModalProps {
