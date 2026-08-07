@@ -11,7 +11,7 @@ export default function AboutPage() {
                     About <Image src='/SparkLogo.png' alt='Spark' width={200} height={80} priority className="h-10 md:h-14 w-auto object-contain translate-y-1" />
                 </h1>
                 <p className="text-gray-400 text-lg md:text-xl max-w-xl mb-10 font-light leading-relaxed">
-                    We're building something amazing behind the scenes. Our story is still being written — check back soon!
+                    We&apos;re building something amazing behind the scenes. Our story is still being written — check back soon!
                 </p>
                 
                 <Link 

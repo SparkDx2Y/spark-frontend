@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, RefreshCw, Circle, CheckCircle2, AlertCircle, Loader2, Video, Camera as CameraIcon, Timer, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { RefreshCw,CheckCircle2, AlertCircle, Timer, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Modal from '@/components/ui/Modal';
-import Button from '@/components/ui/Button';
+
 
 interface VideoRecorderModalProps {
     isOpen: boolean;

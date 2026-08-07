@@ -6,7 +6,7 @@ import { SocketProvider } from "@/contexts/SocketContext";
 import { VideoCallProvider } from "@/contexts/VideoCallContext";
 
 export const metadata: Metadata = {
-  title: 'Spark',
+  title: 'Spark Dating',
   description: 'Find your spark!',
 }
 

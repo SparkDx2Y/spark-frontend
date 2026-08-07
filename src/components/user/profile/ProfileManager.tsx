@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Loader2, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { Camera, Loader2, Plus, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { updateProfile } from "@/services/profileService";
 import { uploadFile, uploadMultipleFiles } from "@/services/fileService";
