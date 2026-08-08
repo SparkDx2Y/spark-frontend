@@ -11,6 +11,7 @@ export interface User {
     profilePhoto?: string | null;
     interests?: string[];
     hasPassword?: boolean;
+    nameChanged?: boolean;
 }
 
 interface AuthState {

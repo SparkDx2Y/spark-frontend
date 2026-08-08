@@ -25,9 +25,11 @@ interface ProfileManagerProps {
 export default function ProfileManager({ initialProfile }: ProfileManagerProps) {
     //  Initialize state WITH the server-fetched data
     const [profile, setProfile] = useState<ProfileResponse>(initialProfile);
-    const [saving, setSaving] = useState({ avatar: false, cover: false, gallery: false, location: false, interests: false, bio: false, vibe: false });
+    const [saving, setSaving] = useState({ avatar: false, cover: false, gallery: false, location: false, interests: false, bio: false, vibe: false, name: false });
     const [isEditingBio, setIsEditingBio] = useState(false);
     const [tempBio, setTempBio] = useState(initialProfile.bio || "");
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [tempName, setTempName] = useState(initialProfile.name || "");
 
     // Interests state
     const [showInterestModal, setShowInterestModal] = useState(false);
@@ -390,6 +392,42 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
         }
     };
 
+    const handleSaveName = async () => {
+        const currentName = authUser?.name || profile.name;
+        if (tempName === currentName) {
+            setIsEditingName(false);
+            return;
+        }
+
+        if (tempName.trim().length < 2) {
+            showError("Name must be at least 2 characters");
+            return;
+        }
+
+        try {
+            setSaving(prev => ({ ...prev, name: true }));
+            const response = await updateProfile({ name: tempName.trim() });
+            
+            setProfile(prev => ({
+                ...prev,
+                name: tempName.trim()
+            }));
+
+            if (authUser) {
+                dispatch(setCredentials({
+                    user: { ...authUser, name: tempName.trim(), nameChanged: true }
+                }));
+            }
+
+            setIsEditingName(false);
+            showSuccess("Name updated!");
+        } catch (error) {
+            handleApiError(error, "Failed to update name");
+        } finally {
+            setSaving(prev => ({ ...prev, name: false }));
+        }
+    };
+
     return (
         <div className="relative min-h-screen bg-black text-white">
             <div className="absolute inset-0 bg-linear-to-b from-primary/10 via-transparent to-black pointer-events-none" />
@@ -608,9 +646,51 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                         <div className="flex-1 flex flex-col justify-center pt-1 md:pl-4">
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
-                                        {authUser?.name || profile.name}
-                                    </h1>
+                                    <div className="flex items-center gap-3">
+                                        {isEditingName ? (
+                                            <div className="flex flex-col gap-1 w-full max-w-sm">
+                                                <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl p-2 w-full">
+                                                    <input
+                                                        type="text"
+                                                        value={tempName}
+                                                        onChange={(e) => setTempName(e.target.value)}
+                                                        className="bg-transparent text-2xl md:text-3xl font-black text-white w-full focus:outline-none px-2"
+                                                        maxLength={50}
+                                                        autoFocus
+                                                    />
+                                                    <div className="flex gap-1 shrink-0">
+                                                        <button onClick={handleSaveName} disabled={saving.name} className="p-2 bg-primary/20 hover:bg-primary/40 rounded-lg text-primary transition-colors">
+                                                            {saving.name ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                                        </button>
+                                                        <button onClick={() => setIsEditingName(false)} className="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-colors">
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <p className="text-[10px] text-primary/80 uppercase tracking-widest pl-2">
+                                                    Choose wisely! You can only change this once.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="group/name flex items-center gap-3">
+                                                <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
+                                                    {authUser?.name || profile.name}
+                                                </h1>
+                                                {!authUser?.nameChanged && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setTempName(authUser?.name || profile.name || "");
+                                                            setIsEditingName(true);
+                                                        }}
+                                                        className="p-2 bg-white/5 hover:bg-primary/20 rounded-full opacity-100 md:opacity-0 group-hover/name:opacity-100 transition-all text-primary"
+                                                        title="Edit name (One time only)"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="flex flex-wrap gap-2">
                                         <span className="px-3 py-1 rounded-full bg-white/10 text-[10px] font-bold border border-white/10 uppercase tracking-widest text-gray-300">
                                             {profile.age} Years Old
@@ -638,13 +718,13 @@ export default function ProfileManager({ initialProfile }: ProfileManagerProps) 
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="group/bio relative">
+                                        <div className="group/bio flex items-start gap-2">
                                             <p className="text-gray-300 text-lg md:text-xl leading-relaxed font-light italic max-w-2xl">
                                                 {profile.bio ? `"${profile.bio}"` : "Add a bio to complete your vibe..."}
                                             </p>
                                             <button
                                                 onClick={() => setIsEditingBio(true)}
-                                                className="absolute -top-1 -right-8 p-2 bg-white/5 hover:bg-primary/20 rounded-full opacity-0 group-hover/bio:opacity-100 transition-all text-primary"
+                                                className="shrink-0 mt-1 p-2 bg-white/5 hover:bg-primary/20 rounded-full opacity-100 md:opacity-0 group-hover/bio:opacity-100 transition-all text-primary"
                                             >
                                                 <Edit2 className="w-4 h-4" />
                                             </button>

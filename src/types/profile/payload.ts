@@ -10,6 +10,7 @@ export interface CompleteProfilePayload {
 }
 
 export interface UpdateProfilePayload {
+    name?: string;
     age?: number;
     gender?: 'male' | 'female';
     interestedIn?: 'male' | 'female';
