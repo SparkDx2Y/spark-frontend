@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
+import Link from 'next/link';
 
 const Hero = () => {
   const ref = useRef(null);
@@ -95,10 +96,12 @@ const Hero = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <button className="group relative bg-linear-to-r from-primary to-pink-600 text-white rounded-full px-8 xs:px-10 sm:px-12 py-3 xs:py-4 font-semibold text-base xs:text-lg shadow-lg shadow-primary/50 hover:shadow-xl hover:shadow-primary/70 transition-all duration-300 hover:scale-105 overflow-hidden w-full sm:w-auto">
-                <span className="relative z-10">CREATE ACCOUNT</span>
-                <div className="absolute inset-0 bg-linear-to-r from-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </button>
+              <Link href="/signup" className="w-full sm:w-auto">
+                <button className="group relative bg-linear-to-r from-primary to-pink-600 text-white rounded-full px-8 xs:px-10 sm:px-12 py-3 xs:py-4 font-semibold text-base xs:text-lg shadow-lg shadow-primary/50 hover:shadow-xl hover:shadow-primary/70 transition-all duration-300 hover:scale-105 overflow-hidden w-full sm:w-auto cursor-pointer">
+                  <span className="relative z-10">CREATE ACCOUNT</span>
+                  <div className="absolute inset-0 bg-linear-to-r from-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </button>
+              </Link>
             </motion.div>
 
             {/* Trust Indicators - Responsive */}
