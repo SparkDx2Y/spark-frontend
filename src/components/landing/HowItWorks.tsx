@@ -49,7 +49,7 @@ const profiles = [
 const HowItWorks = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const containerRef = useRef(null);
-    const isInView = useInView(containerRef, { once: false, amount: 0.3 });
+    const isInView = useInView(containerRef, { once: false, amount: 0.1 });
 
     useEffect(() => {
         if (!isInView) return;
@@ -69,7 +69,7 @@ const HowItWorks = () => {
                 className="text-center mb-16 lg:mb-24 relative z-10"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
+                viewport={{ once: true, amount: 0.1 }}
                 transition={{ duration: 0.8 }}
             >
                 <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold font-mono tracking-tighter text-white mb-6">
@@ -90,7 +90,7 @@ const HowItWorks = () => {
                         className="group text-center lg:text-right"
                         initial={{ opacity: 0, x: -50 }}
                         whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.3 }}
+                        viewport={{ once: true, amount: 0.1 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                     >
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/10 text-blue-400 font-bold text-xl mb-4 border border-blue-500/20 group-hover:scale-110 transition-transform duration-300">01</div>
@@ -105,7 +105,7 @@ const HowItWorks = () => {
                         className="group text-center lg:text-right"
                         initial={{ opacity: 0, x: -50 }}
                         whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.3 }}
+                        viewport={{ once: true, amount: 0.1 }}
                         transition={{ duration: 0.6, delay: 0.4 }}
                     >
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-500/10 text-purple-400 font-bold text-xl mb-4 border border-purple-500/20 group-hover:scale-110 transition-transform duration-300">02</div>
@@ -224,7 +224,7 @@ const HowItWorks = () => {
                         className="group text-center lg:text-left"
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.3 }}
+                        viewport={{ once: true, amount: 0.1 }}
                         transition={{ duration: 0.6, delay: 0.6 }}
                     >
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-pink-500/10 text-pink-400 font-bold text-xl mb-4 border border-pink-500/20 group-hover:scale-110 transition-transform duration-300">03</div>
@@ -239,7 +239,7 @@ const HowItWorks = () => {
                         className="group text-center lg:text-left"
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, amount: 0.3 }}
+                        viewport={{ once: true, amount: 0.1 }}
                         transition={{ duration: 0.6, delay: 0.8 }}
                     >
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/10 text-orange-400 font-bold text-xl mb-4 border border-orange-500/20 group-hover:scale-110 transition-transform duration-300">04</div>
