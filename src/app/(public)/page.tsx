@@ -8,11 +8,7 @@ const SectionSkeleton = ({ h }: { h: string }) => (
   </div>
 );
 
-//* Lazy load components for better performance 
-const Stats = dynamic(() => import("@/components/landing/Stats"), {
-  ssr: true,
-  loading: () => <SectionSkeleton h="h-[400px] sm:h-[500px]" />,
-});
+// (Stats removed by user request)
 
 const Features = dynamic(() => import("@/components/landing/Features"), {
   ssr: true,
@@ -33,9 +29,8 @@ export default function LandingPage() {
     <div className="bg-black">
       <Hero />
       <SplitFlipSection />
-      <Stats />
-      <Features />
       <HowItWorks />
+      <Features />
     </div>
   );
 }

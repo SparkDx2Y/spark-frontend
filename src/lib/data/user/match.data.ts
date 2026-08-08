@@ -28,7 +28,7 @@ export async function getServerMatchFeed(): Promise<ProfileResponse[]> {
         }
 
         const data = await response.json();
-        return data.data || [];
+        return data.data?.profiles || data.data || [];
     } catch (error) {
         console.error("Error fetching match feed on server:", error);
         return [];
